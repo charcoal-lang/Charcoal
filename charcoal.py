@@ -438,6 +438,7 @@ class Canvas:
         for character in "ικλμνξοπρςστυφχψωαβγδεζηθ":
             if not character in self.scope:
                 loop_variable = character
+                break
         variable = expression(self)
         if isinstance(variable, int):
             variable = range(variable)
@@ -998,7 +999,6 @@ def ParseExpression(
                     if not result:
                         success = False
                         break
-                    # print(token, result[0])
                     tokens += [ result[0] ]
                     index = result[1]
 
@@ -1036,6 +1036,7 @@ def Parse(
             lambda match: match.group(2) if match.group(1) else "",
             code
         )
+    code += "»" * (code.count("«") - code.count("»"))
     result = ParseExpression(
         code,
         grammars=grammars,
@@ -1087,7 +1088,6 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", type=str, nargs="*", default="", help="File path of the program.")
     parser.add_argument("-c", "--code", type=str, nargs="?", default="", help="Code of the program.")
     parser.add_argument("-i", "--input", type=str, nargs="?", default="", help="Input to the program.")
-    parser.add_argument("-f", "--file", type=str, nargs="*", default="", help="File path of the program.")
     parser.add_argument("-a", "--astify", action="store_true", help="Print AST.")
     parser.add_argument("-p", "--prompt", action="store_true", help="Prompt for input.")
     parser.add_argument("-r", "--repl", action="store_true", help="Open as REPL instead of interpreting.")
@@ -1104,10 +1104,10 @@ if __name__ == "__main__":
     for path in argv.file:
         if os.path.isfile(argv.file[0]):
             with open(argv.file[0]) as file:
-                code += file.read() + "\n"
+                code += file.read()
         else:
             with open(argv.file[0] + ".cl") as file:
-                code += file.read() + "\n"
+                code += file.read()
     if argv.astify:
         print("Program")
         PrintTree(Parse(
