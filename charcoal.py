@@ -1,14 +1,34 @@
 #!/usr/bin/python3
 # vim: set fileencoding=<encoding name> :
 
-# TODO: bresenham
+# TODO List: 
+# bresenham
+# multichar background
+# input separation - do we take it as an array of python strings
+# having more than one number consecutively in the code
 
+from __future__ import print_function
+from __future__ import division
+from __future__ import unicode_literals
+
+from direction import Direction, Pivot
+from charcoaltoken import CharcoalToken
 from charactertransformers import *
+from directiondictionaries import *
+from unicodegrammars import UnicodeGrammars
+from astprocessor import ASTProcessor
+from interpreterprocessor import InterpreterProcessor
+from unicodelookup import UnicodeLookup
 from enum import Enum
 import random
 import re
 import argparse
 import os
+import sys
+import time
+
+from colorama import init
+init()
 
 if not hasattr(__builtins__, "raw_input"):
     raw_input = input
@@ -16,6 +36,16 @@ if not hasattr(__builtins__, "raw_input"):
 if not hasattr(__builtins__, "basestring"):
     basestring = str
 
+def CleanExecute(function, args):
+    try:
+        return function(*args)
+    except (KeyboardInterrupt, EOFError):
+        sys.exit()
+
+old_raw_input = raw_input
+raw_input = lambda prompt: CleanExecute(old_raw_input, prompt)
+old_input = input
+input = lambda prompt: CleanExecute(old_input, prompt)
 
 def Sign(number):
     return 1 if number > 0 else -1 if number < 0 else 0
@@ -27,170 +57,10 @@ class Modifier(Enum):
     some = 3
 
 
-class Direction(Enum):
-    left = 1
-    up = 2
-    right = 4
-    down = 8
-    up_left = 16
-    up_right = 32
-    down_left = 64
-    down_right = 128
-
-
-class Pivot(Enum):
-    left = 1
-    right = 2
-
-class CharcoalToken(Enum):
-    Arrow = 1
-    Multidirectional = 2
-    Side = 3
-    Separator = 4
-    String = 5
-    Number = 6
-    Name = 7
-
-    Arrows = 11
-    Sides = 12
-    Expressions = 13
-
-    List = 31
-
-    Expression = 21
-    Niladic = 22
-    Monadic = 23
-    Dyadic = 24
-
-    Program = 51
-    Command = 52
-    Print = 53
-    Body = 54
-    Multiprint = 55
-    Polygon = 56
-    Box = 57
-    Rectangle = 58
-    Move = 59
-    Pivot = 60
-    Jump = 61
-    Rotate = 62
-    Reflect = 63
-    Copy = 64
-    For = 65
-    While = 66
-    If = 67
-    Assign = 68
-    InputString = 69
-    InputNumber = 70
-    Fill = 71
-    SetBackground = 72
-
 class Info(Enum):
     prompt = 1
     is_repl = 2
-
-XMovement = {
-    Direction.left: -1,
-    Direction.up: 0,
-    Direction.right: 1,
-    Direction.down: 0,
-    Direction.up_left: -1,
-    Direction.up_right: 1,
-    Direction.down_left: -1,
-    Direction.down_right: 1
-}
-
-YMovement = {
-    Direction.left: 0,
-    Direction.up: -1,
-    Direction.right: 0,
-    Direction.down: 1,
-    Direction.up_left: -1,
-    Direction.up_right: -1,
-    Direction.down_left: 1,
-    Direction.down_right: 1
-}
-
-NewlineDirection = {
-    Direction.left: Direction.up,
-    Direction.up: Direction.right,
-    Direction.right: Direction.down,
-    Direction.down: Direction.left,
-    Direction.up_left: Direction.up_right,
-    Direction.up_right: Direction.down_right,
-    Direction.down_left: Direction.up_left,
-    Direction.down_right: Direction.down_left
-}
-
-DirectionCharacters = {
-    Direction.left: "-",
-    Direction.up: "|",
-    Direction.right: "-",
-    Direction.down: "|",
-    Direction.up_left: "\\",
-    Direction.up_right: "/",
-    Direction.down_left: "/",
-    Direction.down_right: "\\"
-}
-
-PivotLookup = {
-    Pivot.left: {
-        Direction.left: Direction.down_left,
-        Direction.up: Direction.up_left,
-        Direction.right: Direction.up_right,
-        Direction.down: Direction.down_right,
-        Direction.up_left: Direction.left,
-        Direction.up_right: Direction.up,
-        Direction.down_left: Direction.down,
-        Direction.down_right: Direction.right
-    },
-    Pivot.right: {
-        Direction.left: Direction.up_left,
-        Direction.up: Direction.up_right,
-        Direction.right: Direction.down_right,
-        Direction.down: Direction.down_left,
-        Direction.up_left: Direction.up,
-        Direction.up_right: Direction.right,
-        Direction.down_left: Direction.left,
-        Direction.down_right: Direction.down
-    }
-}
-
-DirectionFromXYSigns = {
-    -1: {
-        -1: Direction.down_left,
-        0: Direction.down,
-        1: Direction.down_right
-    },
-    0: {
-        -1: Direction.left,
-        0: Direction.right, # actually any
-        1: Direction.right
-    },
-    1: {
-        -1: Direction.up_left,
-        0: Direction.up,
-        1: Direction.up_right
-    }
-}
-
-DirectionFromXYSigns = {
-    -1: {
-        -1: Direction.up_left,
-        0: Direction.left,
-        1: Direction.down_left
-    },
-    0: {
-        -1: Direction.up,
-        0: Direction.right, # actually any
-        1: Direction.down
-    },
-    1: {
-        -1: Direction.up_right,
-        0: Direction.right,
-        1: Direction.down_right
-    }
-}
+    warn_ambiguities = 3
 
 
 class Coordinates:
@@ -233,16 +103,23 @@ class Charcoal:
         self.inputs = inputs
         self.direction = Direction.right
         self.background = " "
+        self.timeout_end = 0
 
 
     def __str__(self):
+        # multichar_bg = len(character) > 1
+        # if multichar_bg:
+        #     bg_lines = character.split("\n")
+
         left = min(self.indices)
         right = max(self.right_indices)
         string = ""
         for i in range(len(self.lines) - 1):
-            line = self.lines[i]
+            # line = self.lines[i]
+            # index = self.x % line_length
+            # background = self.background[index:] + self.background[:index]
             string += self.background * (self.indices[i] - left) + line + self.background * (right - self.right_indices[i]) + "\n"
-        return string + self.background * (self.indices[-1] - left) + self.lines[-1] + self.background * (right - self.right_indices[-1]) + "\n"
+        return string + self.background * (self.indices[-1] - left) + self.lines[-1] + self.background * (right - self.right_indices[-1])
 
     def Lines(self):
         left = min(self.indices)
@@ -295,7 +172,7 @@ class Charcoal:
         self.background = character[0]
 
 
-    def PrintLine(self, directions, length, string="", multiprint=False, coordinates=False, move_at_end=True, record_horizontal=False): # overload
+    def PrintLine(self, directions, length, string="", multiprint=False, coordinates=False, move_at_end=True, multichar_fill=False): # overload
         # self.most_recent = string
         # self.most_recent_x = self.x
         # self.most_recent_y = self.y
@@ -318,7 +195,7 @@ class Charcoal:
                 if direction == Direction.left:
                     self.x -= length - 1
                 self.Put((string * (int(length / len(string)) + 1))[:length])
-                if record_horizontal:
+                if multichar_fill:
                     coordinates.Add(self.x, self.y)
                     coordinates.Add(self.x + length - 1, self.y)
 
@@ -418,10 +295,10 @@ class Charcoal:
         if not fill:
             self.Multiline(sides, character)
             return
-        record_horizontal = len(character) > 1
-        if record_horizontal:
+        multichar_fill = len(character) > 1
+        if multichar_fill:
             lines = character.split("\n")
-            character = "!"
+            character = " "
         initial_x = self.x
         initial_y = self.y
         coordinates = Coordinates()
@@ -432,7 +309,7 @@ class Charcoal:
                 character,
                 coordinates=coordinates,
                 move_at_end=False,
-                record_horizontal=record_horizontal
+                multichar_fill=multichar_fill
             )
         delta_x = initial_x - self.x
         sign_x = Sign(delta_x)
@@ -451,10 +328,10 @@ class Charcoal:
             character,
             coordinates=coordinates,
             move_at_end=False,
-            record_horizontal=record_horizontal
+            multichar_fill=multichar_fill
         )
         self.y = coordinates.top
-        if record_horizontal:
+        if multichar_fill:
             number_of_lines = len(lines)
             line_length = max([len(line) for line in lines])
             lines = [line + self.background * (line_length - len(line)) for line in lines]
@@ -584,19 +461,62 @@ class Charcoal:
         self.y += y
 
 
-    def Reflect(self, direction):
+    def ReflectCopy(self, direction):
+        if direction == Direction.left:
+            pass
+        elif direction == Direction.right:
+            lines = [ line[::-1] for line in self.lines ]
+        elif direction == Direction.up:
+            lines = [ line[::-1] for line in self.lines ]
+        elif direction == Direction.down:
+            pass
+        elif direction == Direction.up_left:
+            pass
+        elif direction == Direction.up_right:
+            pass
+        elif direction == Direction.down_left:
+            pass
+        elif direction == Direction.down_right:
+            pass
+        # TODO
+
+
+    def Reflect(self, direction, copy=False):
+        if copy:
+            self.ReflectCopy(direction)
+            return
+        if direction == Direction.left or direction == Direction.right:
+            self.indices, self.right_indices = [ -index for index in self.right_indices ], [ -index for index in self.indices ]
+            self.lines = [ line[::-1] for line in self.lines ]
+        elif direction == Direction.up or direction == Direction.down:
+            self.lines.reverse()
+            self.indices.reverse()
+            self.lengths.reverse()
+            self.right_indices.reverse()
+        elif direction == Direction.up_left or direction == Direction.down_right:
+            self.Rotate(6)
+            self.Reflect(Direction.right)
+        elif direction == Direction.up_right or direction == Direction.down_left:
+            self.Rotate(2)
+            self.Reflect(Direction.right)
+
+
+    def RotateCopy(self, rotations):
         # TODO
         pass
 
 
-    def Rotate(self, number):
-        number %= 8
-        if not number:
+    def Rotate(self, rotations, copy=False):
+        if copy:
+            self.RotateCopy(direction)
+            return
+        rotations %= 8
+        if not rotations:
             return
         left = min(self.indices)
         right = max(self.right_indices)
         self.top = -right
-        if number == 2:
+        if rotations == 2:
             lines = self.Lines()
             number_of_lines = len(lines[0])
             self.indices = [ self.top ] * number_of_lines
@@ -607,12 +527,12 @@ class Charcoal:
                 for line in lines:
                     self.lines += line[i]
             self.top = left
-        elif number == 4:
+        elif rotations == 4:
             lines = self.Lines()
             number_of_lines = len(lines[0])
             [ self.right_indices, self.indices ] = [ [-index for index in self.indices], [-index for index in self.right_indices] ]
             self.lines = [ line[::-1] for line in self.lines]
-        elif number == 6:
+        elif rotations == 6:
             lines = self.Lines()
             number_of_lines = len(lines[0])
             self.indices = [ self.top ] * number_of_lines
@@ -629,13 +549,13 @@ class Charcoal:
                 3: Direction.down_right,
                 5: Direction.down_left,
                 7: Direction.up_left
-            }[number], self.top)
+            }[rotations], self.top)
             self.Move({
                 1: Direction.up_left,
                 3: Direction.up_right,
                 5: Direction.down_right,
                 7: Direction.down_left
-            }[number], min(self.indices))
+            }[rotations], min(self.indices))
             string = str(self)
             self.Clear()
             self.Print(string, directions={{
@@ -643,7 +563,7 @@ class Charcoal:
                 3: Direction.down_left,
                 5: Direction.up_left,
                 7: Direction.up_right
-            }[number]})
+            }[rotations]})
         self.x = 0
         self.y = 0
 
@@ -653,12 +573,14 @@ class Charcoal:
         pass
 
 
-    def For(self, expression, body):
-        loop_variable = ""
+    def GetLoopVariable(self):
         for character in "ικλμνξπρςστυφχψωαβγδεζηθ":
             if not character in self.scope:
-                loop_variable = character
-                break
+                return character
+
+
+    def For(self, expression, body):
+        loop_variable = self.GetLoopVariable()
         variable = expression(self)
         if isinstance(variable, int):
             variable = range(variable)
@@ -668,11 +590,7 @@ class Charcoal:
 
 
     def While(self, condition, body):
-        loop_variable = ""
-        for character in "ικλμνξπρςστυφχψωαβγδεζηθ":
-            if not character in self.scope:
-                loop_variable = character
-                break
+        loop_variable = self.GetLoopVariable()
         self.scope[loop_variable] = condition(self)
         while self.scope[loop_variable]:
             body(self)
@@ -696,9 +614,13 @@ class Charcoal:
 
 
     def Random(self, variable=1):
+        if variable == 1 and Info.warn_ambiguities in self.info:
+            print("Warning: Possible ambiguity, make sure you explicitly use 1 if needed")
         if isinstance(variable, int):
             return random.randrange(variable)
         elif isinstance(variable, list):
+            return random.choice(variable)
+        elif isinstance(variable, str):
             return random.choice(variable)
 
 
@@ -731,488 +653,52 @@ class Charcoal:
         else:
             return result
 
+
+    def Dump(self):
+        print(self)
+
+
+    def Refresh(self, timeout=0, ignore_warnings=False):
+        if not isinstance(timeout, int):
+            print("Refresh expected int, found %s" % str(timeout))
+            sys.exit()
+        elif not ignore_warnings and timeout == 0 and Info.warn_ambiguities in self.info:
+            print("Warning: Possible ambiguity, make sure you explicitly use 0 for no delay if needed")
+        try:
+            time.sleep(max(0, self.timeout_end - time.clock()))
+        except (KeyboardInterrupt, EOFError):
+            sys.exit()
+        print("\033[0;0H" + str(self))
+
+
+    def RefreshFor(self, timeout, variable, body):
+        print("\033[2J")
+        timeout /= 1000.
+        loop_variable = self.GetLoopVariable()
+        variable = variable(self)
+        if isinstance(variable, int):
+            variable = range(variable)
+        for item in variable:
+            self.timeout_end = time.clock() + timeout
+            self.scope[loop_variable] = item
+            body(self)
+            self.Refresh(ignore_warnings=True)
+
+
+    def RefreshWhile(self, timeout, condition, body):
+        print("\033[2J")
+        timeout /= 1000.
+        loop_variable = self.GetLoopVariable()
+        self.scope[loop_variable] = condition(self)
+        while self.scope[loop_variable]:
+            self.timeout_end = time.clock() + timeout
+            body(self)
+            self.Refresh(ignore_warnings=True)
+            self.scope[loop_variable] = condition(self)
+
+
 def PassThrough(result):
     return result
-
-UnicodeGrammars = {
-    CharcoalToken.Arrow: [
-        [ "←" ],
-        [ "↑" ],
-        [ "→" ],
-        [ "↓" ],
-        [ "↖" ],
-        [ "↗" ],
-        [ "↘" ],
-        [ "↙" ]
-    ],
-    CharcoalToken.Multidirectional: [
-        [ "+", CharcoalToken.Arrows ],
-        [ "x", CharcoalToken.Arrows ],
-        [ "*", CharcoalToken.Arrows ],
-        [ CharcoalToken.Arrow, CharcoalToken.Arrows ]
-    ],
-    CharcoalToken.Side: [
-        [ CharcoalToken.Arrow, CharcoalToken.Expression ]
-    ],
-    CharcoalToken.Separator: [
-        [ "¦" ],
-        [ ]
-    ],
-
-    CharcoalToken.Arrows: [
-        [ CharcoalToken.Arrow, CharcoalToken.Arrows ],
-        [ CharcoalToken.Arrow ]
-    ],
-    CharcoalToken.Sides: [
-        [ CharcoalToken.Side, CharcoalToken.Sides ],
-        [ CharcoalToken.Side ]
-    ],
-    CharcoalToken.Expressions: [
-        [ CharcoalToken.Expression, CharcoalToken.Separator, CharcoalToken.Expressions ],
-        [ CharcoalToken.Expression ]
-    ],
-
-    CharcoalToken.List: [
-        [ "⟦", CharcoalToken.Expressions, "⟧" ]
-    ],
-
-    CharcoalToken.Expression: [
-        [ CharcoalToken.Number ],
-        [ CharcoalToken.String ],
-        [ CharcoalToken.Name ],
-        [ CharcoalToken.List ],
-        [ CharcoalToken.Dyadic, CharcoalToken.Expression, CharcoalToken.Expression ],
-        [ CharcoalToken.Monadic, CharcoalToken.Expression ],
-        [ CharcoalToken.Niladic ]
-    ],
-    CharcoalToken.Niladic: [
-        [ "Ｓ" ],
-        [ "Ｎ" ],
-        [ "‽" ]
-    ],
-    CharcoalToken.Monadic: [
-        [ "⁻" ],
-        [ "Ｌ" ],
-        [ "¬" ],
-        [ "‽" ],
-        [ "Ｉ" ],
-        [ "Ｖ" ]
-    ],
-    CharcoalToken.Dyadic: [
-        [ "⁺" ],
-        [ "⁻" ],
-        [ "×" ],
-        [ "÷" ],
-        [ "﹪" ],
-        [ "⁼" ],
-        [ "‹" ],
-        [ "›" ],
-        [ "∧" ],
-        [ "∨" ]
-    ],
-
-    CharcoalToken.Program: [
-        [ CharcoalToken.Command, CharcoalToken.Program ],
-        [ ]
-    ],
-    CharcoalToken.Command: [
-        [ CharcoalToken.InputString ],
-        [ CharcoalToken.InputNumber ],
-        [ CharcoalToken.Print ],
-        [ CharcoalToken.Multiprint ],
-        [ CharcoalToken.Polygon ],
-        [ CharcoalToken.Box ],
-        [ CharcoalToken.Rectangle ],
-        [ CharcoalToken.Move ],
-        [ CharcoalToken.Pivot ],
-        [ CharcoalToken.Jump ],
-        [ CharcoalToken.Rotate ],
-        [ CharcoalToken.Reflect ],
-        [ CharcoalToken.Copy ],
-        [ CharcoalToken.For ],
-        [ CharcoalToken.While ],
-        [ CharcoalToken.If ],
-        [ CharcoalToken.Assign ],
-        [ CharcoalToken.Fill ],
-        [ CharcoalToken.SetBackground ]
-    ],
-    CharcoalToken.Body: [
-        [ "«", CharcoalToken.Program, "»" ],
-        [ CharcoalToken.Command ]
-    ],
-    CharcoalToken.Print: [
-        [ CharcoalToken.Arrow, CharcoalToken.Expression ],
-        [ CharcoalToken.Expression ]
-    ],
-    CharcoalToken.Multiprint: [
-        [ "Ｐ", CharcoalToken.Multidirectional, CharcoalToken.Expression ]
-    ],
-    CharcoalToken.Box: [
-        [ "Ｂ", CharcoalToken.Expression, CharcoalToken.Expression ]
-    ],
-    CharcoalToken.Rectangle: [
-        [ "Ｒ", CharcoalToken.Expression, CharcoalToken.Expression ]
-    ],
-    CharcoalToken.Polygon: [
-        [ "Ｇ", CharcoalToken.Sides, CharcoalToken.Expression ],
-        [ "Ｇ", CharcoalToken.Arrows, CharcoalToken.Expression, CharcoalToken.Expression ]
-    ],
-    CharcoalToken.Move: [
-        [ CharcoalToken.Arrow ],
-        [ "Ｍ", CharcoalToken.Arrow ],
-        [ "Ｍ", CharcoalToken.Expression, CharcoalToken.Arrow ]
-    ],
-    CharcoalToken.Pivot: [
-        [ "↶", CharcoalToken.Expression ],
-        [ "↶" ],
-        [ "↷", CharcoalToken.Expression ],
-        [ "↷" ]
-    ],
-    CharcoalToken.Jump: [
-        [ "Ｊ", CharcoalToken.Expression, CharcoalToken.Expression ]
-    ],
-    CharcoalToken.Rotate: [
-        [ "⟲", CharcoalToken.Expression ]
-    ],
-    CharcoalToken.Reflect: [
-        # TODO: command character*
-        [ CharcoalToken.Arrow ]
-    ],
-    CharcoalToken.Copy: [
-        [ "Ｃ", CharcoalToken.Expression, CharcoalToken.Expression ]
-    ],
-    CharcoalToken.For: [
-        [ "Ｆ", CharcoalToken.Expression, CharcoalToken.Body ]
-    ],
-    CharcoalToken.While: [
-        [ "Ｗ", CharcoalToken.Expression, CharcoalToken.Body ]
-    ],
-    CharcoalToken.If: [
-        [ "¿", CharcoalToken.Expression, CharcoalToken.Body, CharcoalToken.Body ]
-    ],
-    CharcoalToken.Assign: [
-        [ "Ａ", CharcoalToken.Name, CharcoalToken.Expression ]
-    ],
-    CharcoalToken.Fill: [
-        [ "¤", CharcoalToken.Expression ]
-    ],
-    CharcoalToken.SetBackground: [
-        [ "ＵＢ", CharcoalToken.Expression ]
-    ],
-    CharcoalToken.InputString: [
-        [ "Ｓ", CharcoalToken.Name ]
-    ],
-    CharcoalToken.InputNumber: [
-        [ "Ｎ", CharcoalToken.Name ]
-    ]
-}
-
-ASTProcessor = {
-    CharcoalToken.Arrow: [
-        lambda result: "Left",
-        lambda result: "Up",
-        lambda result: "Right",
-        lambda result: "Down",
-        lambda result: "Up Left",
-        lambda result: "Up Right",
-        lambda result: "Down Right",
-        lambda result: "Down Left"
-    ],
-    CharcoalToken.Multidirectional: [ PassThrough ] * len(UnicodeGrammars[CharcoalToken.Multidirectional]),
-    CharcoalToken.Side: [
-        lambda result: [ "Side" ] + result
-    ],
-    CharcoalToken.String: [
-        lambda result: [ "String \"%s\"" % result[0] ]
-    ],
-    CharcoalToken.Number: [
-        lambda result: [ "Number %s" % str(result[0]) ]
-    ],
-    CharcoalToken.Name: [
-        lambda result: [ "Identifier %s" % str(result[0]) ]
-    ],
-    CharcoalToken.Separator: [
-        lambda result: None
-    ],
-
-    CharcoalToken.Arrows: [
-        lambda result: [ "Arrows", result[0] ] + result[1][1:],
-        lambda result: [ "Arrows", result[0] ]
-    ],
-    CharcoalToken.Sides: [
-        lambda result: [ "Sides", result[0] ] + result[1][1:],
-        lambda result: [ "Sides", result[0] ]
-    ],
-    CharcoalToken.Expressions: [
-        lambda result: [ "Expressions", result[0] ] + result[2][1:],
-        lambda result: [ "Expressions", result[0] ]
-    ],
-
-    CharcoalToken.List: [
-        lambda result: [ "List" ] + result[1][1:]
-    ],
-
-    CharcoalToken.Expression: [ lambda result: result[0] if len(result) == 1 else result ] * len(UnicodeGrammars[CharcoalToken.Expression]),
-    CharcoalToken.Niladic: [
-        lambda result: "Input String",
-        lambda result: "Input Number",
-        lambda result: "Random"
-    ],
-    CharcoalToken.Monadic: [
-        lambda result: "Negative",
-        lambda result: "Length",
-        lambda result: "Not",
-        lambda result: "Cast",
-        lambda result: "Random",
-        lambda result: "Evaluate"
-    ],
-    CharcoalToken.Dyadic: [
-        lambda result: "Sum",
-        lambda result: "Difference",
-        lambda result: "Product",
-        lambda result: "Quotient",
-        lambda result: "Modulo",
-        lambda result: "Equals",
-        lambda result: "Less Than",
-        lambda result: "Greater Than",
-        lambda result: "And",
-        lambda result: "Or"
-    ],
-
-    CharcoalToken.Program: [
-        lambda result: [ "Program", result[0] ] + result[1][1:],
-        lambda result: [ "Program" ]
-    ],
-    CharcoalToken.Command: [lambda result: result[0]] * len(UnicodeGrammars[CharcoalToken.Command]),
-    CharcoalToken.Body: [
-        lambda result: result[1],
-        lambda result: result[0]
-    ],
-    CharcoalToken.Print: [
-        lambda result: [ "Print" ] + result,
-        lambda result: [ "Print" ] + result
-    ],
-    CharcoalToken.Multiprint: [
-        lambda result: [ "Multiprint" ] + result[1:]
-    ],
-    CharcoalToken.Box: [
-        lambda result: [ "Box" ] + result[1:]
-    ],
-    CharcoalToken.Rectangle: [
-        lambda result: [ "Rectangle" ] + result[1:]
-    ],
-    CharcoalToken.Polygon: [
-        lambda result: [ "Polygon" ] + result[1:],
-        lambda result: [ "Polygon" ] + result[1:] 
-    ],
-    CharcoalToken.Move: [
-        lambda result: [ "Move" ] + result,
-        lambda result: [ "Move" ] + result[1:],
-        lambda result: [ "Move" ] + result[1:]
-    ],
-    CharcoalToken.Pivot: [
-        lambda result: [ "Pivot Left", result[1] ],
-        lambda result: [ "Pivot Left" ],
-        lambda result: [ "Pivot Right", result[1] ],
-        lambda result: [ "Pivot Right" ]
-    ],
-    CharcoalToken.Jump: [
-        lambda result: [ "Jump" ] + result[1:]
-    ],
-    CharcoalToken.Rotate: [
-        lambda result: [ "Reflect" ] + result[1:]
-    ],
-    CharcoalToken.Reflect: [
-        lambda result: [ "Reflect" ] + result[1:]
-    ],
-    CharcoalToken.Copy: [
-        lambda result: [ "Copy" ] + result[1:]
-    ],
-    CharcoalToken.For: [
-        lambda result: [ "For" ] + result[1:]
-    ],
-    CharcoalToken.While: [
-        lambda result: [ "While" ] + result[1:]
-    ],
-    CharcoalToken.If: [
-        lambda result: [ "If" ] + result[1:]
-    ],
-    CharcoalToken.Assign: [
-        lambda result: [ "Assign" ] + result[1:]
-    ],
-    CharcoalToken.Fill: [
-        lambda result: [ "Fill" ] + result[1:]
-    ],
-    CharcoalToken.SetBackground: [
-        lambda result: [ "SetBackground", result[1] ]
-    ],
-    CharcoalToken.InputString: [
-        lambda result: [ "Input String", result[1] ]
-    ],
-    CharcoalToken.InputNumber: [
-        lambda result: [ "Input Number", result[1] ]
-    ]
-}
-
-InterpreterProcessor = {
-    CharcoalToken.Arrow: [
-        lambda result: Direction.left,
-        lambda result: Direction.up,
-        lambda result: Direction.right,
-        lambda result: Direction.down,
-        lambda result: Direction.up_left,
-        lambda result: Direction.up_right,
-        lambda result: Direction.down_right,
-        lambda result: Direction.down_left
-    ],
-    CharcoalToken.Multidirectional: [
-        lambda result: [ Direction.right, Direction.down, Direction.left, directio.up ] + result[1],
-        lambda result: [ Direction.up_right, Direction.down_right, Direction.down_left, Direction.up_left ] + result[1],
-        lambda result: [ Direction.right, Direction.down_right, Direction.down, Direction.down_left, Direction.left, Direction.up_left, Direction.up, Direction.up_right ] + result[1],
-        lambda result: [ result[0] ] + result[1]
-    ],
-    CharcoalToken.Side: [
-        lambda result: lambda charcoal: (result[0], result[1](charcoal))
-    ],
-    CharcoalToken.String: [
-        lambda result: result
-    ],
-    CharcoalToken.Number: [
-        lambda result: result
-    ],
-    CharcoalToken.Name: [
-        lambda result: result
-    ],
-    CharcoalToken.Separator: [
-        lambda result: None
-    ],
-
-    CharcoalToken.Arrows: [
-        lambda result: [ result[0] ] + result[1],
-        lambda result: [ result[0] ]
-    ],
-    CharcoalToken.Sides: [
-        lambda result: lambda charcoal: [ result[0](charcoal) ] + result[1](charcoal),
-        lambda result: lambda charcoal: [ result[0](charcoal) ]
-    ],
-    CharcoalToken.Expressions: [
-        lambda result: lambda charcoal: [ result[0](charcoal) ] + result[2](charcoal),
-        lambda result: lambda charcoal: [ result[0](charcoal) ]
-    ],
-
-    CharcoalToken.List: [
-        lambda result: lambda charcoal: result[1](charcoal)
-    ],
-
-    CharcoalToken.Expression: [
-        lambda result: lambda charcoal: result[0],
-        lambda result: lambda charcoal: result[0],
-        lambda result: lambda charcoal: charcoal.scope[result[0]],
-        lambda result: lambda charcoal: result[1](charcoal),
-        lambda result: lambda charcoal: result[0](result[1](charcoal), result[2](charcoal), charcoal),
-        lambda result: lambda charcoal: result[0](result[1](charcoal), charcoal),
-        lambda result: lambda charcoal: result[0](charcoal)
-    ],
-    CharcoalToken.Niladic: [
-        lambda result: lambda charcoal: charcoal.InputString(),
-        lambda result: lambda charcoal: charcoal.InputNumber(),
-        lambda result: lambda charcoal: charcoal.Random()
-    ],
-    CharcoalToken.Monadic: [
-        lambda result: lambda item, charcoal: -item,
-        lambda result: lambda item, charcoal: len(item),
-        lambda result: lambda item, charcoal: int(not item),
-        lambda result: lambda item, charcoal: charcoal.Cast(item),
-        lambda result: lambda item, charcoal: charcoal.Random(item),
-        lambda result: lambda item, charcoal: Parse(result[1](charcoal), processor=InterpreterProcessor)(charcoal)
-    ],
-    CharcoalToken.Dyadic: [
-        lambda result: lambda left, right, charcoal: left + right,
-        lambda result: lambda left, right, charcoal: left - right,
-        lambda result: lambda left, right, charcoal: left * right,
-        lambda result: lambda left, right, charcoal: int(left / right),
-        lambda result: lambda left, right, charcoal: left % right,
-        lambda result: lambda left, right, charcoal: left == right,
-        lambda result: lambda left, right, charcoal: left < right,
-        lambda result: lambda left, right, charcoal: left > right,
-        lambda result: lambda left, right, charcoal: int(left and right),
-        lambda result: lambda left, right, charcoal: int(left or right)
-    ],
-
-    CharcoalToken.Program: [
-        lambda result: lambda charcoal: (result[0](charcoal) or True) and result[1](charcoal),
-        lambda result: lambda charcoal: None
-    ],
-    CharcoalToken.Command: [ lambda result: lambda charcoal: result[0](charcoal) ] * len(UnicodeGrammars[CharcoalToken.Command]),
-    CharcoalToken.Body: [
-        lambda result: lambda charcoal: result[1](charcoal),
-        lambda result: lambda charcoal: result[0](charcoal)
-    ],
-    CharcoalToken.Print: [
-        lambda result: lambda charcoal: charcoal.Print(result[1](charcoal), directions={result[0]}),
-        lambda result: lambda charcoal: charcoal.Print(result[0](charcoal))
-    ],
-    CharcoalToken.Multiprint: [
-        lambda result: lambda charcoal: charcoal.Multiprint(result[2](charcoal), directions=set(result[1]))
-    ],
-    CharcoalToken.Box: [
-        lambda result: lambda charcoal: charcoal.Rectangle(result[1](charcoal), result[2](charcoal), result[3](charcoal))
-    ],
-    CharcoalToken.Rectangle: [
-        lambda result: lambda charcoal: charcoal.Rectangle(result[1](charcoal), result[2](charcoal))
-    ],
-    CharcoalToken.Polygon: [
-        lambda result: lambda charcoal: charcoal.Polygon(result[1](charcoal), result[2](charcoal)),
-        lambda result: lambda charcoal: charcoal.Polygon([[(side, length) for side in result[1]] for length in [ result[2](charcoal)]][0], result[3](charcoal))
-    ],
-    CharcoalToken.Move: [
-        lambda result: lambda charcoal: charcoal.Move(result[0]),
-        lambda result: lambda charcoal: charcoal.Move(result[1]),
-        lambda result: lambda charcoal: charcoal.Move(result[2], result[1](charcoal))
-    ],
-    CharcoalToken.Pivot: [
-        lambda result: lambda charcoal: charcoal.Pivot(Pivot.left, result[1](charcoal)),
-        lambda result: lambda charcoal: charcoal.Pivot(Pivot.left),
-        lambda result: lambda charcoal: charcoal.Pivot(Pivot.right, result[1](charcoal)),
-        lambda result: lambda charcoal: charcoal.Pivot(Pivot.right)
-    ],
-    CharcoalToken.Jump: [
-        lambda result: lambda charcoal: charcoal.Jump(result[1](charcoal), result[2](charcoal))
-    ],
-    CharcoalToken.Rotate: [
-        lambda result: lambda charcoal: charcoal.Rotate(result[1](charcoal))
-    ],
-    CharcoalToken.Reflect: [
-        lambda result: lambda charcoal: charcoal.Reflect(result[1])
-    ],
-    CharcoalToken.Copy: [
-        lambda result: lambda charcoal: charcoal.Copy(result[1](charcoal), result[2](charcoal))
-    ],
-    CharcoalToken.For: [
-        lambda result: lambda charcoal: charcoal.For(result[1], result[2])
-    ],
-    CharcoalToken.While: [
-        lambda result: lambda charcoal: charcoal.While(result[1], result[2])
-    ],
-    CharcoalToken.If: [
-        lambda result: lambda charcoal: charcoal.If(result[1], result[2], result[3])
-    ],
-    CharcoalToken.Assign: [
-        lambda result: lambda charcoal: charcoal.Assign(result[1], result[2](charcoal))
-    ],
-    CharcoalToken.Fill: [
-        lambda result: lambda charcoal: charcoal.Fill(result[1](charcoal))
-    ],
-    CharcoalToken.SetBackground: [
-        lambda result: lambda charcoal: charcoal.SetBackground(result[1](charcoal))
-    ],
-    CharcoalToken.InputString: [
-        lambda result: lambda charcoal: charcoal.InputString(result[1])
-    ],
-    CharcoalToken.InputNumber: [
-        lambda result: lambda charcoal: charcoal.InputNumber(result[1])
-    ]
-}
 
 SuperscriptToNormal = {
     "⁰": 0,
@@ -1236,8 +722,8 @@ def ParseExpression(
         processor=ASTProcessor
     ):
     original_index = index
-
     lexeme_index = 0
+
     for lexeme in grammars[grammar]:
         success = True
         index = original_index
@@ -1358,15 +844,18 @@ def Parse(
         code,
         grammars=UnicodeGrammars,
         processor=ASTProcessor,
-        whitespace=False
+        whitespace=False,
+        normal_encoding=False
     ):
+    if normal_encoding:
+        code = "".join([ UnicodeLookup[character] if character in UnicodeLookup else character for character in code ])
     if whitespace:
         code = re.sub(
-            r"(´)?(\s)",
-            lambda match: match.group(2) if match.group(1) else "",
+            r"(´.)?\s+",
+            lambda match: match.group(1)[1] if match.group(1) else "",
             code
         )
-    code += "»" * (code.count("«") - code.count("»"))
+    code += "»" * code.count("«") # because of escaped characters, will need to change to custom universal end closing character (not to be used by the user) if we have autoclosing delimited strings, lists etc
     result = ParseExpression(
         code,
         grammars=grammars,
@@ -1412,56 +901,78 @@ def PrintTree(tree, padding=""):
             else:
                 print(new_padding + str(item))
 
+
+def AddAmbiguityWarnings():
+    ASTProcessor[CharcoalToken.Monadic][4] = lambda result: "Random [Warning: May be ambiguous]"
+    ASTProcessor[CharcoalToken.Refresh][0] = lambda: [ "Refresh [Warning: May be ambiguous]" ] # TODO: implement
+
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) == 1:
-        # No command-line args given--run in interactive mode
-        interactive = True
-    else:
-        interactive = False
+    interactive = len(sys.argv) == 1
+
     parser = argparse.ArgumentParser(description="Interpret the Charcoal language.")
     parser.add_argument("-f", "--file", type=str, nargs="*", default="", help="File path of the program.")
     parser.add_argument("-c", "--code", type=str, nargs="?", default="", help="Code of the program.")
     parser.add_argument("-i", "--input", type=str, nargs="?", default="", help="Input to the program.")
+    parser.add_argument("-e", "--normalencoding", action="store_true", help="Use custom codepage.")
     parser.add_argument("-a", "--astify", action="store_true", help="Print AST.")
     parser.add_argument("-p", "--prompt", action="store_true", help="Prompt for input.")
     parser.add_argument("-r", "--repl", action="store_true", help="Open as REPL instead of interpreting.")
-    parser.add_argument("-w", "--whitespace", action="store_true", help="Ignore all whitespace unless prefixed by a `.")
+    parser.add_argument("-w", "--whitespace", action="store_true", help="Ignore all whitespace unless prefixed by a ´.")
+    parser.add_argument("-Wam", "--Wambiguities", action="store_true", help="Warn the user of any ambiguities.")
     parser.add_argument("-t", "--test", action="store_true", help="Run unit tests.")
     argv = parser.parse_args()
     info = set()
-    if argv.prompt or interactive:
+
+    if argv.Wambiguities:
+        info.add(Info.warn_ambiguities)
+        AddAmbiguityWarnings()
+
+    if argv.prompt:
         info.add(Info.prompt)
+
     if argv.repl or interactive:
         info.add(Info.prompt)
         info.add(Info.is_repl)
+
     code = ""
+
     for path in argv.file:
+
         if os.path.isfile(argv.file[0]):
             with open(argv.file[0]) as file:
                 code += file.read()
+
         else:
             with open(argv.file[0] + ".cl") as file:
                 code += file.read()
+
     if argv.astify:
         print("Program")
         PrintTree(Parse(
             code,
-            whitespace=argv.whitespace
+            whitespace=argv.whitespace,
+            normal_encoding=argv.normalencoding
         ))
+
     charcoal = Charcoal(info=info)
     # charcoal.inputs = eval(argv.input) # TODO: fix
+
     if argv.repl or interactive:
+
         while True:
+
             try:
                 Parse(
                     raw_input("Charcoal> "),
                     whitespace=argv.whitespace,
-                    processor=InterpreterProcessor
+                    processor=InterpreterProcessor,
+                    normal_encoding=argv.normalencoding
                 )(charcoal)
                 print(charcoal)
+
             except (KeyboardInterrupt, EOFError):
                 break
+
     else:
-        Parse(code, processor=InterpreterProcessor)(charcoal)
+        Parse(code, whitespace=argv.whitespace, processor=InterpreterProcessor, normal_encoding=argv.normalencoding)(charcoal)
         print(charcoal)
