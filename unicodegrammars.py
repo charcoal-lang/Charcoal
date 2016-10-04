@@ -34,7 +34,10 @@ UnicodeGrammars = {
         [ CharcoalToken.Side ]
     ],
     CharcoalToken.Expressions: [
-        [ CharcoalToken.Expression, CharcoalToken.Separator, CharcoalToken.Expressions ],
+        [
+            CharcoalToken.Expression,
+            CharcoalToken.Expressions
+        ],
         [ CharcoalToken.Expression ]
     ],
 
@@ -43,13 +46,22 @@ UnicodeGrammars = {
     ],
 
     CharcoalToken.Expression: [
-        [ CharcoalToken.Number ],
-        [ CharcoalToken.String ],
-        [ CharcoalToken.Name ],
-        [ CharcoalToken.List ],
-        [ CharcoalToken.Dyadic, CharcoalToken.Expression, CharcoalToken.Expression ],
-        [ CharcoalToken.Monadic, CharcoalToken.Expression ],
-        [ CharcoalToken.Niladic ]
+        [ CharcoalToken.Number, CharcoalToken.Separator ],
+        [ CharcoalToken.String , CharcoalToken.Separator],
+        [ CharcoalToken.Name, CharcoalToken.Separator ],
+        [ CharcoalToken.List, CharcoalToken.Separator ],
+        [
+            CharcoalToken.Dyadic,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            CharcoalToken.Separator
+        ],
+        [
+            CharcoalToken.Monadic,
+            CharcoalToken.Expression,
+            CharcoalToken.Separator
+        ],
+        [ CharcoalToken.Niladic, CharcoalToken.Separator ]
     ],
     CharcoalToken.Niladic: [
         [ "Ｓ" ],

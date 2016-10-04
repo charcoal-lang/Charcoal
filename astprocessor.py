@@ -29,6 +29,7 @@ ASTProcessor = {
         lambda result: [ "Identifier %s" % str(result[0]) ]
     ],
     CharcoalToken.Separator: [
+        lambda result: None,
         lambda result: None
     ],
 
@@ -49,7 +50,7 @@ ASTProcessor = {
         lambda result: [ "List" ] + result[1][1:]
     ],
 
-    CharcoalToken.Expression: [ lambda result: result[0] if len(result) == 1 else result ] * len(UnicodeGrammars[CharcoalToken.Expression]),
+    CharcoalToken.Expression: [ lambda result: result[0] if len(result) == 2 else result[:-1] ] * len(UnicodeGrammars[CharcoalToken.Expression]),
     CharcoalToken.Niladic: [
         lambda result: "Input String",
         lambda result: "Input Number",

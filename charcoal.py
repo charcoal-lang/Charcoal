@@ -27,8 +27,12 @@ import os
 import sys
 import time
 
-from colorama import init
-init()
+if os.name == "nt":
+    try:
+        from colorama import init
+        init()
+    except:
+        print("Please install the 'colorama' module ('pip install colorama') for the Refresh command to work properly.")
 
 if not hasattr(__builtins__, "raw_input"):
     raw_input = input
@@ -115,7 +119,7 @@ class Charcoal:
         right = max(self.right_indices)
         string = ""
         for i in range(len(self.lines) - 1):
-            # line = self.lines[i]
+            line = self.lines[i]
             # index = self.x % line_length
             # background = self.background[index:] + self.background[:index]
             string += self.background * (self.indices[i] - left) + line + self.background * (right - self.right_indices[i]) + "\n"
@@ -192,9 +196,11 @@ class Charcoal:
 
             if direction == Direction.right or direction == Direction.left:
                 self.FillLines()
+                final = (string * (int(length / len(string)) + 1))[:length]
                 if direction == Direction.left:
+                    final = final[::-1]
                     self.x -= length - 1
-                self.Put((string * (int(length / len(string)) + 1))[:length])
+                self.Put(final)
                 if multichar_fill:
                     coordinates.Add(self.x, self.y)
                     coordinates.Add(self.x + length - 1, self.y)
@@ -250,7 +256,7 @@ class Charcoal:
 
                 for line in lines:
                     self.FillLines()
-                    self.Put(line)
+                    self.PrintLine({direction}, len(line), line)
                     self.x = initial_x
                     self.y += 1
 
