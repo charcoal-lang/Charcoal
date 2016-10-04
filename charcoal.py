@@ -12,7 +12,7 @@ import os
 
 if not hasattr(__builtins__, "raw_input"):
     raw_input = input
-    input = lambda prompt: eval(input(prompt))
+    input = lambda prompt: eval(raw_input(prompt))
 if not hasattr(__builtins__, "basestring"):
     basestring = str
 
@@ -1413,6 +1413,12 @@ def PrintTree(tree, padding=""):
                 print(new_padding + str(item))
 
 if __name__ == "__main__":
+    import sys
+    if len(sys.argv) == 1:
+        # No command-line args given--run in interactive mode
+        interactive = True
+    else:
+        interactive = False
     parser = argparse.ArgumentParser(description="Interpret the Charcoal language.")
     parser.add_argument("-f", "--file", type=str, nargs="*", default="", help="File path of the program.")
     parser.add_argument("-c", "--code", type=str, nargs="?", default="", help="Code of the program.")
@@ -1424,9 +1430,9 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--test", action="store_true", help="Run unit tests.")
     argv = parser.parse_args()
     info = set()
-    if argv.prompt:
+    if argv.prompt or interactive:
         info.add(Info.prompt)
-    if argv.repl:
+    if argv.repl or interactive:
         info.add(Info.prompt)
         info.add(Info.is_repl)
     code = ""
@@ -1445,16 +1451,17 @@ if __name__ == "__main__":
         ))
     charcoal = Charcoal(info=info)
     # charcoal.inputs = eval(argv.input) # TODO: fix
-    if argv.repl:
+    if argv.repl or interactive:
         while True:
             try:
                 Parse(
-                    input("Charcoal> "),
+                    raw_input("Charcoal> "),
                     whitespace=argv.whitespace,
                     processor=InterpreterProcessor
                 )(charcoal)
+                print(charcoal)
             except (KeyboardInterrupt, EOFError):
-                pass
+                break
     else:
         Parse(code, processor=InterpreterProcessor)(charcoal)
-        print(str(charcoal))
+        print(charcoal)
