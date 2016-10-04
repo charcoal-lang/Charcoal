@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # vim: set fileencoding=<encoding name> :
 
+# TODO: bresenham
+
 from charactertransformers import *
 from enum import Enum
 import random
@@ -66,21 +68,22 @@ class CharcoalToken(Enum):
     Body = 54
     Multiprint = 55
     Polygon = 56
-    Rectangle = 57
-    Move = 58
-    Pivot = 59
-    Jump = 60
-    Rotate = 61
-    Reflect = 62
-    Copy = 63
-    For = 64
-    While = 65
-    If = 66
-    Assign = 67
-    InputString = 68
-    InputNumber = 69
-    Fill = 70
-    SetBackground = 71
+    Box = 57
+    Rectangle = 58
+    Move = 59
+    Pivot = 60
+    Jump = 61
+    Rotate = 62
+    Reflect = 63
+    Copy = 64
+    For = 65
+    While = 66
+    If = 67
+    Assign = 68
+    InputString = 69
+    InputNumber = 70
+    Fill = 71
+    SetBackground = 72
 
 class Info(Enum):
     prompt = 1
@@ -342,8 +345,12 @@ class Charcoal:
 
     def Print(self, string, directions=None, length=0, multiprint=False, flags=0):
 
+        if isinstance(string, int):
+            length, string = string, ""
+
         if not directions:
             directions = { self.direction }
+
         self.old_top = self.top
         self.old_lines = self.lines[:]
         self.old_indices = self.indices[:]
@@ -372,7 +379,7 @@ class Charcoal:
 
                 self.y -= 1
                 if lines[-1]:
-                    self.Move(direction)
+                    self.Move(direction, len(lines[-1]))
 
             else:
                 newline_direction = NewlineDirection[direction]
@@ -507,19 +514,22 @@ class Charcoal:
 
 
     def Fill(self, string):
+
         if self.Get() != self.background:
             return
+
         initial_x = self.x
         initial_y = self.y
         points = set()
-        queue = []
-        # TODO: fill algorithm
-        while self.Get() == self.background:
-            self.Move(Direction.up)
-        self.Move(Direction.down)
+        queue = [ (self.y, self.x) ]
 
         while len(queue):
             self.y, self.x = queue[0]
+
+            while self.Get() == self.background:
+                self.Move(Direction.up)
+
+            self.Move(Direction.down)
             queue = queue[1:]
             points.add((self.y, self.x))
 
@@ -527,7 +537,7 @@ class Charcoal:
                 self.x -= 1
 
                 if self.Get() == self.background:
-                    queue += []
+                    queue += [ (self.y, self.x) ]
 
                 self.x += 1
 
@@ -535,7 +545,7 @@ class Charcoal:
                 self.x += 1
 
                 if self.Get() == self.background:
-                    queue += []
+                    queue += [ (self.y, self.x) ]
                 self.x -= 1
 
             self.y += 1
@@ -545,15 +555,15 @@ class Charcoal:
                 points.add((self.y, self.x))
                 self.y += 1
                 value = self.Get()
+
         points = list(points)
         points.sort()
         length = len(string)
 
-        print("pts", points)
         for i in range(len(points)):
             point = points[i]
             self.y, self.x = point
-            Put(string[i % length])
+            self.Put(string[i % length])
         self.x = initial_x
         self.y = initial_y
 
@@ -776,16 +786,17 @@ UnicodeGrammars = {
         [ CharcoalToken.Niladic ]
     ],
     CharcoalToken.Niladic: [
-        [ "𝓢" ],
-        [ "𝓝" ],
+        [ "Ｓ" ],
+        [ "Ｎ" ],
         [ "‽" ]
     ],
     CharcoalToken.Monadic: [
         [ "⁻" ],
-        [ "𝓛" ],
+        [ "Ｌ" ],
         [ "¬" ],
         [ "‽" ],
-        [ "𝓘" ]
+        [ "Ｉ" ],
+        [ "Ｖ" ]
     ],
     CharcoalToken.Dyadic: [
         [ "⁺" ],
@@ -810,6 +821,7 @@ UnicodeGrammars = {
         [ CharcoalToken.Print ],
         [ CharcoalToken.Multiprint ],
         [ CharcoalToken.Polygon ],
+        [ CharcoalToken.Box ],
         [ CharcoalToken.Rectangle ],
         [ CharcoalToken.Move ],
         [ CharcoalToken.Pivot ],
@@ -833,19 +845,22 @@ UnicodeGrammars = {
         [ CharcoalToken.Expression ]
     ],
     CharcoalToken.Multiprint: [
-        [ "𝓟", CharcoalToken.Multidirectional, CharcoalToken.Expression ]
+        [ "Ｐ", CharcoalToken.Multidirectional, CharcoalToken.Expression ]
+    ],
+    CharcoalToken.Box: [
+        [ "Ｂ", CharcoalToken.Expression, CharcoalToken.Expression ]
     ],
     CharcoalToken.Rectangle: [
-        [ "𝓡", CharcoalToken.Expression, CharcoalToken.Expression, CharcoalToken.Expression ]
+        [ "Ｒ", CharcoalToken.Expression, CharcoalToken.Expression ]
     ],
     CharcoalToken.Polygon: [
-        [ "𝓖", CharcoalToken.Sides, CharcoalToken.Expression ],
-        [ "𝓖", CharcoalToken.Arrows, CharcoalToken.Expression, CharcoalToken.Expression ]
+        [ "Ｇ", CharcoalToken.Sides, CharcoalToken.Expression ],
+        [ "Ｇ", CharcoalToken.Arrows, CharcoalToken.Expression, CharcoalToken.Expression ]
     ],
     CharcoalToken.Move: [
         [ CharcoalToken.Arrow ],
-        [ "𝓜", CharcoalToken.Arrow ],
-        [ "𝓜", CharcoalToken.Expression, CharcoalToken.Arrow ]
+        [ "Ｍ", CharcoalToken.Arrow ],
+        [ "Ｍ", CharcoalToken.Expression, CharcoalToken.Arrow ]
     ],
     CharcoalToken.Pivot: [
         [ "↶", CharcoalToken.Expression ],
@@ -854,7 +869,7 @@ UnicodeGrammars = {
         [ "↷" ]
     ],
     CharcoalToken.Jump: [
-        [ "𝓙", CharcoalToken.Expression, CharcoalToken.Expression ]
+        [ "Ｊ", CharcoalToken.Expression, CharcoalToken.Expression ]
     ],
     CharcoalToken.Rotate: [
         [ "⟲", CharcoalToken.Expression ]
@@ -864,31 +879,31 @@ UnicodeGrammars = {
         [ CharcoalToken.Arrow ]
     ],
     CharcoalToken.Copy: [
-        [ "𝓒", CharcoalToken.Expression, CharcoalToken.Expression ]
+        [ "Ｃ", CharcoalToken.Expression, CharcoalToken.Expression ]
     ],
     CharcoalToken.For: [
-        [ "𝓕", CharcoalToken.Expression, CharcoalToken.Body ]
+        [ "Ｆ", CharcoalToken.Expression, CharcoalToken.Body ]
     ],
     CharcoalToken.While: [
-        [ "𝓦", CharcoalToken.Expression, CharcoalToken.Body ]
+        [ "Ｗ", CharcoalToken.Expression, CharcoalToken.Body ]
     ],
     CharcoalToken.If: [
         [ "¿", CharcoalToken.Expression, CharcoalToken.Body, CharcoalToken.Body ]
     ],
     CharcoalToken.Assign: [
-        [ "𝓐", CharcoalToken.Name, CharcoalToken.Expression ]
+        [ "Ａ", CharcoalToken.Name, CharcoalToken.Expression ]
     ],
     CharcoalToken.Fill: [
         [ "¤", CharcoalToken.Expression ]
     ],
     CharcoalToken.SetBackground: [
-        [ "𝓤𝓑", CharcoalToken.Expression ]
+        [ "ＵＢ", CharcoalToken.Expression ]
     ],
     CharcoalToken.InputString: [
-        [ "𝓢", CharcoalToken.Name ]
+        [ "Ｓ", CharcoalToken.Name ]
     ],
     CharcoalToken.InputNumber: [
-        [ "𝓝", CharcoalToken.Name ]
+        [ "Ｎ", CharcoalToken.Name ]
     ]
 }
 
@@ -948,7 +963,8 @@ ASTProcessor = {
         lambda result: "Length",
         lambda result: "Not",
         lambda result: "Cast",
-        lambda result: "Random"
+        lambda result: "Random",
+        lambda result: "Evaluate"
     ],
     CharcoalToken.Dyadic: [
         lambda result: "Sum",
@@ -965,7 +981,7 @@ ASTProcessor = {
 
     CharcoalToken.Program: [
         lambda result: [ "Program", result[0] ] + result[1][1:],
-        lambda result: [ ]
+        lambda result: [ "Program" ]
     ],
     CharcoalToken.Command: [lambda result: result[0]] * len(UnicodeGrammars[CharcoalToken.Command]),
     CharcoalToken.Body: [
@@ -977,7 +993,13 @@ ASTProcessor = {
         lambda result: [ "Print" ] + result
     ],
     CharcoalToken.Multiprint: [
-        lambda result: [ "Multiprint" ] + result,
+        lambda result: [ "Multiprint" ] + result[1:]
+    ],
+    CharcoalToken.Box: [
+        lambda result: [ "Box" ] + result[1:]
+    ],
+    CharcoalToken.Rectangle: [
+        lambda result: [ "Rectangle" ] + result[1:]
     ],
     CharcoalToken.Polygon: [
         lambda result: [ "Polygon" ] + result[1:],
@@ -1087,37 +1109,38 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: result[0],
         lambda result: lambda charcoal: charcoal.scope[result[0]],
         lambda result: lambda charcoal: result[1](charcoal),
-        lambda result: lambda charcoal: result[0](result[1](charcoal), result[2](charcoal)),
-        lambda result: lambda charcoal: result[0](result[1](charcoal)),
-        lambda result: lambda charcoal: result[0]()
+        lambda result: lambda charcoal: result[0](result[1](charcoal), result[2](charcoal), charcoal),
+        lambda result: lambda charcoal: result[0](result[1](charcoal), charcoal),
+        lambda result: lambda charcoal: result[0](charcoal)
     ],
     CharcoalToken.Niladic: [
-        lambda result: lambda: charcoal.InputString(),
-        lambda result: lambda: charcoal.InputNumber(),
-        lambda result: lambda: charcoal.Random()
+        lambda result: lambda charcoal: charcoal.InputString(),
+        lambda result: lambda charcoal: charcoal.InputNumber(),
+        lambda result: lambda charcoal: charcoal.Random()
     ],
     CharcoalToken.Monadic: [
-        lambda result: lambda item: -item,
-        lambda result: lambda item: len(item),
-        lambda result: lambda item: int(not item),
-        lambda result: lambda item: charcoal.Cast(item),
-        lambda result: lambda item: charcoal.Random(item)
+        lambda result: lambda item, charcoal: -item,
+        lambda result: lambda item, charcoal: len(item),
+        lambda result: lambda item, charcoal: int(not item),
+        lambda result: lambda item, charcoal: charcoal.Cast(item),
+        lambda result: lambda item, charcoal: charcoal.Random(item),
+        lambda result: lambda item, charcoal: Parse(result[1](charcoal), processor=InterpreterProcessor)(charcoal)
     ],
     CharcoalToken.Dyadic: [
-        lambda result: lambda left, right: left + right,
-        lambda result: lambda left, right: left - right,
-        lambda result: lambda left, right: left * right,
-        lambda result: lambda left, right: int(left / right),
-        lambda result: lambda left, right: left % right,
-        lambda result: lambda left, right: left == right,
-        lambda result: lambda left, right: left < right,
-        lambda result: lambda left, right: left > right,
-        lambda result: lambda left, right: int(left and right),
-        lambda result: lambda left, right: int(left or right)
+        lambda result: lambda left, right, charcoal: left + right,
+        lambda result: lambda left, right, charcoal: left - right,
+        lambda result: lambda left, right, charcoal: left * right,
+        lambda result: lambda left, right, charcoal: int(left / right),
+        lambda result: lambda left, right, charcoal: left % right,
+        lambda result: lambda left, right, charcoal: left == right,
+        lambda result: lambda left, right, charcoal: left < right,
+        lambda result: lambda left, right, charcoal: left > right,
+        lambda result: lambda left, right, charcoal: int(left and right),
+        lambda result: lambda left, right, charcoal: int(left or right)
     ],
 
     CharcoalToken.Program: [
-        lambda result: lambda charcoal: [result[0](charcoal), result[1](charcoal)] and None,
+        lambda result: lambda charcoal: (result[0](charcoal) or True) and result[1](charcoal),
         lambda result: lambda charcoal: None
     ],
     CharcoalToken.Command: [ lambda result: lambda charcoal: result[0](charcoal) ] * len(UnicodeGrammars[CharcoalToken.Command]),
@@ -1131,6 +1154,12 @@ InterpreterProcessor = {
     ],
     CharcoalToken.Multiprint: [
         lambda result: lambda charcoal: charcoal.Multiprint(result[2](charcoal), directions=set(result[1]))
+    ],
+    CharcoalToken.Box: [
+        lambda result: lambda charcoal: charcoal.Rectangle(result[1](charcoal), result[2](charcoal), result[3](charcoal))
+    ],
+    CharcoalToken.Rectangle: [
+        lambda result: lambda charcoal: charcoal.Rectangle(result[1](charcoal), result[2](charcoal))
     ],
     CharcoalToken.Polygon: [
         lambda result: lambda charcoal: charcoal.Polygon(result[1](charcoal), result[2](charcoal)),
@@ -1383,9 +1412,8 @@ def PrintTree(tree, padding=""):
             else:
                 print(new_padding + str(item))
 
-# temporary, delete when integrated into main interpreter
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process some integers.")
+    parser = argparse.ArgumentParser(description="Interpret the Charcoal language.")
     parser.add_argument("-f", "--file", type=str, nargs="*", default="", help="File path of the program.")
     parser.add_argument("-c", "--code", type=str, nargs="?", default="", help="Code of the program.")
     parser.add_argument("-i", "--input", type=str, nargs="?", default="", help="Input to the program.")
