@@ -32,6 +32,7 @@ InterpreterProcessor = {
         lambda result: result
     ],
     CharcoalToken.Separator: [
+        lambda result: None,
         lambda result: None
     ],
 
