@@ -40,7 +40,7 @@ if not hasattr(__builtins__, "raw_input"):
 if not hasattr(__builtins__, "basestring"):
     basestring = str
 
-def CleanExecute(function, args):
+def CleanExecute(function, *args):
     try:
         return function(*args)
     except (KeyboardInterrupt, EOFError):
@@ -226,8 +226,8 @@ class Charcoal:
             return coordinates
 
 
-    def Print(self, string, directions=None, length=0, multiprint=False, flags=0):
-
+    def Print(self, string, directions=None, length=0, multiprint=False,
+              flags=0):
         if isinstance(string, int):
             length, string = string, ""
 
@@ -251,42 +251,25 @@ class Charcoal:
             self.x = old_x
             self.y = old_y
 
-            if direction == Direction.right or direction == Direction.left:
-                initial_x = self.x
+            newline_direction = NewlineDirection[direction]
 
-                for line in lines:
-                    self.FillLines()
-                    self.PrintLine({direction}, len(line), line)
-                    self.x = initial_x
-                    self.y += 1
+            for line in lines[:-1]:
+                line_start_x = self.x
+                line_start_y = self.y
 
-                self.y -= 1
-                if lines[-1]:
-                    self.Move(direction, len(lines[-1]))
-
-            else:
-                newline_direction = NewlineDirection[direction]
-
-                for line in lines[:-1]:
-                    line_start_x = self.x
-                    line_start_y = self.y
-
-                    for character in line:
-                        self.FillLines()
-                        self.Put(character)
-                        self.Move(direction)
-
-                    self.x = line_start_x
-                    self.y = line_start_y
-                    self.Move(newline_direction)
-
-                for character in lines[-1]:
+                for character in line:
                     self.FillLines()
                     self.Put(character)
                     self.Move(direction)
 
-                if lines[-1]:
-                    self.Move(direction)
+                self.x = line_start_x
+                self.y = line_start_y
+                self.Move(newline_direction)
+
+            for character in lines[-1]:
+                self.FillLines()
+                self.Put(character)
+                self.Move(direction)
 
         if multiprint:
             self.x = old_x
@@ -580,7 +563,7 @@ class Charcoal:
 
 
     def GetLoopVariable(self):
-        for character in "ικλμνξπρςστυφχψωαβγδεζηθ":
+        for character in "ικλμνξπρσςτυφχψωαβγδεζηθ":
             if not character in self.scope:
                 return character
 
