@@ -3,9 +3,12 @@
 
 # TODO List: 
 # bresenham
-# multichar background
 # input separation - do we take it as an array of python strings
 # having more than one number consecutively in the code
+# do rotation with copy
+# finish unit tests
+# fix reflection with copy
+
 
 from __future__ import print_function
 from __future__ import division
@@ -40,7 +43,7 @@ if not hasattr(__builtins__, "raw_input"):
 if not hasattr(__builtins__, "basestring"):
     basestring = str
 
-def CleanExecute(function, args):
+def CleanExecute(function, *args):
     try:
         return function(*args)
     except (KeyboardInterrupt, EOFError):
@@ -65,6 +68,7 @@ class Info(Enum):
     prompt = 1
     is_repl = 2
     warn_ambiguities = 3
+    step_canvas = 4
 
 
 class Coordinates:
@@ -74,6 +78,7 @@ class Coordinates:
 
 
     def FillLines(self, y):
+
         if y > self.top + len(self.coordinates) - 1:
             self.coordinates += [ [ ] ] * (y - self.top - len(self.coordinates) + 1)
 
@@ -89,7 +94,7 @@ class Coordinates:
 
 
 class Charcoal:
-    def __init__(self, inputs=[], info=set()):
+    def __init__(self, inputs=[], info=set(), canvas_step=500):
         self.x = self.y = self.top = 0
         self.lines = [ "" ]
         self.indices = [ 0 ]
@@ -107,28 +112,142 @@ class Charcoal:
         self.inputs = inputs
         self.direction = Direction.right
         self.background = " "
+        self.bg_lines = []
+        self.bg_line_number = 0
+        self.bg_line_length = 0
         self.timeout_end = 0
+        self.dump_timeout_end = 0
+        self.background_inside = False
+        self.canvas_step = canvas_step
+        if Info.step_canvas in self.info:
+            print("\033[2J")
 
 
     def __str__(self):
-        # multichar_bg = len(character) > 1
-        # if multichar_bg:
-        #     bg_lines = character.split("\n")
-
         left = min(self.indices)
         right = max(self.right_indices)
         string = ""
-        for i in range(len(self.lines) - 1):
-            line = self.lines[i]
-            # index = self.x % line_length
-            # background = self.background[index:] + self.background[:index]
-            string += self.background * (self.indices[i] - left) + line + self.background * (right - self.right_indices[i]) + "\n"
-        return string + self.background * (self.indices[-1] - left) + self.lines[-1] + self.background * (right - self.right_indices[-1])
+        bg_start = None
+
+        if self.bg_lines:
+
+            for i in range(len(self.lines)):
+                line = self.lines[i]
+                j = -1
+
+                for character in line:
+                    j += 1
+
+                    if character == "\000":
+
+                        if bg_start == None:
+                            bg_start = j
+
+                    elif bg_start != None:
+                        line = (
+                            line[:bg_start] +
+                            self.BackgroundString(
+                                self.top + i,
+                                bg_start,
+                                j
+                            ) +
+                            line[j:]
+                        )
+                        bg_start = None
+
+                if bg_start != None:
+                    line = (
+                        line[:bg_start] +
+                        self.BackgroundString(self.top + i, bg_start, j)
+                    )
+
+                string += (
+                    self.BackgroundString(
+                        self.top + i,
+                        left,
+                        self.indices[i]
+                    ) +
+                    line +
+                    self.BackgroundString(
+                        self.top + i,
+                        self.right_indices[i],
+                        right
+                    ) +
+                    "\n"
+                )
+
+            return string[:-1]
+
+        else:
+
+            for line, index, right_index in zip(
+                    self.lines,
+                    self.indices,
+                    self.right_indices
+                ):
+                string += (
+                    self.background * (index - left) +
+                    re.sub("\000", self.background, line) +
+                    self.background * (right - right_index) +
+                    "\n"
+                )
+
+            return string[:-1]
+
+
+    def BackgroundString(self, y, start, end):
+        bg_line = self.bg_lines[y % self.bg_line_number]
+        index = start % self.bg_line_length
+        bg_line = bg_line[index:] + bg_line[:index]
+        length = end - start
+        return (bg_line * (int(length / self.bg_line_length) + 1))[:length]
+
 
     def Lines(self):
         left = min(self.indices)
         right = max(self.right_indices)
-        return [ self.background * (self.indices[i] - left) + self.lines[i] + self.background * (right - self.right_indices[i]) for i in range(len(self.lines))]
+        return [
+            "\000" * (index - left) +
+            line +
+            "\000" * (right - right_index)
+            for line, index, right_index in zip(
+                self.lines,
+                self.indices,
+                self.right_indices
+            )
+        ]
+
+
+    def AddInputs(self, inputs):
+        self.inputs += inputs
+
+
+    def Trim(self):
+        to_delete = 0
+
+        while re.match(r"\s+", lines[to_delete]):
+            to_delete += 1
+
+        to_delete -= 1
+        lines = lines[max(0, to_delete):]
+        self.top += to_delete
+
+        to_delete = -1
+
+        while re.match(r"\s+", lines[to_delete]):
+            to_delete -= 1
+
+        to_delete += 1
+
+        if to_delete < 0:
+            lines = lines[:to_delete]
+
+        for i in range(len(self.lines)):
+            line = self.lines[i]
+            match_length = len(re.match(r"^\s*", line).group(0))
+            self.indices[i] += match_length
+            self.lengths[i] -= match_length
+            self.lines[i] = re.replace(r"\s+$", r"", line[match_length:])
 
 
     def Clear(self):
@@ -145,35 +264,115 @@ class Charcoal:
 
 
     def Put(self, string):
+        is_empty = True
+
+        for character in string:
+            if character != "\000":
+                is_empty = False
+                break
+
+        if is_empty:
+            return
+
+        background = self.background
+        background_2 = self.background
+
+        if self.bg_lines:
+            index = self.indices[i] % line_length
+            bg_line = self.bg_lines[self.y % number_of_lines]
+            background = bg_line[index:] + bg_line[:index]
+            background = (
+                background *
+                (int(length / len(background)) + 1)
+            )[:length]
+            index_2 = (self.right_indices[i] + 1) % line_length
+            background_2 = bg_line[index_2:] + bg_line[:index_2]
+            background_2 = (
+                background_2 *
+                (int(length / len(background_2)) + 1)
+            )[:length]
+
         y_index = self.y - self.top
         x_index = self.indices[y_index]
+
         line = self.lines[y_index]
-        start = self.x - x_index
+
+        delta_index = len(re.match("^\000*", line).group())
+        line = re.sub("\000+$", "", line)
+
+        if not line:
+            self.lines[y_index] = string
+            length = len(string)
+            self.indices[y_index] = self.x
+            self.lengths[y_index] = length
+            self.right_indices[y_index] = self.x + length
+            return
+
+        start = self.x + delta_index - x_index
         end = start + len(string)
-        self.lines[y_index] = line[:start] + self.background * (start - len(line)) + string + self.background * -end + line[max(0, end):]
-        self.lengths[y_index] = len(self.lines[y_index])
-        self.right_indices[y_index] = x_index + len(self.lines[y_index])
+        self.lines[y_index] = (
+            line[:max(0, start)] +
+            "\000" * (start - len(line)) +
+            string +
+            "\000" * -end +
+            line[max(0, end):]
+        )
+
+        if start - len(line) > 0 or -end > 0:
+            self.background_inside = True
+
         if self.x < x_index:
             self.indices[y_index] = self.x
+
+        length = len(self.lines[y_index])
+        self.lengths[y_index] = length
+        self.right_indices[y_index] = (self.indices[y_index] + length)
 
 
     def FillLines(self):
         if self.y > self.top + len(self.lines) - 1:
-            self.lines += [ "" ] * (self.y - self.top - len(self.lines) + 1)
-            self.indices += [ 0 ] * (self.y - self.top - len(self.indices) + 1)
-            self.lengths += [ 0 ] * (self.y - self.top - len(self.lengths) + 1)
-            self.right_indices += [ 0 ] * (self.y - self.top - len(self.right_indices) + 1)
+            number = self.y - self.top - len(self.lines) + 1
+            self.lines += [ "" ] * number
+            self.indices += [ 0 ] * number
+            self.lengths += [ 0 ] * number
+            self.right_indices += [ 0 ] * number
 
         elif self.y < self.top:
-            self.lines = [ "" ] * (self.top - self.y) + self.lines
-            self.indices = [ 0 ] * (self.top - self.y) + self.indices
-            self.lengths = [ 0 ] * (self.top - self.y) + self.lengths
-            self.right_indices = [ 0 ] * (self.top - self.y) + self.right_indices
+            number = (self.top - self.y)
+            self.lines = [ "" ] * number + self.lines
+            self.indices = [ 0 ] * number + self.indices
+            self.lengths = [ 0 ] * number + self.lengths
+            self.right_indices = [ 0 ] * number + self.right_indices
             self.top = self.y
 
 
-    def SetBackground(self, character):
-        self.background = character[0]
+    def SetBackground(self, string):
+
+        if len(string) > 1:
+            lines = string.split("\n")
+            length = max(len(line) for line in lines)
+            self.bg_lines = [
+                line + " " * (length - len(line))
+                for line in lines
+            ]
+            self.bg_line_number = len(lines)
+            self.bg_line_length = length
+
+            if self.background:
+                self.background = ""
+
+        elif len(string):
+            self.background = string
+
+            if self.bg_lines:
+                self.bg_lines = []
+
+        else:
+            print("RuntimeError: Cannot change background to nothing")
+            sys.exit()
+
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Set background", self.canvas_step)
 
 
     def PrintLine(self, directions, length, string="", multiprint=False, coordinates=False, move_at_end=True, multichar_fill=False): # overload
@@ -194,7 +393,10 @@ class Charcoal:
             self.x = old_x
             self.y = old_y
 
-            if direction == Direction.right or direction == Direction.left:
+            if (
+                direction == Direction.right or
+                direction == Direction.left
+            ):
                 self.FillLines()
                 final = (string * (int(length / len(string)) + 1))[:length]
                 if direction == Direction.left:
@@ -204,6 +406,15 @@ class Charcoal:
                 if multichar_fill:
                     coordinates.Add(self.x, self.y)
                     coordinates.Add(self.x + length - 1, self.y)
+
+                if direction == Direction.right:
+                    self.x += length - 1
+
+                #if move_at_end:
+                #    if direction == Direction.right:
+                #        self.x += 1
+                #    else:
+                #        self.x -= 1
 
             else:
                 string_length = len(string)
@@ -226,7 +437,14 @@ class Charcoal:
             return coordinates
 
 
-    def Print(self, string, directions=None, length=0, multiprint=False, flags=0):
+    def Print(
+        self,
+        string,
+        directions=None,
+        length=0,
+        multiprint=False,
+        flags=0
+    ):
 
         if isinstance(string, int):
             length, string = string, ""
@@ -292,22 +510,30 @@ class Charcoal:
             self.x = old_x
             self.y = old_y
 
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Print", self.canvas_step)
+
 
     def Multiprint(self, string, directions):
         self.Print(string, directions, multiprint=True)
 
 
     def Polygon(self, sides, character, fill=True):
+
         if not fill:
             self.Multiline(sides, character)
             return
+
         multichar_fill = len(character) > 1
+
         if multichar_fill:
             lines = character.split("\n")
-            character = " "
+            character = "*"
+
         initial_x = self.x
         initial_y = self.y
         coordinates = Coordinates()
+
         for side in sides:
             self.PrintLine(
                 {side[0]},
@@ -317,15 +543,21 @@ class Charcoal:
                 move_at_end=False,
                 multichar_fill=multichar_fill
             )
+
+            if Info.step_canvas in self.info:
+                self.RefreshFastText("Polygon side", self.canvas_step)
+
         delta_x = initial_x - self.x
         sign_x = Sign(delta_x)
         delta_y = initial_y - self.y
         sign_y = Sign(delta_y)
         direction = DirectionFromXYSigns[sign_x][sign_y]
         length = (delta_x or delta_y) * (sign_x or sign_y) + 1
+
         if delta_x and delta_y and delta_x * sign_x != delta_y * sign_y:
             # Can't be autofilled
             return
+
         final_x = self.x
         final_y = self.y
         self.PrintLine(
@@ -336,38 +568,64 @@ class Charcoal:
             move_at_end=False,
             multichar_fill=multichar_fill
         )
+
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Polygon autoclose", self.canvas_step)
+
         self.y = coordinates.top
+
         if multichar_fill:
             number_of_lines = len(lines)
             line_length = max([len(line) for line in lines])
-            lines = [line + self.background * (line_length - len(line)) for line in lines]
+            lines = [
+                line + "\000" * (line_length - len(line))
+                for line in lines
+            ]
+
             for row in coordinates.coordinates:
-                line = lines[self.y % number_of_lines]
+                line = lines[ self.y % number_of_lines ]
+
                 while row:
                     start, end = row[:2]
                     row = row[2:]
                     if start > end:
                         start, end = end, start
-                    index = self.x % line_length
+                    index = start % line_length
                     length = end - start + 1
                     self.x = start
-                    self.PrintLine({Direction.right}, length, line[index:] + line[:index])
+                    self.PrintLine(
+                        {Direction.right},
+                        length,
+                        line[index:] + line[:index]
+                    )
+
                 self.y += 1
+
         else:
+
             for row in coordinates.coordinates:
+
                 while row:
                     start, end = row[:2]
                     row = row[2:]
+
                     if start > end:
                         start, end = end, start
+
                     if end - start < 2:
                         continue
+
                     length = end - start
                     self.x = start + 1
                     self.PrintLine({Direction.right}, length, character)
+
                 self.y += 1
+
         self.x = final_x
         self.y = final_y
+
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Polygon fill", self.canvas_step)
 
 
     def Rectangle(self, width, height, character=None, flags=None):
@@ -375,30 +633,49 @@ class Charcoal:
         if not character:
             initial_x = self.x
             initial_y = self.y
-            PrintLine({Direction.right}, width, "-", move_at_end=False)
-            PrintLine({Direction.down}, height, "|", move_at_end=False)
-            PrintLine({Direction.left}, width, "-", move_at_end=False)
-            PrintLine({Direction.up}, height, "|", move_at_end=False)
-            Put("+")
+            self.PrintLine({Direction.right}, width, "-", move_at_end=False)
+            self.PrintLine({Direction.down}, height, "|", move_at_end=False)
+            self.PrintLine({Direction.left}, width, "-", move_at_end=False)
+            self.PrintLine({Direction.up}, height, "|", move_at_end=False)
+            self.Put("+")
             self.x += width - 1
-            Put("+")
+            self.Put("+")
             self.y += height - 1
-            Put("+")
+            self.Put("+")
             self.x = initial_x
-            Put("+")
+            self.Put("+")
             self.y = initial_y
 
         else:
             character = character[0]
-            PrintLine({Direction.right}, width, character, move_at_end=False)
-            PrintLine({Direction.down}, height, character, move_at_end=False)
-            PrintLine({Direction.left}, width, character, move_at_end=False)
-            PrintLine({Direction.up}, height, character, move_at_end=False)
+            self.PrintLine(
+                {Direction.right},
+                width, character,
+                move_at_end=False
+            )
+            self.PrintLine(
+                {Direction.down},
+                height,
+                character,
+                move_at_end=False
+            )
+            self.PrintLine(
+                {Direction.left},
+                width,
+                character,
+                move_at_end=False
+            )
+            self.PrintLine(
+                {Direction.up},
+                height,
+                character,
+                move_at_end=False
+            )
 
 
     def Fill(self, string):
 
-        if self.Get() != self.background:
+        if self.Get() != "\000":
             return
 
         initial_x = self.x
@@ -409,7 +686,7 @@ class Charcoal:
         while len(queue):
             self.y, self.x = queue[0]
 
-            while self.Get() == self.background:
+            while self.Get() == "\000":
                 self.Move(Direction.up)
 
             self.Move(Direction.down)
@@ -419,7 +696,7 @@ class Charcoal:
             if not (self.y, self.x - 1) in points:
                 self.x -= 1
 
-                if self.Get() == self.background:
+                if self.Get() == "\000":
                     queue += [ (self.y, self.x) ]
 
                 self.x += 1
@@ -427,14 +704,14 @@ class Charcoal:
             if not (self.y, self.x + 1) in points:
                 self.x += 1
 
-                if self.Get() == self.background:
+                if self.Get() == "\000":
                     queue += [ (self.y, self.x) ]
                 self.x -= 1
 
             self.y += 1
             value = self.Get()
 
-            while value == self.background:
+            while value == "\000":
                 points.add((self.y, self.x))
                 self.y += 1
                 value = self.Get()
@@ -447,6 +724,7 @@ class Charcoal:
             point = points[i]
             self.y, self.x = point
             self.Put(string[i % length])
+
         self.x = initial_x
         self.y = initial_y
 
@@ -468,119 +746,329 @@ class Charcoal:
 
 
     def ReflectCopy(self, direction):
+        finished = True
+
         if direction == Direction.left:
-            pass
+            self.lines = [ line[::-1] + line for line in self.lines ]
+            self.lengths = [ length * 2 for length in self.lengths ]
+            self.indices = [
+                right_index - length
+                for right_index, length in zip(self.right_indices, self.lengths)
+            ]
+
         elif direction == Direction.right:
-            lines = [ line[::-1] for line in self.lines ]
+            self.lines = [ line + line[::-1] for line in self.lines ]
+            self.lengths = [ length * 2 for length in self.lengths ]
+            self.right_indices = [
+                index + length
+                for index, length in zip(self.indices, self.lengths)
+            ]
+
         elif direction == Direction.up:
-            lines = [ line[::-1] for line in self.lines ]
+            self.top -= len(self.lines) - 1
+            self.lines = self.lines[::-1] + self.lines
+            self.indices = self.indices[::-1] + self.indices
+            self.lengths = self.lengths[::-1] + self.lengths
+            self.right_indices = self.right_indices[::-1] + self.right_indices
+
         elif direction == Direction.down:
-            pass
-        elif direction == Direction.up_left:
-            pass
-        elif direction == Direction.up_right:
-            pass
-        elif direction == Direction.down_left:
-            pass
-        elif direction == Direction.down_right:
-            pass
-        # TODO
+            self.lines += self.lines[::-1]
+            self.indices += self.indices[::-1]
+            self.lengths += self.lengths[::-1]
+            self.right_indices += self.right_indices[::-1]
 
+        else:
+            finished = False
 
-    def Reflect(self, direction, copy=False):
-        if copy:
-            self.ReflectCopy(direction)
+        if finished:
             return
+        # TODO
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Reflect copy", self.canvas_step)
+
+
+    def ReflectOverlap(self, direction):
+
+        finished = True
+
+        if direction == Direction.left:
+            self.lines = self.Lines()
+            self.lines = [ line[:0:-1] + line for line in self.lines ]
+            self.lengths = [ length * 2 - 1 for length in self.lengths ]
+            self.indices = [
+                right_index - length
+                for right_index, length in zip(self.right_indices, self.lengths)
+            ]
+
+        elif direction == Direction.right:
+            self.lines = self.Lines()
+            self.lines = [ line + line[1::-1] for line in self.lines ]
+            self.lengths = [ length * 2 - 1 for length in self.lengths ]
+            self.right_indices = [
+                index + length
+                for index, length in zip(self.indices, self.lengths)
+            ]
+
+        elif direction == Direction.up:
+            self.top -= len(self.lines) - 1
+            self.lines = self.lines[:0:-1] + self.lines
+            self.indices = self.indices[:0:-1] + self.indices
+            self.lengths = self.lengths[:0:-1] + self.lengths
+            self.right_indices = self.right_indices[:0:-1] + self.right_indices
+
+        elif direction == Direction.down:
+            self.lines += self.lines[1::-1]
+            self.indices += self.indices[1::-1]
+            self.lengths += self.lengths[1::-1]
+            self.right_indices += self.right_indices[1::-1]
+
+        else:
+            finished = False
+
+        if finished:
+            return
+
+        initial_x = self.x
+        initial_y = self.y
+
+        self.Trim()
+        if direction == Direction.up_left:
+            top_left = min(
+                x + y
+                for x, y in zip(self.indices, range(len(self.indices)))
+            )
+            top_right = max(
+                x + negative_y
+                for x, negative_y in zip(
+                    self.right_indices,
+                    list(range(len(self.right_indices)))[::-1]
+                )
+            )
+            y = (top_left - top_right) / 2 + self.top - 1
+
+            for line, index in zip(self.lines, self.indices):
+                y += 1
+                self.y = y - index
+                self.x = top_left - y 
+                self.PrintLine({Direction.up}, len(line), line)
+
+        elif direction == Direction.up_right:
+            top_left = min(
+                x + y
+                for x, y in zip(self.indices, range(len(self.indices)))
+            )
+            top_right = max(
+                x + negative_y
+                for x, negative_y in zip(
+                    self.right_indices,
+                    list(range(len(self.right_indices)))[::-1]
+                )
+            )
+            y = (top_left - top_right) / 2 + self.top - 1
+
+            for line, right_index in zip(self.lines, self.right_indices):
+                y += 1
+                self.y = y - right_index
+                self.x = top_right + y
+                self.PrintLine({Direction.up}, len(line), line)
+
+        elif direction == Direction.down_left:
+            bottom_left = max(
+                x + negative_y
+                for x, negative_y in zip(
+                    self.right_indices,
+                    list(range(len(self.right_indices)))[::-1]
+                )
+            )
+            bottom_right = max(
+                x + y
+                for x, y in zip(
+                    self.right_indices,
+                    range(len(self.right_indices))
+                )
+            )
+            y = (bottom_right - bottom_left) / 2 + self.top + 1
+
+            for line, index in zip(self.lines[::-1], self.indices[::-1]):
+                y -= 1
+                self.y = y - index
+                self.x = bottom_left + y
+                self.PrintLine({Direction.down}, len(line), line)
+
+        elif direction == Direction.down_right:
+            bottom_left = max(
+                x + negative_y
+                for x, negative_y in zip(
+                    self.right_indices,
+                    list(range(len(self.right_indices)))[::-1]
+                )
+            )
+            bottom_right = max(
+                x + y
+                for x, y in zip(
+                    self.right_indices,
+                    range(len(self.right_indices))
+                )
+            )
+            y = (bottom_right - bottom_left) / 2 + self.top + 1
+
+            for line, right_index in zip(self.lines[::-1], self.indices[::-1]):
+                y -= 1
+                self.y = y - right
+                self.x = bottom_right - y
+                self.PrintLine({Direction.down}, len(line), line)
+
+        self.x = initial_x
+        self.y = initial_y
+
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Reflect overlap", self.canvas_step)
+
+
+    def Reflect(self, direction):
+
         if direction == Direction.left or direction == Direction.right:
-            self.indices, self.right_indices = [ -index for index in self.right_indices ], [ -index for index in self.indices ]
+            self.indices, self.right_indices = [ 1 - index for index in self.right_indices ], [ 1 - index for index in self.indices ]
             self.lines = [ line[::-1] for line in self.lines ]
+
         elif direction == Direction.up or direction == Direction.down:
             self.lines.reverse()
             self.indices.reverse()
             self.lengths.reverse()
             self.right_indices.reverse()
+
         elif direction == Direction.up_left or direction == Direction.down_right:
-            self.Rotate(6)
-            self.Reflect(Direction.right)
-        elif direction == Direction.up_right or direction == Direction.down_left:
             self.Rotate(2)
             self.Reflect(Direction.right)
 
+        elif direction == Direction.up_right or direction == Direction.down_left:
+            self.Rotate(6)
+            self.Reflect(Direction.right)
+
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Reflect", self.canvas_step)
+
 
     def RotateCopy(self, rotations):
+        if rotations % 2:
+            print("RuntimeError: Cannot rotate")
+            if not Info.is_repl in self.info:
+                sys.exit()
         # TODO
+
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Rotate copy", self.canvas_step)
+
         pass
 
 
-    def Rotate(self, rotations, copy=False):
-        if copy:
-            self.RotateCopy(direction)
-            return
+    def RotateOverlap(self, rotations):
+        # TODO
+
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Rotate overlap", self.canvas_step)
+
+
+    def Rotate(self, rotations):
         rotations %= 8
+
         if not rotations:
             return
+
         left = min(self.indices)
         right = max(self.right_indices)
         self.top = -right
+
         if rotations == 2:
             lines = self.Lines()
             number_of_lines = len(lines[0])
             self.indices = [ self.top ] * number_of_lines
             self.lengths = [ len(lines) ] * number_of_lines
-            self.right_indices = [ self.top + len(self.lines) ] * number_of_lines
-            self.lines = [ "" * number_of_lines ]
+            self.right_indices = (
+                [ self.top + len(self.lines) ] * number_of_lines
+            )
+            self.lines = [ "" ] * number_of_lines
+
             for i in range(number_of_lines):
-                for line in lines:
-                    self.lines += line[i]
+
+                for j in range(len(lines)):
+                    self.lines[i] += lines[j][number_of_lines - i - 1]
+
             self.top = left
+
         elif rotations == 4:
             lines = self.Lines()
             number_of_lines = len(lines[0])
             [ self.right_indices, self.indices ] = [ [-index for index in self.indices], [-index for index in self.right_indices] ]
             self.lines = [ line[::-1] for line in self.lines]
+
         elif rotations == 6:
             lines = self.Lines()
             number_of_lines = len(lines[0])
+            line_length = len(lines)
             self.indices = [ self.top ] * number_of_lines
             self.lengths = [ len(lines) ] * number_of_lines
-            self.right_indices = [ self.top + len(self.lines) ] * number_of_lines
+            self.right_indices = (
+                [ self.top + len(self.lines) ] * number_of_lines
+            )
             self.lines = [ "" ] * number_of_lines
+
             for i in range(number_of_lines):
-                for j in range(len(lines)):
-                    self.lines[i] += lines[j][number_of_lines - i - 1]
+
+                for j in range(line_length):
+                    self.lines[i] += lines[line_length - j - 1][i]
+
             self.top = left
+
         else:
             self.Move({
-                1: Direction.up_right,
-                3: Direction.down_right,
-                5: Direction.down_left,
-                7: Direction.up_left
+                1: Direction.up_left,
+                5: Direction.down_right,
+                3: Direction.down_left,
+                7: Direction.up_right
             }[rotations], self.top)
             self.Move({
-                1: Direction.up_left,
-                3: Direction.up_right,
-                5: Direction.down_right,
-                7: Direction.down_left
+                1: Direction.down_left,
+                3: Direction.down_right,
+                5: Direction.up_right,
+                7: Direction.up_left
             }[rotations], min(self.indices))
             string = str(self)
             self.Clear()
             self.Print(string, directions={{
-                1: Direction.down_right,
-                3: Direction.down_left,
-                5: Direction.up_left,
-                7: Direction.up_right
+                1: Direction.up_right,
+                3: Direction.up_left,
+                5: Direction.down_left,
+                7: Direction.down_right
             }[rotations]})
         self.x = 0
         self.y = 0
 
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Rotate", self.canvas_step)
 
-    def Copy(self):
-        # TODO
-        pass
+
+    def Copy(self, delta_x, delta_y):
+        initial_x = self.x
+        initial_y = self.y
+
+        self.y = self.top + delta_y
+        for line, index in zip(self.lines, self.indices):
+            self.x = index + delta_x
+            self.Put(line)
+            self.y += 1
+
+        self.x = initial_x
+        self.y = initial_y
+
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Copy", self.canvas_step)
 
 
     def GetLoopVariable(self):
+
         for character in "ικλμνξπρςστυφχψωαβγδεζηθ":
+
             if not character in self.scope:
                 return character
 
@@ -588,8 +1076,10 @@ class Charcoal:
     def For(self, expression, body):
         loop_variable = self.GetLoopVariable()
         variable = expression(self)
+
         if isinstance(variable, int):
             variable = range(variable)
+
         for item in variable:
             self.scope[loop_variable] = item
             body(self)
@@ -598,34 +1088,44 @@ class Charcoal:
     def While(self, condition, body):
         loop_variable = self.GetLoopVariable()
         self.scope[loop_variable] = condition(self)
+
         while self.scope[loop_variable]:
             body(self)
             self.scope[loop_variable] = condition(self)
 
 
     def If(self, condition, if_true, if_false):
+
         if condition(self):
             if_true(self)
+
         else:
             if_false(self)
 
 
     def Cast(self, variable):
+
         if isinstance(variable, list):
             return [self.Cast(item) for item in variable]
+
         if isinstance(variable, str):
             return int(variable)
+
         if isinstance(variable, int):
             return str(variable)
 
 
     def Random(self, variable=1):
+
         if variable == 1 and Info.warn_ambiguities in self.info:
             print("Warning: Possible ambiguity, make sure you explicitly use 1 if needed")
+
         if isinstance(variable, int):
             return random.randrange(variable)
+
         elif isinstance(variable, list):
             return random.choice(variable)
+
         elif isinstance(variable, str):
             return random.choice(variable)
 
@@ -636,45 +1136,97 @@ class Charcoal:
 
     def InputString(self, key=""):
         result = ""
+
         if Info.prompt in self.info:
             result = raw_input("Enter string: ")
+
         elif len(self.inputs):
             result = self.inputs[0]
             self.inputs = self.inputs[1:]
+
         if key:
             self.scope[key] = result
+
         else:
             return result
 
 
     def InputNumber(self, key=""):
         result = 0
+
         if Info.prompt in self.info:
             result = int(raw_input("Enter number: "))
+
         elif len(self.inputs):
             result = int(self.inputs[0])
             self.inputs = self.inputs[1:]
+
         if key:
             self.scope[key] = result
+
         else:
             return result
 
 
     def Dump(self):
+        try:
+            time.sleep(max(0, self.dump_timeout_end - time.clock()))
+
+        except (KeyboardInterrupt, EOFError):
+            sys.exit()
+
+        print(self)
+
+        self.dump_timeout_end = time.clock() + .01
+
+
+    def DumpNoThrottle(self):
         print(self)
 
 
-    def Refresh(self, timeout=0, ignore_warnings=False):
+    def Refresh(self, timeout=0):
+
         if not isinstance(timeout, int):
-            print("Refresh expected int, found %s" % str(timeout))
-            sys.exit()
+            print("RuntimeError: Refresh expected int, found %s" % str(timeout))
+            if not Info.is_repl in self.info:
+                sys.exit()
+
         elif not ignore_warnings and timeout == 0 and Info.warn_ambiguities in self.info:
             print("Warning: Possible ambiguity, make sure you explicitly use 0 for no delay if needed")
+
         try:
             time.sleep(max(0, self.timeout_end - time.clock()))
+
         except (KeyboardInterrupt, EOFError):
             sys.exit()
+
         print("\033[0;0H" + str(self))
+
+        self.timeout_end = time.clock() + timeout / 1000.
+
+
+    def RefreshFast(self, timeout):
+        try:
+            time.sleep(max(0, self.timeout_end - time.clock()))
+
+        except (KeyboardInterrupt, EOFError):
+            sys.exit()
+
+        print("\033[0;0H" + str(self))
+
+        self.timeout_end = time.clock() + timeout / 1000.
+
+
+    def RefreshFastText(self, text, timeout):
+        try:
+            time.sleep(max(0, self.timeout_end - time.clock()))
+
+        except (KeyboardInterrupt, EOFError):
+            sys.exit()
+
+        print("\033[0;0H\033[2K" + text + "\n" + str(self))
+
+        self.timeout_end = time.clock() + timeout / 1000.
 
 
     def RefreshFor(self, timeout, variable, body):
@@ -682,13 +1234,15 @@ class Charcoal:
         timeout /= 1000.
         loop_variable = self.GetLoopVariable()
         variable = variable(self)
+
         if isinstance(variable, int):
             variable = range(variable)
+
         for item in variable:
             self.timeout_end = time.clock() + timeout
             self.scope[loop_variable] = item
             body(self)
-            self.Refresh(ignore_warnings=True)
+            self.RefreshFast()
 
 
     def RefreshWhile(self, timeout, condition, body):
@@ -696,10 +1250,11 @@ class Charcoal:
         timeout /= 1000.
         loop_variable = self.GetLoopVariable()
         self.scope[loop_variable] = condition(self)
+
         while self.scope[loop_variable]:
             self.timeout_end = time.clock() + timeout
             body(self)
-            self.Refresh(ignore_warnings=True)
+            self.RefreshFast()
             self.scope[loop_variable] = condition(self)
 
 
@@ -738,30 +1293,41 @@ def ParseExpression(
         for token in lexeme:
 
             if isinstance(token, CharcoalToken):
+
                 if token == CharcoalToken.String:
+
                     if index == len(code):
                         success = False
                         break
+
                     old_index = index
                     character = code[index]
 
-                    while character >= " " and character <= "~" or character == "¶":
+                    while character >= " " and character <= "~" or character == "¶" or character == "´":
                         index += 1
+
                         if index == len(code):
                             character = ""
+
                         else:
                             character = code[index]
 
                     if old_index == index:
                         success = False
                         break
-                    tokens += processor[token][0]([ re.sub(r"¶", r"\n", code[old_index:index]) ])
+
+                    tokens += processor[token][0]([ re.sub(
+                        r"´(.)",
+                        r"$1", #lambda match: match.group(1),
+                        re.sub(r"¶", r"\n", code[old_index:index])
+                    ) ])
 
                 elif token == CharcoalToken.Number:
 
                     if index == len(code):
                         success = False
                         break
+
                     old_index = index
                     character = code[index]
                     result = 0
@@ -792,6 +1358,7 @@ def ParseExpression(
                     if old_index == index:
                         success = False
                         break
+
                     tokens += processor[token][0]([ result ])
 
                 elif token == CharcoalToken.Name:
@@ -799,6 +1366,7 @@ def ParseExpression(
                     if index == len(code):
                         success = False
                         break
+
                     character = code[index]
 
                     if character >= "α" and character <= "ω":
@@ -821,6 +1389,7 @@ def ParseExpression(
                     if not result:
                         success = False
                         break
+
                     tokens += [ result[0] ]
                     index = result[1]
 
@@ -857,7 +1426,7 @@ def Parse(
         code = "".join([ UnicodeLookup[character] if character in UnicodeLookup else character for character in code ])
     if whitespace:
         code = re.sub(
-            r"(´.)?\s+",
+            r"(´\s)?\s+",
             lambda match: match.group(1)[1] if match.group(1) else "",
             code
         )
@@ -908,9 +1477,35 @@ def PrintTree(tree, padding=""):
                 print(new_padding + str(item))
 
 
+def Run(
+    code,
+    inputs=[],
+    charcoal=None,
+    whitespace=False,
+    normal_encoding=False
+):
+    if not charcoal:
+        charcoal = Charcoal(inputs)
+    else:
+        charcoal.AddInputs(inputs)
+    Parse(
+        code,
+        whitespace=whitespace,
+        processor=InterpreterProcessor,
+        normal_encoding=normal_encoding
+    )(charcoal)
+    return str(charcoal)
+
+
 def AddAmbiguityWarnings():
     ASTProcessor[CharcoalToken.Monadic][4] = lambda result: "Random [Warning: May be ambiguous]"
     ASTProcessor[CharcoalToken.Refresh][0] = lambda: [ "Refresh [Warning: May be ambiguous]" ] # TODO: implement
+
+
+def RemoveThrottle():
+    InterpreterProcessor[CharcoalToken.Dump][0] = (
+        lambda result: lambda charcoal: charcoal.DumpNoThrottle()
+    )
 
 if __name__ == "__main__":
     interactive = len(sys.argv) == 1
@@ -919,15 +1514,26 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file", type=str, nargs="*", default="", help="File path of the program.")
     parser.add_argument("-c", "--code", type=str, nargs="?", default="", help="Code of the program.")
     parser.add_argument("-i", "--input", type=str, nargs="?", default="", help="Input to the program.")
+    parser.add_argument("-cs", "--canvasstep", type=int, nargs="?", default=500, help="Change canvas step interval.")
     parser.add_argument("-e", "--normalencoding", action="store_true", help="Use custom codepage.")
     parser.add_argument("-a", "--astify", action="store_true", help="Print AST.")
     parser.add_argument("-p", "--prompt", action="store_true", help="Prompt for input.")
     parser.add_argument("-r", "--repl", action="store_true", help="Open as REPL instead of interpreting.")
     parser.add_argument("-w", "--whitespace", action="store_true", help="Ignore all whitespace unless prefixed by a ´.")
     parser.add_argument("-Wam", "--Wambiguities", action="store_true", help="Warn the user of any ambiguities.")
+    parser.add_argument("-s", "--stepcanvas", action="store_true", help="Run unit tests.")
+    parser.add_argument("-nt", "--nothrottle", action="store_true", help="Don't throttle Dump.")
     parser.add_argument("-t", "--test", action="store_true", help="Run unit tests.")
     argv = parser.parse_args()
     info = set()
+
+    if argv.test:
+        from test import CharcoalTests, RunTests
+        RunTests()
+        sys.exit()
+
+    if argv.stepcanvas:
+        info.add(Info.step_canvas)
 
     if argv.Wambiguities:
         info.add(Info.warn_ambiguities)
@@ -940,7 +1546,7 @@ if __name__ == "__main__":
         info.add(Info.prompt)
         info.add(Info.is_repl)
 
-    code = ""
+    code = argv.code
 
     for path in argv.file:
 
@@ -952,7 +1558,7 @@ if __name__ == "__main__":
             with open(argv.file[0] + ".cl") as file:
                 code += file.read()
 
-    if argv.astify:
+    if argv.astify and not interactive and not argv.repl:
         print("Program")
         PrintTree(Parse(
             code,
@@ -960,7 +1566,7 @@ if __name__ == "__main__":
             normal_encoding=argv.normalencoding
         ))
 
-    charcoal = Charcoal(info=info)
+    charcoal = Charcoal(info=info, canvas_step=argv.canvasstep)
     # charcoal.inputs = eval(argv.input) # TODO: fix
 
     if argv.repl or interactive:
@@ -968,17 +1574,42 @@ if __name__ == "__main__":
         while True:
 
             try:
-                Parse(
-                    raw_input("Charcoal> "),
-                    whitespace=argv.whitespace,
-                    processor=InterpreterProcessor,
-                    normal_encoding=argv.normalencoding
-                )(charcoal)
-                print(charcoal)
+                code = old_raw_input("Charcoal> ")
 
-            except (KeyboardInterrupt, EOFError):
+                if argv.astify:
+                    print("Program")
+                    PrintTree(Parse(
+                        code,
+                        whitespace=argv.whitespace,
+                        normal_encoding=argv.normalencoding
+                    ))
+
+                print(Run(
+                    code,
+                    charcoal=charcoal,
+                    whitespace=argv.whitespace,
+                    normal_encoding=argv.normalencoding
+                ))
+
+            except KeyboardInterrupt:
+                print("\nCleared canvas")
+                charcoal = Charcoal()
+
+            except EOFError:
                 break
 
+    elif argv.stepcanvas:
+        Run(
+            code,
+            charcoal=charcoal,
+            whitespace=argv.whitespace,
+            normal_encoding=argv.normalencoding
+        )
+
     else:
-        Parse(code, whitespace=argv.whitespace, processor=InterpreterProcessor, normal_encoding=argv.normalencoding)(charcoal)
-        print(charcoal)
+        print(Run(
+            code,
+            charcoal=charcoal,
+            whitespace=argv.whitespace,
+            normal_encoding=argv.normalencoding
+        ))

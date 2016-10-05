@@ -27,7 +27,7 @@ UnicodeGrammars = {
 
     CharcoalToken.Arrows: [
         [ CharcoalToken.Arrow, CharcoalToken.Arrows ],
-        [ CharcoalToken.Arrow ]
+        [ ]
     ],
     CharcoalToken.Sides: [
         [ CharcoalToken.Side, CharcoalToken.Sides ],
@@ -104,6 +104,10 @@ UnicodeGrammars = {
         [ CharcoalToken.Move ],
         [ CharcoalToken.Pivot ],
         [ CharcoalToken.Jump ],
+        [ CharcoalToken.RotateCopy ],
+        [ CharcoalToken.ReflectCopy ],
+        [ CharcoalToken.RotateOverlap ],
+        [ CharcoalToken.ReflectOverlap ],
         [ CharcoalToken.Rotate ],
         [ CharcoalToken.Reflect ],
         [ CharcoalToken.Copy ],
@@ -131,14 +135,24 @@ UnicodeGrammars = {
         [ "Ｐ", CharcoalToken.Expression ]
     ],
     CharcoalToken.Box: [
-        [ "Ｂ", CharcoalToken.Expression, CharcoalToken.Expression ]
+        [
+            "Ｂ",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression
+        ]
     ],
     CharcoalToken.Rectangle: [
         [ "Ｒ", CharcoalToken.Expression, CharcoalToken.Expression ]
     ],
     CharcoalToken.Polygon: [
         [ "Ｇ", CharcoalToken.Sides, CharcoalToken.Expression ],
-        [ "Ｇ", CharcoalToken.Arrows, CharcoalToken.Expression, CharcoalToken.Expression ]
+        [
+            "Ｇ",
+            CharcoalToken.Multidirectional,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression
+        ]
     ],
     CharcoalToken.Move: [
         [ CharcoalToken.Arrow ],
@@ -154,12 +168,23 @@ UnicodeGrammars = {
     CharcoalToken.Jump: [
         [ "Ｊ", CharcoalToken.Expression, CharcoalToken.Expression ]
     ],
+    CharcoalToken.RotateCopy: [
+        [ "⟲Ｃ", CharcoalToken.Expression ]
+    ],
+    CharcoalToken.ReflectCopy: [
+        [ "‖Ｃ", CharcoalToken.Arrow ]
+    ],
+    CharcoalToken.RotateOverlap: [
+        [ "⟲Ｏ", CharcoalToken.Expression ]
+    ],
+    CharcoalToken.ReflectOverlap: [
+        [ "‖Ｏ", CharcoalToken.Arrow ]
+    ],
     CharcoalToken.Rotate: [
         [ "⟲", CharcoalToken.Expression ]
     ],
     CharcoalToken.Reflect: [
-        # TODO: command character*
-        [ CharcoalToken.Arrow ]
+        [ "‖", CharcoalToken.Arrow ]
     ],
     CharcoalToken.Copy: [
         [ "Ｃ", CharcoalToken.Expression, CharcoalToken.Expression ]
@@ -171,10 +196,11 @@ UnicodeGrammars = {
         [ "Ｗ", CharcoalToken.Expression, CharcoalToken.Body ]
     ],
     CharcoalToken.If: [
-        [ "¿", CharcoalToken.Expression, CharcoalToken.Body, CharcoalToken.Body ]
+        [ "¿", CharcoalToken.Expression, CharcoalToken.Body, CharcoalToken.Body ],
+        [ "¿", CharcoalToken.Expression, CharcoalToken.Body ]
     ],
     CharcoalToken.Assign: [
-        [ "Ａ", CharcoalToken.Name, CharcoalToken.Expression ]
+        [ "Ａ", CharcoalToken.Expression, CharcoalToken.Name ]
     ],
     CharcoalToken.Fill: [
         [ "¤", CharcoalToken.Expression ]
@@ -186,10 +212,20 @@ UnicodeGrammars = {
         [ "Ｄ" ]
     ],
     CharcoalToken.RefreshFor: [
-        [ "ＨＦ", CharcoalToken.Expression, CharcoalToken.Expression, CharcoalToken.Body ]
+        [
+            "ＨＦ",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            CharcoalToken.Body
+        ]
     ],
     CharcoalToken.RefreshWhile: [
-        [ "ＨＷ", CharcoalToken.Expression, CharcoalToken.Expression, CharcoalToken.Body ]
+        [
+            "ＨＷ",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            CharcoalToken.Body
+        ]
     ],
     CharcoalToken.Refresh: [
         [ "Ｈ", CharcoalToken.Expression ],

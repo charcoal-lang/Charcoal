@@ -15,7 +15,9 @@ ASTProcessor = {
         lambda result: "Down Right",
         lambda result: "Down Left"
     ],
-    CharcoalToken.Multidirectional: [ PassThrough ] * len(UnicodeGrammars[CharcoalToken.Multidirectional]),
+    CharcoalToken.Multidirectional: [
+        PassThrough
+    ] * len(UnicodeGrammars[CharcoalToken.Multidirectional]),
     CharcoalToken.Side: [
         lambda result: [ "Side" ] + result
     ],
@@ -35,7 +37,7 @@ ASTProcessor = {
 
     CharcoalToken.Arrows: [
         lambda result: [ "Arrows", result[0] ] + result[1][1:],
-        lambda result: [ "Arrows", result[0] ]
+        lambda result: [ "Arrows" ]
     ],
     CharcoalToken.Sides: [
         lambda result: [ "Sides", result[0] ] + result[1][1:],
@@ -50,7 +52,9 @@ ASTProcessor = {
         lambda result: [ "List" ] + result[1][1:]
     ],
 
-    CharcoalToken.Expression: [ lambda result: result[0] if len(result) == 2 else result[:-1] ] * len(UnicodeGrammars[CharcoalToken.Expression]),
+    CharcoalToken.Expression: [
+        lambda result: result[0] if len(result) == 2 else result[:-1]
+    ] * len(UnicodeGrammars[CharcoalToken.Expression]),
     CharcoalToken.Niladic: [
         lambda result: "Input String",
         lambda result: "Input Number",
@@ -81,7 +85,9 @@ ASTProcessor = {
         lambda result: [ "Program", result[0] ] + result[1][1:],
         lambda result: [ "Program" ]
     ],
-    CharcoalToken.Command: [lambda result: result[0]] * len(UnicodeGrammars[CharcoalToken.Command]),
+    CharcoalToken.Command: [
+        lambda result: result[0]
+    ] * len(UnicodeGrammars[CharcoalToken.Command]),
     CharcoalToken.Body: [
         lambda result: result[1],
         lambda result: result[0]
@@ -118,8 +124,20 @@ ASTProcessor = {
     CharcoalToken.Jump: [
         lambda result: [ "Jump" ] + result[1:]
     ],
+    CharcoalToken.RotateCopy: [
+        lambda result: [ "Rotate copy" ] + result[1:]
+    ],
+    CharcoalToken.ReflectCopy: [
+        lambda result: [ "Reflect copy" ] + result[1:]
+    ],
+    CharcoalToken.RotateOverlap: [
+        lambda result: [ "Rotate overlap" ] + result[1:]
+    ],
+    CharcoalToken.ReflectOverlap: [
+        lambda result: [ "Reflect overlap" ] + result[1:]
+    ],
     CharcoalToken.Rotate: [
-        lambda result: [ "Reflect" ] + result[1:]
+        lambda result: [ "Rotate" ] + result[1:]
     ],
     CharcoalToken.Reflect: [
         lambda result: [ "Reflect" ] + result[1:]
@@ -134,6 +152,7 @@ ASTProcessor = {
         lambda result: [ "While" ] + result[1:]
     ],
     CharcoalToken.If: [
+        lambda result: [ "If" ] + result[1:],
         lambda result: [ "If" ] + result[1:]
     ],
     CharcoalToken.Assign: [
