@@ -50,3 +50,4 @@ class CharcoalToken(Enum):
     Refresh = 78
     RefreshFor = 79
     RefreshWhile = 80
+    Evaluate = 81

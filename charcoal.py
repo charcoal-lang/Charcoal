@@ -225,29 +225,29 @@ class Charcoal:
     def Trim(self):
         to_delete = 0
 
-        while re.match(r"\s+", lines[to_delete]):
+        while re.match("\000+", self.lines[to_delete]):
             to_delete += 1
 
         to_delete -= 1
-        lines = lines[max(0, to_delete):]
+        self.lines = self.lines[max(0, to_delete):]
         self.top += to_delete
 
         to_delete = -1
 
-        while re.match(r"\s+", lines[to_delete]):
+        while re.match("\000+", self.lines[to_delete]):
             to_delete -= 1
 
         to_delete += 1
 
         if to_delete < 0:
-            lines = lines[:to_delete]
+            self.lines = self.lines[:to_delete]
 
         for i in range(len(self.lines)):
             line = self.lines[i]
-            match_length = len(re.match(r"^\s*", line).group(0))
+            match_length = len(re.match("^\000*", line).group(0))
             self.indices[i] += match_length
             self.lengths[i] -= match_length
-            self.lines[i] = re.replace(r"\s+$", r"", line[match_length:])
+            self.lines[i] = re.sub("\000+$", r"", line[match_length:])
 
 
     def Clear(self):
@@ -338,7 +338,7 @@ class Charcoal:
             self.right_indices += [ 0 ] * number
 
         elif self.y < self.top:
-            number = (self.top - self.y)
+            number = self.top - self.y
             self.lines = [ "" ] * number + self.lines
             self.indices = [ 0 ] * number + self.indices
             self.lengths = [ 0 ] * number + self.lengths
@@ -479,6 +479,7 @@ class Charcoal:
                     self.y += 1
 
                 self.y -= 1
+
                 if lines[-1]:
                     self.Move(direction, len(lines[-1]))
 
@@ -503,8 +504,8 @@ class Charcoal:
                     self.Put(character)
                     self.Move(direction)
 
-                if lines[-1]:
-                    self.Move(direction)
+                if not lines[-1]:
+                    self.Move(NewlineDirection[NewlineDirection[direction]])
 
         if multiprint:
             self.x = old_x
@@ -723,7 +724,9 @@ class Charcoal:
         for i in range(len(points)):
             point = points[i]
             self.y, self.x = point
-            self.Put(string[i % length])
+            character = string[i % length]
+            if character != "\000":
+                self.Put(character)
 
         self.x = initial_x
         self.y = initial_y
@@ -749,19 +752,37 @@ class Charcoal:
         finished = True
 
         if direction == Direction.left:
-            self.lines = [ line[::-1] + line for line in self.lines ]
-            self.lengths = [ length * 2 for length in self.lengths ]
+            left = min(self.indices)
+            self.lines = [
+                line[::-1] +
+                "\000\000" * (index - left) +
+                line
+                for line, index in zip(self.lines, self.indices)
+            ]
+            self.lengths = [
+                (length + index - left) * 2
+                for length, index in zip(self.lengths, self.indices)
+            ]
             self.indices = [
-                right_index - length
-                for right_index, length in zip(self.right_indices, self.lengths)
+                left * 2 - right_index
+                for right_index in self.right_indices
             ]
 
         elif direction == Direction.right:
-            self.lines = [ line + line[::-1] for line in self.lines ]
-            self.lengths = [ length * 2 for length in self.lengths ]
+            right = max(self.right_indices)
+            self.lines = [
+                line +
+                "\000\000" * (right - right_index) +
+                line[::-1]
+                for line, right_index in zip(self.lines, self.right_indices)
+            ]
+            self.lengths = [
+                (length + right - right_index) * 2
+                for length, right_index in zip(self.lengths, self.right_indices)
+            ]
             self.right_indices = [
-                index + length
-                for index, length in zip(self.indices, self.lengths)
+                right * 2 - index
+                for index in self.indices
             ]
 
         elif direction == Direction.up:
@@ -782,7 +803,29 @@ class Charcoal:
 
         if finished:
             return
+        #elif
+        if direction == Direction.down_left:
+            bottom_left, negative_x = max(
+                (y - x, i - x + 1)
+                for x, y, i in zip(
+                    self.indices,
+                    range(self.top, self.top + len(self.indices)),
+                    range(len(self.indices))
+                )
+            )
+            x = -negative_x
+            self.x = x - 1
+            for line, length, right_index in zip(
+                self.lines[:],
+                self.lengths[:],
+                self.right_indices[:]
+            ):
+                self.x += 1
+                self.y = right_index + bottom_left
+                self.PrintLine({Direction.up}, length, line[::-1])
+
         # TODO
+
         if Info.step_canvas in self.info:
             self.RefreshFastText("Reflect copy", self.canvas_step)
 
@@ -792,21 +835,37 @@ class Charcoal:
         finished = True
 
         if direction == Direction.left:
-            self.lines = self.Lines()
-            self.lines = [ line[:0:-1] + line for line in self.lines ]
-            self.lengths = [ length * 2 - 1 for length in self.lengths ]
+            left = min(self.indices)
+            self.lines = [
+                (line[::-1] + "\000" * (index - left))[:-1] +
+                "\000" * (index - left) +
+                line
+                for line, index in zip(self.lines, self.indices)
+            ]
+            self.lengths = [
+                (length + index - left) * 2 - 1
+                for length, index in zip(self.lengths, self.indices)
+            ]
             self.indices = [
-                right_index - length
-                for right_index, length in zip(self.right_indices, self.lengths)
+                left * 2 - right_index + 1
+                for right_index in self.right_indices
             ]
 
         elif direction == Direction.right:
-            self.lines = self.Lines()
-            self.lines = [ line + line[1::-1] for line in self.lines ]
-            self.lengths = [ length * 2 - 1 for length in self.lengths ]
+            right = max(self.right_indices)
+            self.lines = [
+                line +
+                "\000" * (right - right_index) +
+                ("\000" * (right - right_index) + line[::-1])[1:]
+                for line, right_index in zip(self.lines, self.right_indices)
+            ]
+            self.lengths = [
+                (length + right - right_index) * 2 - 1
+                for length, right_index in zip(self.lengths, self.right_indices)
+            ]
             self.right_indices = [
-                index + length
-                for index, length in zip(self.indices, self.lengths)
+                right * 2 - index - 1
+                for index in self.indices
             ]
 
         elif direction == Direction.up:
@@ -833,90 +892,90 @@ class Charcoal:
 
         self.Trim()
         if direction == Direction.up_left:
-            top_left = min(
-                x + y
-                for x, y in zip(self.indices, range(len(self.indices)))
-            )
-            top_right = max(
-                x + negative_y
-                for x, negative_y in zip(
-                    self.right_indices,
-                    list(range(len(self.right_indices)))[::-1]
+            # TODO: fix "\000\000d\nabc", x is too low by 2
+            top_left, negative_x = min(
+                (x + y, i - x)
+                for x, y, i in zip(
+                    self.indices,
+                    range(self.top, self.top + len(self.indices)),
+                    range(len(self.indices))
                 )
             )
-            y = (top_left - top_right) / 2 + self.top - 1
+            x = -negative_x
+            self.x = x + 1
 
-            for line, index in zip(self.lines, self.indices):
-                y += 1
-                self.y = y - index
-                self.x = top_left - y 
-                self.PrintLine({Direction.up}, len(line), line)
+            for line, length, index in zip(
+                self.lines[:],
+                self.lengths[:],
+                self.indices[:]
+            ):
+                self.x -= 1
+                self.y = top_left - index
+                self.PrintLine({Direction.up}, length, line)
 
         elif direction == Direction.up_right:
-            top_left = min(
-                x + y
-                for x, y in zip(self.indices, range(len(self.indices)))
-            )
-            top_right = max(
-                x + negative_y
-                for x, negative_y in zip(
+            top_right, negative_x = min(
+                (y - x, i - x + 1)
+                for x, y, i in zip(
                     self.right_indices,
-                    list(range(len(self.right_indices)))[::-1]
+                    range(self.top, self.top + len(self.right_indices)),
+                    range(len(self.right_indices))
                 )
-            )
-            y = (top_left - top_right) / 2 + self.top - 1
 
-            for line, right_index in zip(self.lines, self.right_indices):
-                y += 1
-                self.y = y - right_index
-                self.x = top_right + y
-                self.PrintLine({Direction.up}, len(line), line)
+            )
+            x = -negative_x
+            self.x = x - 1
+
+            for line, length, right_index in zip(
+                self.lines[:],
+                self.lengths[:],
+                self.right_indices[:]
+            ):
+                self.x += 1
+                self.y = right_index + top_right
+                self.PrintLine({Direction.up}, length, line[::-1])
 
         elif direction == Direction.down_left:
-            bottom_left = max(
-                x + negative_y
-                for x, negative_y in zip(
-                    self.right_indices,
-                    list(range(len(self.right_indices)))[::-1]
+            bottom_left, negative_x = max(
+                (y - x, i - x)
+                for x, y, i in zip(
+                    self.indices,
+                    range(self.top, self.top + len(self.indices)),
+                    range(len(self.indices))
                 )
             )
-            bottom_right = max(
-                x + y
-                for x, y in zip(
-                    self.right_indices,
-                    range(len(self.right_indices))
-                )
-            )
-            y = (bottom_right - bottom_left) / 2 + self.top + 1
+            x = -negative_x
+            self.x = x - 1
 
-            for line, index in zip(self.lines[::-1], self.indices[::-1]):
-                y -= 1
-                self.y = y - index
-                self.x = bottom_left + y
-                self.PrintLine({Direction.down}, len(line), line)
+            for line, length, index in zip(
+                self.lines[:],
+                self.lengths[:],
+                self.indices[:]
+            ):
+                self.x += 1
+                self.y = index + bottom_left
+                self.PrintLine({Direction.down}, length, line)
 
         elif direction == Direction.down_right:
-            bottom_left = max(
-                x + negative_y
-                for x, negative_y in zip(
+            bottom_right, negative_x = max(
+                (x + y, i - x - 1)
+                for x, y, i in zip(
                     self.right_indices,
-                    list(range(len(self.right_indices)))[::-1]
-                )
-            )
-            bottom_right = max(
-                x + y
-                for x, y in zip(
-                    self.right_indices,
+                    range(self.top, self.top + len(self.right_indices)),
                     range(len(self.right_indices))
                 )
             )
-            y = (bottom_right - bottom_left) / 2 + self.top + 1
+            x = -negative_x
+            self.x = x + 1
 
-            for line, right_index in zip(self.lines[::-1], self.indices[::-1]):
-                y -= 1
-                self.y = y - right
-                self.x = bottom_right - y
-                self.PrintLine({Direction.down}, len(line), line)
+            for line, length, right_index in zip(
+                self.lines[:],
+                self.lengths[:],
+                self.right_indices[:]
+            ):
+                self.x -= 1
+                self.y = bottom_right - right_index
+                self.PrintLine({Direction.down}, length, line[::-1])
 
         self.x = initial_x
         self.y = initial_y
@@ -953,7 +1012,7 @@ class Charcoal:
         if rotations % 2:
             print("RuntimeError: Cannot rotate")
             if not Info.is_repl in self.info:
-                sys.exit()
+                sys.exit(1)
         # TODO
 
         if Info.step_canvas in self.info:
@@ -1189,7 +1248,7 @@ class Charcoal:
         if not isinstance(timeout, int):
             print("RuntimeError: Refresh expected int, found %s" % str(timeout))
             if not Info.is_repl in self.info:
-                sys.exit()
+                sys.exit(1)
 
         elif not ignore_warnings and timeout == 0 and Info.warn_ambiguities in self.info:
             print("Warning: Possible ambiguity, make sure you explicitly use 0 for no delay if needed")
@@ -1256,6 +1315,15 @@ class Charcoal:
             body(self)
             self.RefreshFast()
             self.scope[loop_variable] = condition(self)
+
+
+    def Evaluate(self, code, is_command=False):
+
+        if is_command:
+            Run(code, charcoal=self)
+            return
+
+        return Run(code, grammar=CharcoalToken.Expression)
 
 
 def PassThrough(result):
@@ -1417,6 +1485,7 @@ def ParseExpression(
 
 def Parse(
         code,
+        grammar=CharcoalToken.Program,
         grammars=UnicodeGrammars,
         processor=ASTProcessor,
         whitespace=False,
@@ -1433,6 +1502,7 @@ def Parse(
     code += "»" * code.count("«") # because of escaped characters, will need to change to custom universal end closing character (not to be used by the user) if we have autoclosing delimited strings, lists etc
     result = ParseExpression(
         code,
+        grammar=grammar,
         grammars=grammars,
         processor=processor
     )
@@ -1481,20 +1551,29 @@ def Run(
     code,
     inputs=[],
     charcoal=None,
+    grammar=CharcoalToken.Program,
     whitespace=False,
     normal_encoding=False
 ):
+
     if not charcoal:
         charcoal = Charcoal(inputs)
+
     else:
         charcoal.AddInputs(inputs)
-    Parse(
+
+    result = Parse(
         code,
         whitespace=whitespace,
+        grammar=grammar,
         processor=InterpreterProcessor,
         normal_encoding=normal_encoding
     )(charcoal)
-    return str(charcoal)
+
+    if grammar == CharcoalToken.Program:
+        return str(charcoal)
+
+    return result
 
 
 def AddAmbiguityWarnings():

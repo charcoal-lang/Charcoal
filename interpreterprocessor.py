@@ -100,10 +100,7 @@ InterpreterProcessor = {
         lambda result: lambda item, charcoal: int(not item),
         lambda result: lambda item, charcoal: charcoal.Cast(item),
         lambda result: lambda item, charcoal: charcoal.Random(item),
-        lambda result: lambda item, charcoal: Run(
-            result[1](charcoal),
-            charcoal=charcoal
-        )
+        lambda result: lambda item, charcoal: charcoal.Evaluate(item)
     ],
     CharcoalToken.Dyadic: [
         lambda result: lambda left, right, charcoal: (
@@ -210,7 +207,9 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: charcoal.ReflectCopy(result[1])
     ],
     CharcoalToken.RotateOverlap: [
-        lambda result: lambda charcoal: charcoal.RotateOverlap(result[1](charcoal))
+        lambda result: lambda charcoal: charcoal.RotateOverlap(
+            result[1](charcoal)
+        )
     ],
     CharcoalToken.ReflectOverlap: [
         lambda result: lambda charcoal: charcoal.ReflectOverlap(result[1])
@@ -285,6 +284,12 @@ InterpreterProcessor = {
     CharcoalToken.Refresh: [
         lambda result: lambda charcoal: charcoal.Refresh(result[1](charcoal)),
         lambda result: lambda charcoal: charcoal.Refresh()
+    ],
+    CharcoalToken.Evaluate: [
+        lambda result: lambda charcoal: charcoal.Evaluate(
+            result[1](charcoal),
+            True
+        )
     ],
     CharcoalToken.InputString: [
         lambda result: lambda charcoal: charcoal.InputString(result[1])

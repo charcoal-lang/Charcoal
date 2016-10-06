@@ -82,7 +82,7 @@ ASTProcessor = {
     ],
 
     CharcoalToken.Program: [
-        lambda result: [ "Program", result[0] ] + result[1][1:],
+        lambda result: [ result[1][0], result[0] ] + result[1][1:],
         lambda result: [ "Program" ]
     ],
     CharcoalToken.Command: [
@@ -176,6 +176,9 @@ ASTProcessor = {
     CharcoalToken.Refresh: [
         lambda result: [ "Refresh", result[1] ],
         lambda result: [ "Refresh" ]
+    ],
+    CharcoalToken.Evaluate: [
+        lambda result: [ "Evaluate", result[1] ]
     ],
     CharcoalToken.InputString: [
         lambda result: [ "Input String", result[1] ]

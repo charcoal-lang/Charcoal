@@ -96,6 +96,7 @@ UnicodeGrammars = {
     CharcoalToken.Command: [
         [ CharcoalToken.InputString ],
         [ CharcoalToken.InputNumber ],
+        [ CharcoalToken.Evaluate ],
         [ CharcoalToken.Print ],
         [ CharcoalToken.Multiprint ],
         [ CharcoalToken.Polygon ],
@@ -230,6 +231,9 @@ UnicodeGrammars = {
     CharcoalToken.Refresh: [
         [ "Ｈ", CharcoalToken.Expression ],
         [ "Ｈ" ]
+    ],
+    CharcoalToken.Evaluate: [
+        [ "Ｖ", CharcoalToken.Expression ]
     ],
     CharcoalToken.InputString: [
         [ "Ｓ", CharcoalToken.Name ]
