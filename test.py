@@ -2,7 +2,6 @@ from charcoal import Run
 import unittest
 import sys
 
-# TODO: test whitespace mode, and escaping, and codepage conversion
 
 class CharcoalTest(unittest.TestCase):
     def test_print(self):
@@ -18,7 +17,6 @@ class CharcoalTest(unittest.TestCase):
         self.assertEqual(Run("↙abc"), "  a\n b \nc  ")
         self.assertEqual(Run("↓abc←def"), "  a\n  b\n  c\nfed")
 
-
     def test_multiprint(self):
         self.assertEqual(Run("Ｐabc"), "abc")
         self.assertEqual(Run("Ｐ→abc"), "abc")
@@ -28,11 +26,16 @@ class CharcoalTest(unittest.TestCase):
         self.assertEqual(Run("Ｐ→↓abc"), "abc\nb  \nc  ")
         self.assertEqual(Run("Ｐ+abc"), "  c  \n  b  \ncbabc\n  b  \n  c  ")
 
+    def test_jump(self):
+        self.assertEqual(Run("aＪ³¦³a"), """\
+a    
+     
+     
+    a""")
 
     def test_eval(self):
-        self.assertEqual(Run("ＶＳ", [ "abc←←Ｍ←abc" ]), "abc")
-        self.assertEqual(Run("↓ＶＳ", [ "⁺⁵¦⁵" ]), ("|\n" * 10)[:-1])
-
+        self.assertEqual(Run("ＶＳ", ["abc←←Ｍ←abc"]), "abc")
+        self.assertEqual(Run("↓ＶＳ", ["⁺⁵¦⁵"]), ("|\n" * 10)[:-1])
 
     def test_box(self):
         self.assertEqual(Run("Ｂ⁵¦⁵*"), """\
@@ -42,7 +45,6 @@ class CharcoalTest(unittest.TestCase):
 *   *
 *****""")
 
-
     def test_rectangle(self):
         self.assertEqual(Run("Ｒ⁵¦⁵"), """\
 +---+
@@ -50,7 +52,6 @@ class CharcoalTest(unittest.TestCase):
 |   |
 |   |
 +---+""")
-
 
     def test_background(self):
         self.assertEqual(Run("Ｐ+abcＵＢ*"), """\
@@ -83,35 +84,57 @@ cbabc
 *-#-*
 *-#-*
 *****""")
-
+        self.assertEqual(Run("Ｂ⁵¦⁵*ＵＢ#-¶-#"), """\
+*****
+*#-#*
+*-#-*
+*#-#*
+*****""")
 
     def test_copy(self):
-        pass
-
+        self.assertEqual(Run("Ｇ+⁵*Ｃ³¦³"), """\
+*****   
+*****   
+*****   
+********
+********
+   *****
+   *****
+   *****""")
+        self.assertEqual(Run("Ｇ→⁵↓⁶*Ｃ³¦³"), """\
+*****   
+    *   
+    *   
+   *****
+    *  *
+    *  *
+       *
+       *
+       *""")
+        self.assertEqual(Run("***¶  *¶  *Ｃ¹¦¹"), """\
+*** 
+ ***
+   *
+   *""")
 
     def test_for(self):
         self.assertEqual(Run("Ｆ⁵a"), "aaaaa")
-        self.assertEqual(Run("Ａ⁵ιＦＳκ", [ "foobar" ]), "foobar")
-
+        self.assertEqual(Run("Ａ⁵ιＦＳκ", ["foobar"]), "foobar")
 
     def test_while(self):
         self.assertEqual(Run("Ａ⁵βＷβ«abＡ⁻β¹β»"), "ababababab")
-
 
     def test_if(self):
         self.assertEqual(Run("¿¹asdf"), "asdf")
         self.assertEqual(Run("¿⁰asdf"), "")
         self.assertEqual(Run("¿⁰«asdf»ghjk"), "ghjk")
 
-
     def test_pivot(self):
         self.assertEqual(Run("↶¹asdf"), "   f\n  d \n s  \na   ")
         self.assertEqual(Run("↶²asdf"), "f\nd\ns\na")
 
-
     def test_rotate_copy(self):
         pass
-
 
     def test_reflect_copy(self):
         self.assertEqual(Run("abc¶def¶ghi‖Ｃ←"), "cbaabc\nfeddef\nihgghi")
@@ -120,8 +143,104 @@ cbabc
         self.assertEqual(Run("abc¶  d¶ gh‖Ｃ←"), "cbaabc\nd    d\nhg  gh")
         self.assertEqual(Run("a c¶d¶ghi‖Ｃ↑"), "ghi\nd  \na c\na c\nd  \nghi")
         self.assertEqual(Run("a c¶d¶ghi‖Ｃ↓"), "a c\nd  \nghi\nghi\nd  \na c")
-        #self.assertEqual(Run("a c¶d¶ghi‖Ｃ↖"), "i c\nh  \ngda")
-        #self.assertEqual(Run("a c¶d¶ghi‖Ｃ↗"), "adg\n  h\nc i")
+        self.assertEqual(Run("a c¶d¶ghi‖Ｃ↖"), """\
+i c   
+h     
+gda   
+   a c
+   d  
+   ghi""")
+        self.assertEqual(Run("a c¶ d¶ghi‖Ｃ↖"), """\
+i c   
+hd    
+g a   
+   a c
+    d 
+   ghi""")
+        self.assertEqual(Run("  a¶ d¶ghi‖Ｃ↖"), """\
+i a   
+hd    
+g     
+     a
+    d 
+   ghi""")
+        self.assertEqual(Run("a¶bcd‖Ｃ↖"), """\
+d    
+c    
+ba   
+  a  
+  bcd""")
+        self.assertEqual(Run("abc¶d‖Ｃ↖"), """\
+ c   
+ b   
+da   
+  abc
+  d  """)
+        self.assertEqual(Run("a¶d¶ghi‖Ｃ↖"), """\
+i     
+h     
+gda   
+   a  
+   d  
+   ghi""")
+        self.assertEqual(Run("cdeＭ↖bＭ↖a‖Ｃ↖"), """\
+eba 
+d  a
+c  b
+ cde""")
+        self.assertEqual(Run("abcＭ↖d‖Ｃ↖"), """\
+cd  
+b   
+a  d
+ abc""")
+        self.assertEqual(Run("a¶d¶ghi‖Ｃ↗"), """\
+ adg
+a  h
+d  i
+ghi """)
+        self.assertEqual(Run("a c¶d¶ghi‖Ｃ↗"), """\
+   adg
+     h
+   c i
+a c   
+d     
+ghi   """)
+        self.assertEqual(Run("a c¶ d¶ghi‖Ｃ↗"), """\
+   a g
+    dh
+   c i
+a c   
+ d    
+ghi   """)
+        self.assertEqual(Run("  a¶ d¶ghi‖Ｃ↗"), """\
+     g
+    dh
+   a i
+  a   
+ d    
+ghi   """)
+        self.assertEqual(Run("a¶bcd‖Ｃ↗"), """\
+  ab
+   c
+a  d
+bcd """)
+        self.assertEqual(Run("abc¶d‖Ｃ↗"), """\
+   ad
+   b 
+   c 
+abc  
+d    """)
+        self.assertEqual(Run("a¶d¶ghi‖Ｃ↗"), """\
+ adg
+a  h
+d  i
+ghi """)
+        self.assertEqual(Run("abcＭ↖d‖Ｃ↗"), """\
+    a
+    b
+   dc
+  d  
+abc  """)
         self.assertEqual(Run("a c¶d¶ghi‖Ｃ↙"), """\
    a c
    d  
@@ -129,12 +248,87 @@ cbabc
 adg   
   h   
 c i   """)
-        #self.assertEqual(Run("a c¶d¶ghi‖Ｃ↘"), "i c\nh  \ngda")
-
+        self.assertEqual(Run("a c¶ d¶ghi‖Ｃ↙"), """\
+   a c
+    d 
+   ghi
+a g   
+ dh   
+c i   """)
+        self.assertEqual(Run("  a¶ d¶ghi‖Ｃ↙"), """\
+     a
+    d 
+   ghi
+  g   
+ dh   
+a i   """)
+        self.assertEqual(Run("a¶bcd‖Ｃ↙"), """\
+  a  
+  bcd
+ab   
+ c   
+ d   """)
+        self.assertEqual(Run("abc¶d‖Ｃ↙"), """\
+  abc
+  d  
+ad   
+b    
+c    """)
+        self.assertEqual(Run("a¶d¶ghi‖Ｃ↙"), """\
+   a  
+   d  
+   ghi
+adg   
+  h   
+  i   """)
+        self.assertEqual(Run("abcＭ↖d‖Ｃ↙"), """\
+    d
+  abc
+ a   
+ b   
+dc   """)
+        self.assertEqual(Run("a c¶d¶ghi‖Ｃ↘"), """\
+a c   
+d     
+ghi   
+   i c
+   h  
+   gda""")
+        self.assertEqual(Run("a c¶ d¶ghi‖Ｃ↘"), """\
+a c   
+ d    
+ghi   
+   i c
+   hd 
+   g a""")
+        self.assertEqual(Run("  a¶ d¶ghi‖Ｃ↘"), """\
+  a   
+ d    
+ghi   
+   i a
+   hd 
+   g  """)
+        self.assertEqual(Run("a¶bcd‖Ｃ↘"), """\
+a    
+bcd  
+   d 
+   c 
+   ba""")
+        self.assertEqual(Run("abc¶d‖Ｃ↘"), """\
+abc 
+d  c
+   b
+  da""")
+        self.assertEqual(Run("a¶d¶ghi‖Ｃ↘"), """\
+a     
+d     
+ghi   
+   i  
+   h  
+   gda""")
 
     def test_rotate_overlap(self):
         pass
-
 
     def test_reflect_overlap(self):
         self.assertEqual(Run("abc¶def¶ghi‖Ｏ←"), "cbabc\nfedef\nihghi")
@@ -225,12 +419,6 @@ ghi""")
    b
   dc
 abc """)
-        self.assertEqual(Run("a¶d¶ghi‖Ｏ↙"), """\
-  a  
-  d  
-adghi
-  h  
-  i  """)
         self.assertEqual(Run("a c¶d¶ghi‖Ｏ↙"), """\
   a c
   d  
@@ -270,49 +458,39 @@ adghi
  abc
  b  
 dc  """)
-
-        self.assertEqual(Run("a¶d¶ghi‖Ｏ↘"), """\
-  a  
-  d  
-adghi
-  h  
-  i  """)
         self.assertEqual(Run("a c¶d¶ghi‖Ｏ↘"), """\
-  a c
-  d  
-adghi
+a c  
+d    
+ghi c
   h  
-c i  """)
+  gda""")
         self.assertEqual(Run("a c¶ d¶ghi‖Ｏ↘"), """\
-  a c
-   d 
-a ghi
- dh  
-c i  """)
+a c  
+ d   
+ghi c
+  hd 
+  g a""")
         self.assertEqual(Run("  a¶ d¶ghi‖Ｏ↘"), """\
-    a
-   d 
-  ghi
- dh  
-a i  """)
-        self.assertEqual(Run("a¶bcd‖Ｏ↘"), """\
- a  
-abcd
- c  
- d  """)
-        self.assertEqual(Run("abc¶d‖Ｏ↘"), """\
- abc
-ad  
-b   
-c   """)
-        self.assertEqual(Run("a¶d¶ghi‖Ｏ↘"), """\
   a  
-  d  
-adghi
+ d   
+ghi a
+  hd 
+  g  """)
+        self.assertEqual(Run("a¶bcd‖Ｏ↘"), """\
+a   
+bcd 
+  c 
+  ba""")
+        self.assertEqual(Run("abc¶d‖Ｏ↘"), """\
+abc
+d b
+ da""")
+        self.assertEqual(Run("a¶d¶ghi‖Ｏ↘"), """\
+a    
+d    
+ghi  
   h  
-  i  """)
-        #self.assertEqual(Run("a c¶d¶ghi‖Ｏ↘"), "adg\n  h\nc i")
-
+  gda""")
 
     def test_rotate(self):
         self.assertEqual(Run("abc¶def¶ghi⟲²"), "cfi\nbeh\nadg")
@@ -322,7 +500,6 @@ adghi
 a e i
  d h 
   g  """)
-
 
     def test_reflect(self):
         self.assertEqual(Run("abc¶def¶ghi‖←"), "cba\nfed\nihg")
@@ -334,7 +511,6 @@ a e i
         self.assertEqual(Run("a c¶d¶ghi‖↗"), "adg\n  h\nc i")
         self.assertEqual(Run("a c¶d¶ghi‖↘"), "i c\nh  \ngda")
         self.assertEqual(Run("a c¶d¶ghi‖↙"), "adg\n  h\nc i")
-
 
     def test_polygon(self):
         self.assertEqual(Run("Ｇ+⁵a"), """\
@@ -356,6 +532,33 @@ aaaaa""")
 *#*#*#*
    *   """)
 
+    def test_escape(self):
+        self.assertEqual(Run("Ｇ+⁵a´¶´‖"), """\
+a¶‖a¶
+a¶‖a¶
+a¶‖a¶
+a¶‖a¶
+a¶‖a¶""")
+
+    def test_whitespace(self):
+        self.assertEqual(Run("""\
+Ｇ
+ +
+  ⁵
+   a´ """, whitespace=True), """\
+a a a
+a a a
+a a a
+a a a
+a a a""")
+
+    def test_codepage(self):
+        self.assertEqual(Run("\xC7+\xB5a\xE0 ", normal_encoding=True), """\
+a a a
+a a a
+a a a
+a a a
+a a a""")
 
     def test_challenges(self):
         self.assertEqual(Run("""\
@@ -375,7 +578,7 @@ aaaaa""")
         self.assertEqual(
             Run(
                 "ＦＳ¿⁼ι(«(↓»«Ｍ↑)",
-                [ "(()(()())()((())))(())" ]
+                ["(()(()())()((())))(())"]
             ), """\
 (                )(  )
  ()(    )()(    )  () 
@@ -386,7 +589,7 @@ aaaaa""")
                 """\
 ＮβＡ-~-¶θ¿‹β⁰Ｆ³θ¿β«θＦβ⁺-~-|$¶θ»↓\
 Congratulations on your new baby! :D⟲²""",
-                [ "4" ]
+                ["4"]
             ), """\
  $ $ $ $  
  | | | |  
@@ -394,7 +597,7 @@ Congratulations on your new baby! :D⟲²""",
 ~~~~~~~~~ 
 --------- """
         )
-        self.assertEqual(Run("Ｇ↗↘←Ｎ*Ｍ↓*", [ "4" ]), """\
+        self.assertEqual(Run("Ｇ↗↘←Ｎ*Ｍ↓*", ["4"]), """\
    *   
   ***  
  ***** 
@@ -406,7 +609,7 @@ CharcoalTests = unittest.TestLoader().loadTestsFromTestCase(CharcoalTest)
 
 
 def RunTests():
-    unittest.main(defaultTest="CharcoalTests", argv=[ sys.argv[0] ])
+    unittest.main(defaultTest="CharcoalTests", argv=[sys.argv[0]])
 
 if __name__ == "__main__":
     RunTests()

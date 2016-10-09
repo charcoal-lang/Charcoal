@@ -36,7 +36,7 @@ InterpreterProcessor = {
             Direction.up,
             Direction.up_right
         ] + result[1],
-        lambda result: [ result[0] ] + result[1]
+        lambda result: [result[0]] + result[1]
     ],
     CharcoalToken.Side: [
         lambda result: lambda charcoal: (result[0], result[1](charcoal))
@@ -56,20 +56,20 @@ InterpreterProcessor = {
     ],
 
     CharcoalToken.Arrows: [
-        lambda result: [ result[0] ] + result[1],
-        lambda result: [ ]
+        lambda result: [result[0]] + result[1],
+        lambda result: []
     ],
     CharcoalToken.Sides: [
         lambda result: lambda charcoal: [
             result[0](charcoal)
         ] + result[1](charcoal),
-        lambda result: lambda charcoal: [ result[0](charcoal) ]
+        lambda result: lambda charcoal: [result[0](charcoal)]
     ],
     CharcoalToken.Expressions: [
-        lambda result: lambda charcoal: [ 
+        lambda result: lambda charcoal: [
             result[0](charcoal)
         ] + result[2](charcoal),
-        lambda result: lambda charcoal: [ result[0](charcoal) ]
+        lambda result: lambda charcoal: [result[0](charcoal)]
     ],
 
     CharcoalToken.List: [
@@ -86,7 +86,10 @@ InterpreterProcessor = {
             result[2](charcoal),
             charcoal
         ),
-        lambda result: lambda charcoal: result[0](result[1](charcoal), charcoal),
+        lambda result: lambda charcoal: result[0](
+            result[1](charcoal),
+            charcoal
+        ),
         lambda result: lambda charcoal: result[0](charcoal)
     ],
     CharcoalToken.Niladic: [
@@ -170,8 +173,8 @@ InterpreterProcessor = {
         ),
         lambda result: lambda charcoal: charcoal.Polygon(
             [
-                [ (side, length) for side in result[1] ]
-                for length in [ result[2](charcoal) ]
+                [(side, length) for side in result[1]]
+                for length in [result[2](charcoal)]
             ][0], result[3](charcoal))
     ],
     CharcoalToken.Move: [
@@ -201,7 +204,9 @@ InterpreterProcessor = {
         )
     ],
     CharcoalToken.RotateCopy: [
-        lambda result: lambda charcoal: charcoal.RotateCopy(result[1](charcoal))
+        lambda result: lambda charcoal: charcoal.RotateCopy(
+            result[1](charcoal)
+        )
     ],
     CharcoalToken.ReflectCopy: [
         lambda result: lambda charcoal: charcoal.ReflectCopy(result[1])
