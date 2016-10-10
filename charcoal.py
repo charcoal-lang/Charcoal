@@ -302,24 +302,6 @@ class Charcoal:
         if is_empty:
             return
 
-        background = self.background
-        background_2 = self.background
-
-        if self.bg_lines:
-            index = self.indices[i] % line_length
-            bg_line = self.bg_lines[self.y % number_of_lines]
-            background = bg_line[index:] + bg_line[:index]
-            background = (
-                background *
-                (int(length / len(background)) + 1)
-            )[:length]
-            index_2 = (self.right_indices[i] + 1) % line_length
-            background_2 = bg_line[index_2:] + bg_line[:index_2]
-            background_2 = (
-                background_2 *
-                (int(length / len(background_2)) + 1)
-            )[:length]
-
         y_index = self.y - self.top
         x_index = self.indices[y_index]
 
@@ -540,9 +522,6 @@ class Charcoal:
                     self.FillLines()
                     self.Put(character)
                     self.Move(direction)
-
-                if not lines[-1]:
-                    self.Move(NewlineDirection[NewlineDirection[direction]])
 
         if multiprint:
             self.x = old_x

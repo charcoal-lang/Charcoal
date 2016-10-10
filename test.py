@@ -569,6 +569,15 @@ a a a
 a a a""")
 
     def test_challenges(self):
+        self.assertEqual(Run("Ａp....Pβrnbkqbnr↙↷²×⁺β¶⁷β↶²RNBKQBNR"), """\
+rnbkqbnr
+pppppppp
+........
+........
+........
+........
+PPPPPPPP
+RNBKQBNR""")
         self.assertEqual(Run("""\
 ×⁶()↙↓¹⁰↖↖¹⁰↓↓²↘⁸Ｍ↑__↖←¤:↗¤\
 3.141592653589793238462643383279502884197169"""), """\
