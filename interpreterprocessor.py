@@ -80,7 +80,7 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: result[0],
         lambda result: lambda charcoal: result[0],
         lambda result: lambda charcoal: charcoal.scope[result[0]],
-        lambda result: lambda charcoal: result[1](charcoal),
+        lambda result: lambda charcoal: result[0](charcoal),
         lambda result: lambda charcoal: result[0](
             result[1](charcoal),
             result[2](charcoal),

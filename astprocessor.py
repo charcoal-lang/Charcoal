@@ -54,8 +54,14 @@ ASTProcessor = {
     ],
 
     CharcoalToken.Expression: [
-        lambda result: result[0] if len(result) == 2 else result[:-1]
-    ] * len(UnicodeGrammars[CharcoalToken.Expression]),
+        lambda result: result[0],
+        lambda result: result[0],
+        lambda result: result[0],
+        lambda result: result[0],
+        lambda result: result,
+        lambda result: result,
+        lambda result: result[0]
+    ],
     CharcoalToken.Niladic: [
         lambda result: "Input String",
         lambda result: "Input Number",

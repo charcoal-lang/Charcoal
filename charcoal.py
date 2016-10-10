@@ -42,13 +42,13 @@ if not hasattr(__builtins__, "raw_input"):
     raw_input = input
 
     def input(prompt):
-        eval(raw_input(prompt))
+        return eval(raw_input(prompt))
+
 if not hasattr(__builtins__, "basestring"):
     basestring = str
 
 
 def CleanExecute(function, *args):
-
     try:
         return function(*args)
 
@@ -89,7 +89,6 @@ class Coordinates:
         self.coordinates = [[]]
 
     def FillLines(self, y):
-
         if y > self.top + len(self.coordinates) - 1:
             self.coordinates += [[]] * (
                 y - self.top - len(self.coordinates) + 1
@@ -97,11 +96,10 @@ class Coordinates:
 
         elif y < self.top:
             self.coordinates = [[]] * (self.top - y) + self.coordinates
+            self.top = y
 
     def Add(self, x, y):
         self.FillLines(y)
-        if y < self.top:
-            self.top = y
         self.coordinates[y - self.top] += [x]
 
 
@@ -112,23 +110,14 @@ class Charcoal:
         self.indices = [0]
         self.lengths = [0]
         self.right_indices = [0]
-        self.old_top = 0
-        self.old_lines = []
-        self.old_indices = []
-        self.most_recent = ""
-        self.most_recent_x = 0
-        self.most_recent_y = 0
-        self.most_recent_directions = []
         self.scope = {}
         self.info = info
         self.inputs = inputs
         self.direction = Direction.right
         self.background = " "
         self.bg_lines = []
-        self.bg_line_number = 0
-        self.bg_line_length = 0
-        self.timeout_end = 0
-        self.dump_timeout_end = 0
+        self.bg_line_number = self.bg_line_length = 0
+        self.timeout_end = self.dump_timeout_end = 0
         self.background_inside = False
         self.canvas_step = canvas_step
         if Info.step_canvas in self.info:
@@ -146,31 +135,33 @@ class Charcoal:
                 line = self.lines[i]
                 j = -1
 
-                for character in line:
-                    j += 1
+                if self.background_inside:
 
-                    if character == "\000":
+                    for character in line:
+                        j += 1
 
-                        if bg_start is None:
-                            bg_start = j
+                        if character == "\000":
 
-                    elif bg_start is not None:
+                            if bg_start is None:
+                                bg_start = j
+
+                        elif bg_start is not None:
+                            line = (
+                                line[:bg_start] +
+                                self.BackgroundString(
+                                    self.top + i,
+                                    bg_start,
+                                    j
+                                ) +
+                                line[j:]
+                            )
+                            bg_start = None
+
+                    if bg_start is not None:
                         line = (
                             line[:bg_start] +
-                            self.BackgroundString(
-                                self.top + i,
-                                bg_start,
-                                j
-                            ) +
-                            line[j:]
+                            self.BackgroundString(self.top + i, bg_start, j)
                         )
-                        bg_start = None
-
-                if bg_start is not None:
-                    line = (
-                        line[:bg_start] +
-                        self.BackgroundString(self.top + i, bg_start, j)
-                    )
 
                 string += (
                     self.BackgroundString(
@@ -191,15 +182,27 @@ class Charcoal:
 
         else:
 
-            for line, index, right_index in zip(
-                self.lines, self.indices, self.right_indices
-            ):
-                string += (
-                    self.background * (index - left) +
-                    re.sub("\000", self.background, line) +
-                    self.background * (right - right_index) +
-                    "\n"
-                )
+            if self.background_inside:
+                for line, index, right_index in zip(
+                    self.lines, self.indices, self.right_indices
+                ):
+                    string += (
+                        self.background * (index - left) +
+                        re.sub("\000", self.background, line) +
+                        self.background * (right - right_index) +
+                        "\n"
+                    )
+
+            else:
+                for line, index, right_index in zip(
+                    self.lines, self.indices, self.right_indices
+                ):
+                    string += (
+                        self.background * (index - left) +
+                        line +
+                        self.background * (right - right_index) +
+                        "\n"
+                    )            
 
             return string[:-1]
 
@@ -213,6 +216,9 @@ class Charcoal:
     def Lines(self):
         left = min(self.indices)
         right = max(self.right_indices)
+
+        self.background_inside = True
+
         return [
             "\000" * (index - left) +
             line +
@@ -230,16 +236,18 @@ class Charcoal:
     def Trim(self):
         to_delete = 0
 
-        while re.match("\000+", self.lines[to_delete]):
+        while re.match("^\000*$", self.lines[to_delete]):
             to_delete += 1
 
         to_delete -= 1
-        self.lines = self.lines[max(0, to_delete):]
-        self.top += to_delete
+
+        if to_delete > 0:
+            self.lines = self.lines[to_delete:]
+            self.top += to_delete
 
         to_delete = -1
 
-        while re.match("\000+", self.lines[to_delete]):
+        while re.match("^\000*$", self.lines[to_delete]):
             to_delete -= 1
 
         to_delete += 1
@@ -249,10 +257,20 @@ class Charcoal:
 
         for i in range(len(self.lines)):
             line = self.lines[i]
-            match_length = len(re.match("^\000*", line).group(0))
+            match = re.match("^\000*", line)
+            match_length = len(match.group(0)) if match else 0
             self.indices[i] += match_length
             self.lengths[i] -= match_length
-            self.lines[i] = re.sub("\000+$", r"", line[match_length:])
+            match_2 = re.match("\000*$", line)
+            match_2_length = len(match_2.group(0)) if match_2 else 0
+            self.right_indices[i] -= match_2_length
+            self.lengths[i] -= match_2_length
+            line = line[match_length:]
+
+            if match_2_length > 0:
+                line = line[:-match_2_length]
+
+            self.lines[i] = line
 
     def Clear(self):
         self.x = self.y = self.top = 0
@@ -260,6 +278,14 @@ class Charcoal:
         self.indices = [0]
         self.lengths = [0]
         self.right_indices = [0]
+        self.scope = {}
+        self.inputs = []
+        self.direction = Direction.right
+        self.background = " "
+        self.bg_lines = []
+        self.bg_line_number = self.bg_line_length = 0
+        self.timeout_end = self.dump_timeout_end = 0
+        self.background_inside = False
 
     def Get(self):
         y_index = self.y - self.top
@@ -312,6 +338,10 @@ class Charcoal:
 
         start = self.x + delta_index - x_index
         end = start + len(string)
+
+        if start - len(line) > 0 or end < 0:
+            self.background_inside = True
+
         self.lines[y_index] = (
             line[:max(0, start)] +
             "\000" * (start - len(line)) +
@@ -418,10 +448,17 @@ class Charcoal:
                 string_length = len(string)
 
                 for i in range(length):
+                    character = string[i % string_length]
+                    
+                    if character == "\000":
+                        continue
+
                     self.FillLines()
+
                     if coordinates:
                         coordinates.Add(self.x, self.y)
-                    self.Put(string[i % string_length])
+
+                    self.Put(character)
                     self.Move(direction)
 
                 if not move_at_end:
@@ -449,10 +486,6 @@ class Charcoal:
         if not directions:
             directions = {self.direction}
 
-        self.old_top = self.top
-        self.old_lines = self.lines[:]
-        self.old_indices = self.indices[:]
-
         old_x = self.x
         old_y = self.y
 
@@ -470,7 +503,6 @@ class Charcoal:
                 initial_x = self.x
 
                 for line in lines:
-                    self.FillLines()
                     self.PrintLine({direction}, len(line), line)
                     self.x = initial_x
                     self.y += 1
@@ -488,6 +520,10 @@ class Charcoal:
                     line_start_y = self.y
 
                     for character in line:
+
+                        if character == "\000":
+                            continue
+
                         self.FillLines()
                         self.Put(character)
                         self.Move(direction)
@@ -497,6 +533,10 @@ class Charcoal:
                     self.Move(newline_direction)
 
                 for character in lines[-1]:
+
+                    if character == "\000":
+                        continue
+
                     self.FillLines()
                     self.Put(character)
                     self.Move(direction)
@@ -742,6 +782,9 @@ class Charcoal:
 
         if direction == Direction.left:
             left = min(self.indices)
+
+            self.background_inside = True
+
             self.lines = [
                 line[::-1] +
                 "\000\000" * (index - left) +
@@ -765,6 +808,9 @@ class Charcoal:
                 line[::-1]
                 for line, right_index in zip(self.lines, self.right_indices)
             ]
+
+            self.background_inside = True
+
             self.lengths = [
                 (length + right - right_index) * 2
                 for length, right_index in zip(
@@ -893,6 +939,9 @@ class Charcoal:
                 line
                 for line, index in zip(self.lines, self.indices)
             ]
+
+            self.background_inside = True
+
             self.lengths = [
                 (length + index - left) * 2 - 1
                 for length, index in zip(self.lengths, self.indices)
@@ -910,6 +959,9 @@ class Charcoal:
                 ("\000" * (right - right_index) + line[::-1])[1:]
                 for line, right_index in zip(self.lines, self.right_indices)
             ]
+
+            self.background_inside = True
+
             self.lengths = [
                 (length + right - right_index) * 2 - 1
                 for length, right_index in zip(
@@ -930,10 +982,10 @@ class Charcoal:
             self.right_indices = self.right_indices[:0:-1] + self.right_indices
 
         elif direction == Direction.down:
-            self.lines += self.lines[1::-1]
-            self.indices += self.indices[1::-1]
-            self.lengths += self.lengths[1::-1]
-            self.right_indices += self.right_indices[1::-1]
+            self.lines += self.lines[-2::-1]
+            self.indices += self.indices[-2::-1]
+            self.lengths += self.lengths[-2::-1]
+            self.right_indices += self.right_indices[-2::-1]
 
         else:
             finished = False
@@ -1378,16 +1430,8 @@ def PassThrough(result):
     return result
 
 SuperscriptToNormal = {
-    "⁰": 0,
-    "¹": 1,
-    "²": 2,
-    "³": 3,
-    "⁴": 4,
-    "⁵": 5,
-    "⁶": 6,
-    "⁷": 7,
-    "⁸": 8,
-    "⁹": 9
+    "⁰": 0, "¹": 1, "²": 2, "³": 3, "⁴": 4,
+    "⁵": 5, "⁶": 6, "⁷": 7, "⁸": 8, "⁹": 9
 }
 
 
@@ -1429,10 +1473,9 @@ def ParseExpression(
                             index += 1
 
                         if index >= len(code):
-                            character = ""
+                            break
 
-                        else:
-                            character = code[index]
+                        character = code[index]
 
                     if old_index == index:
                         success = False
@@ -1441,7 +1484,15 @@ def ParseExpression(
                     tokens += processor[token][0]([re.sub(
                         r"´(.)",
                         r"\1",
-                        re.sub(r"(^|[^´])¶", r"\1\n", code[old_index:index])
+                        re.sub(
+                            r"(^|[^´])¶",
+                            r"\1\n",
+                            re.sub(
+                                r"(^|[^´])¶",
+                                r"\1\n",
+                                code[old_index:index]
+                            )
+                        )
                     )])
 
                 elif token == CharcoalToken.Number:
@@ -1519,7 +1570,10 @@ def ParseExpression(
                     break
 
             else:
-                pass  # supposed to error
+                print(
+                    "ParseError: Unexpected token %s found in grammar." %
+                    repr(token)
+                )
 
         if success:
             return (processor[grammar][lexeme_index](tokens), index)
@@ -1613,7 +1667,6 @@ def Run(
     whitespace=False,
     normal_encoding=False
 ):
-
     if not charcoal:
         charcoal = Charcoal(inputs)
 
@@ -1636,7 +1689,7 @@ def Run(
 
 def AddAmbiguityWarnings():
     ASTProcessor[CharcoalToken.Monadic][4] = (
-        lambda result: """Random [Warning: May be ambiguous]"""
+        lambda result: "Random [Warning: May be ambiguous]"
     )
     ASTProcessor[CharcoalToken.Refresh][0] = lambda: [
         "Refresh [Warning: May be ambiguous]"
@@ -1775,8 +1828,8 @@ if __name__ == "__main__":
                 ))
 
             except KeyboardInterrupt:
+                charcoal.Clear()
                 print("\nCleared canvas")
-                charcoal = Charcoal()
 
             except EOFError:
                 break

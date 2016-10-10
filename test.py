@@ -337,6 +337,14 @@ ghi
         self.assertEqual(Run("abc¶  d¶ gh‖Ｏ←"), "cbabc\nd   d\nhg gh")
         self.assertEqual(Run("a c¶d¶ghi‖Ｏ↑"), "ghi\nd  \na c\nd  \nghi")
         self.assertEqual(Run("a c¶d¶ghi‖Ｏ↓"), "a c\nd  \nghi\nd  \na c")
+        self.assertEqual(Run("a c¶d¶ghi¶jkl‖Ｏ↓"), """\
+a c
+d  
+ghi
+jkl
+ghi
+d  
+a c""")
         self.assertEqual(Run("a c¶d¶ghi‖Ｏ↖"), """\
 i c  
 h    

@@ -53,13 +53,11 @@ UnicodeGrammars = {
         [
             CharcoalToken.Dyadic,
             CharcoalToken.Expression,
-            CharcoalToken.Expression,
-            CharcoalToken.Separator
+            CharcoalToken.Expression
         ],
         [
             CharcoalToken.Monadic,
-            CharcoalToken.Expression,
-            CharcoalToken.Separator
+            CharcoalToken.Expression
         ],
         [CharcoalToken.Niladic, CharcoalToken.Separator]
     ],
@@ -72,8 +70,8 @@ UnicodeGrammars = {
         ["⁻"],
         ["Ｌ"],
         ["¬"],
-        ["‽"],
         ["Ｉ"],
+        ["‽"],
         ["Ｖ"]
     ],
     CharcoalToken.Dyadic: [
