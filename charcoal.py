@@ -541,9 +541,6 @@ class Charcoal:
                     self.Put(character)
                     self.Move(direction)
 
-                if not lines[-1]:
-                    self.Move(NewlineDirection[NewlineDirection[direction]])
-
         if multiprint:
             self.x = old_x
             self.y = old_y
