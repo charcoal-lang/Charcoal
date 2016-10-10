@@ -1,0 +1,38 @@
+%YAML 1.2
+---
+file_extensions:
+  - cl
+scope: source
+contexts:
+  main:
+    - match: (¿|Ｆ|Ｗ|ＨＦ|ＨＷ)
+      scope: keyword
+
+    - match: ([ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ¤‖↶↷⟲])
+      scope: entity.name.function
+
+    - match: ([⁺⁻×÷﹪∧∨¬⁼‹›])
+      scope: keyword.operator
+
+    - match: ([⁰¹²³⁴⁵⁶⁷⁸⁹]+)
+      scope: constant.numeric
+
+    - match: ([←↑→↓↖↗↘↙])
+      scope: constant.other.symbol
+
+    - match: ([ -~¶´]+)
+      scope: string.quoted
+
+    - match: ([αβγδεζηθικλμνξπρσςτυφχψω])
+      scope: variable
+
+    - match: («)
+      push: body
+
+    - match: (»)
+      scope: invalid.illegal.stray-bracket-end
+
+  body:
+    - match: (»)
+      pop: true
+    - include: main

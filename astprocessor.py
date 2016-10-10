@@ -85,7 +85,8 @@ ASTProcessor = {
         lambda result: "Less Than",
         lambda result: "Greater Than",
         lambda result: "And",
-        lambda result: "Or"
+        lambda result: "Or",
+        lambda result: "Cycle and chop"
     ],
 
     CharcoalToken.Program: [

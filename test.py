@@ -2,6 +2,7 @@ from charcoal import Run
 import unittest
 import sys
 
+# TODO: test cycle and chop, and test cursor positioning fore reflections
 
 class CharcoalTest(unittest.TestCase):
     def test_print(self):
@@ -44,6 +45,12 @@ a
 *   *
 *   *
 *****""")
+        self.assertEqual(Run("Ｂ⁵¦⁵123"), """\
+12312
+1   3
+3   1
+2   2
+13213""")
 
     def test_rectangle(self):
         self.assertEqual(Run("Ｒ⁵¦⁵"), """\
@@ -134,7 +141,21 @@ cbabc
         self.assertEqual(Run("↶²asdf"), "f\nd\ns\na")
 
     def test_rotate_copy(self):
-        pass
+        self.assertEqual(Run("abc¶de⟲Ｃ²"), """\
+   da
+abceb
+de  c""")
+        self.assertEqual(Run("abc¶de⟲Ｃ⁴"), """\
+abc   
+de    
+    ed
+   cba""")
+        self.assertEqual(Run("abc¶de⟲Ｃ⁶"), """\
+abc
+de 
+ c 
+ be
+ ad""")
 
     def test_reflect_copy(self):
         self.assertEqual(Run("abc¶def¶ghi‖Ｃ←"), "cbaabc\nfeddef\nihgghi")

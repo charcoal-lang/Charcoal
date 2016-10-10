@@ -28,6 +28,7 @@ import argparse
 import os
 import sys
 import time
+import json
 
 if os.name == "nt":
     try:
@@ -104,7 +105,13 @@ class Coordinates:
 
 
 class Charcoal:
-    def __init__(self, inputs=[], info=set(), canvas_step=500):
+    def __init__(
+        self,
+        inputs=[],
+        info=set(),
+        canvas_step=500,
+        original_input=""
+    ):
         self.x = self.y = self.top = 0
         self.lines = [""]
         self.indices = [0]
@@ -112,6 +119,7 @@ class Charcoal:
         self.right_indices = [0]
         self.scope = {}
         self.info = info
+        self.original_input = original_input
         self.inputs = inputs
         self.direction = Direction.right
         self.background = " "
@@ -643,7 +651,6 @@ class Charcoal:
             self.RefreshFastText("Polygon fill", self.canvas_step)
 
     def Rectangle(self, width, height, character=None, flags=None):
-
         if not character:
             initial_x = self.x
             initial_y = self.y
@@ -661,28 +668,31 @@ class Charcoal:
             self.y = initial_y
 
         else:
-            character = character[0]
-            self.PrintLine(
-                {Direction.right},
-                width, character,
-                move_at_end=False
-            )
+            length = len(character)
             self.PrintLine(
                 {Direction.down},
                 height,
-                character,
+                character[(width - 1) % length:] +
+                character[:(width - 1) % length],
                 move_at_end=False
             )
             self.PrintLine(
                 {Direction.left},
                 width,
-                character,
+                character[(width + height - 2) % length:] +
+                character[:(width + height - 2) % length],
                 move_at_end=False
             )
             self.PrintLine(
                 {Direction.up},
                 height,
-                character,
+                character[(width * 2 + height - 3) % length:] +
+                character[:(width * 2 + height - 3) % length],
+                move_at_end=False
+            )
+            self.PrintLine(
+                {Direction.right},
+                width, character,
                 move_at_end=False
             )
 
@@ -761,9 +771,8 @@ class Charcoal:
 
         if direction == Direction.left:
             left = min(self.indices)
-
+            self.x -= (self.x - left) * 2 + 1
             self.background_inside = True
-
             self.lines = [
                 line[::-1] +
                 "\000\000" * (index - left) +
@@ -781,15 +790,14 @@ class Charcoal:
 
         elif direction == Direction.right:
             right = max(self.right_indices)
+            self.x += (right - self.x) * 2 + 1
             self.lines = [
                 line +
                 "\000\000" * (right - right_index) +
                 line[::-1]
                 for line, right_index in zip(self.lines, self.right_indices)
             ]
-
             self.background_inside = True
-
             self.lengths = [
                 (length + right - right_index) * 2
                 for length, right_index in zip(
@@ -803,6 +811,7 @@ class Charcoal:
             ]
 
         elif direction == Direction.up:
+            self.y -= (self.top - self.y) * 2 + 1
             self.top -= len(self.lines) - 1
             self.lines = self.lines[::-1] + self.lines
             self.indices = self.indices[::-1] + self.indices
@@ -810,6 +819,7 @@ class Charcoal:
             self.right_indices = self.right_indices[::-1] + self.right_indices
 
         elif direction == Direction.down:
+            self.y += (len(self.lines) - self.y) * 2 + 1
             self.lines += self.lines[::-1]
             self.indices += self.indices[::-1]
             self.lengths += self.lengths[::-1]
@@ -912,15 +922,14 @@ class Charcoal:
 
         if direction == Direction.left:
             left = min(self.indices)
+            self.x -= (self.x - left) * 2
             self.lines = [
                 (line[::-1] + "\000" * (index - left))[:-1] +
                 "\000" * (index - left) +
                 line
                 for line, index in zip(self.lines, self.indices)
             ]
-
             self.background_inside = True
-
             self.lengths = [
                 (length + index - left) * 2 - 1
                 for length, index in zip(self.lengths, self.indices)
@@ -932,15 +941,14 @@ class Charcoal:
 
         elif direction == Direction.right:
             right = max(self.right_indices)
+            self.x += (right - self.x) * 2
             self.lines = [
                 line +
                 "\000" * (right - right_index) +
                 ("\000" * (right - right_index) + line[::-1])[1:]
                 for line, right_index in zip(self.lines, self.right_indices)
             ]
-
             self.background_inside = True
-
             self.lengths = [
                 (length + right - right_index) * 2 - 1
                 for length, right_index in zip(
@@ -954,6 +962,7 @@ class Charcoal:
             ]
 
         elif direction == Direction.up:
+            self.y -= (self.top - self.y) * 2
             self.top -= len(self.lines) - 1
             self.lines = self.lines[:0:-1] + self.lines
             self.indices = self.indices[:0:-1] + self.indices
@@ -961,6 +970,7 @@ class Charcoal:
             self.right_indices = self.right_indices[:0:-1] + self.right_indices
 
         elif direction == Direction.down:
+            self.y += (len(self.lines) - self.y) * 2
             self.lines += self.lines[-2::-1]
             self.indices += self.indices[-2::-1]
             self.lengths += self.lengths[-2::-1]
@@ -1068,12 +1078,15 @@ class Charcoal:
                 for index in self.indices
             ]
             self.lines = [line[::-1] for line in self.lines]
+            self.x = -self.x
 
         elif direction == Direction.up or direction == Direction.down:
             self.lines.reverse()
             self.indices.reverse()
             self.lengths.reverse()
             self.right_indices.reverse()
+            self.top = -self.top - len(self.lines)
+            self.y = -self.y
 
         elif (
             direction == Direction.up_left or
@@ -1081,6 +1094,8 @@ class Charcoal:
         ):
             self.Rotate(2)
             self.Reflect(Direction.right)
+            self.x = -self.x
+            self.y = -self.y
 
         elif (
             direction == Direction.up_right or
@@ -1088,11 +1103,13 @@ class Charcoal:
         ):
             self.Rotate(6)
             self.Reflect(Direction.right)
+            self.x = -self.x
+            self.y = -self.y
 
         if Info.step_canvas in self.info:
             self.RefreshFastText("Reflect", self.canvas_step)
 
-    def RotateCopy(self, rotations):
+    def RotateCopy(self, rotations, anchor=Direction.down_right):
         if rotations % 2:
             print("RuntimeError: Cannot rotate an odd number of times")
             if Info.is_repl not in self.info:
@@ -1102,33 +1119,44 @@ class Charcoal:
         initial_y = self.y
 
         if rotations == 2:
-            pass
-            # right = max(self.right_indices)
-            # bottom = self.top + len(self.lines)
-            # self.x = right
-            # for line, length, index in zip(
-            #     self.lines[::-1], self.lengths[::-1], self.indices[::-1]
-            # ):
-            #     self.x += 1
-            #     self.y = bottom + right - index
-            #     self.PrintLine({Direction.down}, length, line)
+            if anchor == Direction.down_right:
+                right = max(self.right_indices)
+                bottom = self.top + len(self.lines)
+                self.x = right - 1
+                for line, length, index in zip(
+                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
+                ):
+                    self.x += 1
+                    self.y = bottom - right + index
+                    self.PrintLine({Direction.down}, length, line)
 
         elif rotations == 4:
-            pass
-            # right = max(self.right_indices)
-            # bottom = self.top + len(self.lines)
-            # self.y = bottom
-            # for line, length, right_index in zip(
-            #     self.lines[::-1], self.lengths[::-1],self.right_indices[::-1]
-            # ):
-            #     self.x += right * 2 + 1 - right_index
-            #     self.y += 1
-            #     self.PrintLine({Direction.down}, length, line)
+            if anchor == Direction.down_right:
+                right = max(self.right_indices)
+                bottom = self.top + len(self.lines)
+                self.y = bottom - 1
+                for line, length, right_index in zip(
+                    self.lines[::-1],
+                    self.lengths[::-1],
+                    self.right_indices[::-1]
+                ):
+                    self.x = right * 2 - right_index
+                    self.y += 1
+                    self.PrintLine({Direction.right}, length, line[::-1])
 
         elif rotations == 6:
-            pass
-        elif rotations == 8:
-            pass
+            if anchor == Direction.down_right:
+                right = max(self.right_indices)
+                bottom = self.top + len(self.lines)
+                self.x = right
+                for line, length, right_index in zip(
+                    self.lines[::-1],
+                    self.lengths[::-1],
+                    self.right_indices[::-1]
+                ):
+                    self.x -= 1
+                    self.y = bottom + right - right_index
+                    self.PrintLine({Direction.down}, length, line[::-1])
 
         self.x = initial_x
         self.y = initial_y
@@ -1253,6 +1281,16 @@ class Charcoal:
                 return character
 
     def For(self, expression, body):
+        if not expression:
+
+            if len(self.inputs):
+                expression = self.inputs[0]
+                self.inputs = self.inputs[1:]
+
+            else:
+                pass
+                # TODO
+
         loop_variable = self.GetLoopVariable()
         variable = expression(self)
 
@@ -1403,6 +1441,15 @@ make sure you explicitly use 0 for no delay if needed""")
             return
 
         return Run(code, grammar=CharcoalToken.Expression)
+
+    def CycleChop(self, iterable, length):
+        if isinstance(iterable, int):
+            iterable, length = length, iterable
+
+        if isinstance(length, list) or isinstance(length, str):
+            length = len(length)
+
+        return (iterable * (int(length / len(iterable)) + 1))[:length]
 
 
 def PassThrough(result):
@@ -1694,7 +1741,7 @@ if __name__ == "__main__":
         help="Code."
     )
     parser.add_argument(
-        "-i", "--input", type=str, nargs="?", default="",
+        "-i", "--input", type=str, nargs="*", default="",
         help="Input."
     )
     parser.add_argument(
@@ -1747,7 +1794,7 @@ if __name__ == "__main__":
         RunTests()
         sys.exit()
 
-    if argv.stepcanvas:
+    if argv.stepcanvas and len(inputs) == 1:
         info.add(Info.step_canvas)
 
     if argv.Wambiguities:
@@ -1781,8 +1828,29 @@ if __name__ == "__main__":
             normal_encoding=argv.normalencoding
         ))
 
-    charcoal = Charcoal(info=info, canvas_step=argv.canvasstep)
-    # charcoal.inputs = eval(argv.input) # TODO: fix
+    inputs = []
+
+    if len(inputs) == 1:
+        try:
+            inputs = json.loads(argv.input)
+
+            if not isinstance(inputs, list):
+                raise Exception()
+
+        except:
+
+            if "\n" in argv.input:
+                inputs = argv.input.split("\n")
+
+            else:
+                inputs = argv.input.split(" ")
+
+    charcoal = Charcoal(
+        info=info,
+        canvas_step=argv.canvasstep,
+        original_input=argv.input,
+        inputs=inputs
+    )
 
     if argv.repl:
 
@@ -1813,18 +1881,47 @@ if __name__ == "__main__":
             except EOFError:
                 break
 
-    elif argv.stepcanvas:
-        Run(
+    elif len(inputs) <= 1:
+        result = Run(
             code,
             charcoal=charcoal,
             whitespace=argv.whitespace,
             normal_encoding=argv.normalencoding
         )
 
+        if not argv.stepcanvas:
+            print(result)
+
     else:
-        print(Run(
-            code,
-            charcoal=charcoal,
-            whitespace=argv.whitespace,
-            normal_encoding=argv.normalencoding
-        ))
+        for i in range(len(inputs)):
+            inp = inputs[i]
+
+            try:
+                inp = json.loads(inp)
+
+                if not isinstance(inp, list):
+                    raise Exception()
+
+            except:
+
+                if "\n" in argv.input:
+                    inp = argv.input.split("\n")
+
+                else:
+                    inp = argv.input.split(" ")
+
+            print("Test case %i:\n====" % i)
+
+            result = Run(
+                code,
+                charcoal=Charcoal(
+                    info=info,
+                    canvas_step=argv.canvasstep,
+                    original_input=argv.input,
+                    inputs=inp
+                ),
+                whitespace=argv.whitespace,
+                normal_encoding=argv.normalencoding
+            )
+
+            print(result)

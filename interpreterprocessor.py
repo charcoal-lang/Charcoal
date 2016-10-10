@@ -36,7 +36,59 @@ InterpreterProcessor = {
             Direction.up,
             Direction.up_right
         ] + result[1],
-        lambda result: [result[0]] + result[1]
+        lambda result: [
+            Direction.up,
+            Direction.down
+        ] + result[1],
+        lambda result: [
+            Direction.left,
+            Direction.right
+        ] + result[1],
+        lambda result: [
+            Direction.up_left,
+            Direction.down_right
+        ] + result[1],
+        lambda result: [
+            Direction.up_right,
+            Direction.down_left
+        ] + result[1],
+        lambda result: [
+            Direction.up_right,
+            Direction.down_right
+        ] + result[1],
+        lambda result: [
+            Direction.down_left,
+            Direction.up_left
+        ] + result[1],
+        lambda result: [
+            Direction.down_right,
+            Direction.down_left
+        ] + result[1],
+        lambda result: [
+            Direction.up,
+            Direction.up_right,
+            Direction.down_right,
+            Direction.down
+        ] + result[1],
+        lambda result: [
+            Direction.up,
+            Direction.right
+        ] + result[1],
+        lambda result: [
+            Direction.right,
+            Direction.down,
+            Direction.left
+        ] + result[1],
+        lambda result: [
+            Direction.up_left,
+            Direction.up_right
+        ] + result[1],
+        lambda result: [
+            Direction.up_left,
+            Direction.up_right,
+            Direction.down
+        ] + result[1],
+        lambda result: result[0]
     ],
     CharcoalToken.Side: [
         lambda result: lambda charcoal: (result[0], result[1](charcoal))
@@ -119,7 +171,10 @@ InterpreterProcessor = {
         lambda result: lambda left, right, charcoal: left < right,
         lambda result: lambda left, right, charcoal: left > right,
         lambda result: lambda left, right, charcoal: int(left and right),
-        lambda result: lambda left, right, charcoal: int(left or right)
+        lambda result: lambda left, right, charcoal: int(left or right),
+        lambda result: lambda left, right, charcoal: charcoal.CycleChop(
+            left, right
+        )
     ],
 
     CharcoalToken.Program: [
