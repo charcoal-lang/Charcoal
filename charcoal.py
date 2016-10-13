@@ -3,10 +3,9 @@
 
 # TODO List:
 # bresenham
-# input separation - do we take it as an array of python strings
-# having more than one number consecutively in the code
+# image to ascii
 # do rotation with copy
-# finish unit tests
+# separate string and int inputs
 
 
 from __future__ import print_function
@@ -18,8 +17,10 @@ from charcoaltoken import CharcoalToken
 from charactertransformers import *
 from directiondictionaries import *
 from unicodegrammars import UnicodeGrammars
+from verbosegrammars import VerboseGrammars
 from astprocessor import ASTProcessor
 from interpreterprocessor import InterpreterProcessor
+from stringifierprocessor import StringifierProcessor
 from unicodelookup import UnicodeLookup
 from enum import Enum
 import random
@@ -29,6 +30,7 @@ import os
 import sys
 import time
 import json
+import codecs
 
 if os.name == "nt":
     try:
@@ -389,7 +391,9 @@ class Charcoal:
 
         else:
             print("RuntimeError: Cannot change background to nothing")
-            sys.exit()
+
+            if Info.is_repl not in self.info:
+                sys.exit(1)
 
         if Info.step_canvas in self.info:
             self.RefreshFastText("Set background", self.canvas_step)
@@ -407,10 +411,12 @@ class Charcoal:
         old_x = self.x
         old_y = self.y
         string_is_empty = not string
+
         if coordinates is True:
             coordinates = Coordinates()
 
         for direction in directions:
+
             if string_is_empty:
                 string = DirectionCharacters[direction]
 
@@ -423,16 +429,22 @@ class Charcoal:
             ):
                 self.FillLines()
                 final = (string * (int(length / len(string)) + 1))[:length]
+
                 if direction == Direction.left:
                     final = final[::-1]
                     self.x -= length - 1
+
                 self.Put(final)
+
                 if multichar_fill:
                     coordinates.Add(self.x, self.y)
                     coordinates.Add(self.x + length - 1, self.y)
 
                 if direction == Direction.right:
                     self.x += length - 1
+
+                if move_at_end:
+                    self.Move(direction)
 
             else:
                 string_length = len(string)
@@ -480,7 +492,7 @@ class Charcoal:
         old_y = self.y
 
         if not flags and length and "\n" not in string:
-            self.PrintLine(directions, length, string)
+            self.PrintLine(directions, length, string, multiprint=multiprint)
             return
 
         lines = string.split("\n")
@@ -1112,6 +1124,7 @@ class Charcoal:
     def RotateCopy(self, rotations, anchor=Direction.down_right):
         if rotations % 2:
             print("RuntimeError: Cannot rotate an odd number of times")
+
             if Info.is_repl not in self.info:
                 sys.exit(1)
 
@@ -1119,6 +1132,7 @@ class Charcoal:
         initial_y = self.y
 
         if rotations == 2:
+
             if anchor == Direction.down_right:
                 right = max(self.right_indices)
                 bottom = self.top + len(self.lines)
@@ -1131,6 +1145,7 @@ class Charcoal:
                     self.PrintLine({Direction.down}, length, line)
 
         elif rotations == 4:
+
             if anchor == Direction.down_right:
                 right = max(self.right_indices)
                 bottom = self.top + len(self.lines)
@@ -1145,6 +1160,7 @@ class Charcoal:
                     self.PrintLine({Direction.right}, length, line[::-1])
 
         elif rotations == 6:
+
             if anchor == Direction.down_right:
                 right = max(self.right_indices)
                 bottom = self.top + len(self.lines)
@@ -1386,6 +1402,7 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
                 "RuntimeError: Refresh expected int, found %s" %
                 str(timeout)
             )
+
             if Info.is_repl not in self.info:
                 sys.exit(1)
 
@@ -1451,6 +1468,24 @@ make sure you explicitly use 0 for no delay if needed""")
 
         return (iterable * (int(length / len(iterable)) + 1))[:length]
 
+    def Crop(self, width, height):
+        top_crop = max(0, self.y - self.top)
+        bottom_crop = min(len(self.lines), top_crop + height)
+        self.lines = self.lines[top_crop:bottom_crop]
+        self.indices = self.indices[top_crop:bottom_crop]
+        self.lengths = self.lengths[top_crop:bottom_crop]
+        self.right_indices = self.right_indices[top_crop:bottom_crop]
+        self.y = 0
+
+        for i in range(len(self.lines)):
+            left_crop = max(0, self.x - self.indices[i])
+            right_crop = min(self.lengths[i], left_crop + width)
+            length = self.lengths[i]
+            self.lines[i] = self.lines[i][left_crop:right_crop]
+            self.indices[i] += left_crop
+            self.lengths[i] -= left_crop - right_crop + length
+            self.right_indices[i] += right_crop - length
+
 
 def PassThrough(result):
     return result
@@ -1466,7 +1501,8 @@ def ParseExpression(
     index=0,
     grammar=CharcoalToken.Program,
     grammars=UnicodeGrammars,
-    processor=ASTProcessor
+    processor=ASTProcessor,
+    verbose=False
 ):
     original_index = index
     lexeme_index = 0
@@ -1478,112 +1514,254 @@ def ParseExpression(
 
         for token in lexeme:
 
-            if isinstance(token, CharcoalToken):
+            if verbose:
 
-                if token == CharcoalToken.String:
+                while index < len(code) and code[index] in "\r\n\t ":
+                    index += 1
+                
+                next_chars = code[index:index + 2]
 
-                    if index == len(code):
-                        success = False
-                        break
+                while next_chars == "//" or next_chars == "/*":
+                    index += 2
 
-                    old_index = index
-                    character = code[index]
+                    if next_chars == "//":
 
-                    while (
-                        character >= " " and character <= "~" or
-                        character == "¶" or character == "´"
-                    ):
-                        index += 1
-
-                        if character == "´":
+                        while code[index] not in "\r\n":
                             index += 1
 
-                        if index >= len(code):
+                        if code[index - 1:index + 1] == "\r\n":
+                            # It's a MS newline
+                            index += 1
+
+                    else:
+
+                        while code[index] != "*" and code[index + 1] != "/":
+                            index += 1
+
+                        index += 2
+
+                    next_chars = code[index:index + 2]
+
+            if isinstance(token, CharcoalToken):
+
+                if verbose:
+
+                    if token == CharcoalToken.String:
+
+                        quote = code[index]
+
+                        if (
+                            index == len(code) or
+                            (quote != "\"" and quote != "'")
+                        ):
+                            success = False
+                            break
+
+                        old_index = index
+                        index += 1
+                        character = code[index]
+
+                        if quote == "\"":
+
+                            while character != "\"":
+                                index += 1
+
+                                if character == "\\":
+                                    index += 1
+
+                                if index >= len(code):
+                                    break
+
+                                character = code[index]
+
+                        else:
+
+                            while character != "'":
+                                index += 1
+
+                                if character == "\\":
+                                    index += 1
+
+                                if index >= len(code):
+                                    break
+
+                                character = code[index]
+                        
+                        index += 1
+
+                        if index - old_index < 2:
+                            success = False
+                            break
+
+                        tokens += processor[token][0]([codecs.decode(
+                            code[old_index + 1:index - 1],
+                            'unicode_escape'
+                        )])
+
+                    elif token == CharcoalToken.Number:
+
+                        if index == len(code):
+                            success = False
+                            break
+
+                        old_index = index
+                        character = code[index]
+                        result = 0
+
+                        while character >= "0" and character <= "9":
+                            index += 1
+
+                            if index == len(code):
+                                character = ""
+                            else:
+                                character = code[index]
+
+                        if old_index == index:
+                            success = False
+                            break
+
+                        tokens += processor[token][0]([int(code[old_index:index])])
+
+                    elif token == CharcoalToken.Name:
+
+                        if index == len(code):
+                            success = False
                             break
 
                         character = code[index]
 
-                    if old_index == index:
-                        success = False
-                        break
+                        if character in "abgdezhciklmnxprstufko":
+                            tokens += processor[token][0]([character])
+                            index += 1
 
-                    tokens += processor[token][0]([re.sub(
-                        r"´(.)",
-                        r"\1",
-                        re.sub(
-                            r"(^|[^´])¶",
-                            r"\1\n",
+                        else:
+                            success = False
+                            break
+
+                    else:
+                        result = ParseExpression(
+                            code,
+                            index,
+                            token,
+                            grammars,
+                            processor,
+                            verbose
+                        )
+
+                        if not result:
+                            success = False
+                            break
+
+                        tokens += [result[0]]
+                        index = result[1]
+
+                else:
+
+                    if token == CharcoalToken.String:
+
+                        if index == len(code):
+                            success = False
+                            break
+
+                        old_index = index
+                        character = code[index]
+
+                        while (
+                            character >= " " and character <= "~" or
+                            character == "¶" or character == "´"
+                        ):
+                            index += 1
+
+                            if character == "´":
+                                index += 1
+
+                            if index >= len(code):
+                                break
+
+                            character = code[index]
+
+                        if old_index == index:
+                            success = False
+                            break
+
+                        tokens += processor[token][0]([re.sub(
+                            r"´(.)",
+                            r"\1",
                             re.sub(
                                 r"(^|[^´])¶",
                                 r"\1\n",
-                                code[old_index:index]
+                                re.sub(
+                                    r"(^|[^´])¶",
+                                    r"\1\n",
+                                    code[old_index:index]
+                                )
                             )
-                        )
-                    )])
+                        )])
 
-                elif token == CharcoalToken.Number:
-
-                    if index == len(code):
-                        success = False
-                        break
-
-                    old_index = index
-                    character = code[index]
-                    result = 0
-
-                    while (
-                        character >= "⁴" and character <= "⁹" or
-                        character in ["⁰", "¹", "²", "³"]
-                    ):
-                        result = result * 10 + SuperscriptToNormal[character]
-                        index += 1
+                    elif token == CharcoalToken.Number:
 
                         if index == len(code):
-                            character = ""
+                            success = False
+                            break
+
+                        old_index = index
+                        character = code[index]
+                        result = 0
+
+                        while (
+                            character >= "⁴" and character <= "⁹" or
+                            character in ["⁰", "¹", "²", "³"]
+                        ):
+                            result = result * 10 + SuperscriptToNormal[character]
+                            index += 1
+
+                            if index == len(code):
+                                character = ""
+                            else:
+                                character = code[index]
+
+                        if old_index == index:
+                            success = False
+                            break
+
+                        tokens += processor[token][0]([result])
+
+                    elif token == CharcoalToken.Name:
+
+                        if index == len(code):
+                            success = False
+                            break
+
+                        character = code[index]
+
+                        if (
+                            character >= "α" and
+                            character <= "ω" and
+                            character != "ο"
+                        ):
+                            tokens += processor[token][0]([character])
+                            index += 1
+
                         else:
-                            character = code[index]
-
-                    if old_index == index:
-                        success = False
-                        break
-
-                    tokens += processor[token][0]([result])
-
-                elif token == CharcoalToken.Name:
-
-                    if index == len(code):
-                        success = False
-                        break
-
-                    character = code[index]
-
-                    if (
-                        character >= "α" and
-                        character <= "ω" and
-                        character != "ο"
-                    ):
-                        tokens += processor[token][0]([character])
-                        index += 1
+                            success = False
+                            break
 
                     else:
-                        success = False
-                        break
+                        result = ParseExpression(
+                            code,
+                            index,
+                            token,
+                            grammars,
+                            processor,
+                            verbose
+                        )
 
-                else:
-                    result = ParseExpression(
-                        code,
-                        index,
-                        token,
-                        grammars,
-                        processor
-                    )
+                        if not result:
+                            success = False
+                            break
 
-                    if not result:
-                        success = False
-                        break
-
-                    tokens += [result[0]]
-                    index = result[1]
+                        tokens += [result[0]]
+                        index = result[1]
 
             elif isinstance(token, str):
                 old_index = index
@@ -1615,7 +1793,8 @@ def Parse(
     grammars=UnicodeGrammars,
     processor=ASTProcessor,
     whitespace=False,
-    normal_encoding=False
+    normal_encoding=False,
+    verbose=False
 ):
     if normal_encoding:
         code = "".join([
@@ -1631,6 +1810,22 @@ def Parse(
             lambda match: match.group(1)[1] if match.group(1) else "",
             code
         )
+
+    if verbose:
+        parsed = ParseExpression(
+            code,
+            grammar=grammar,
+            grammars=VerboseGrammars,
+            processor=StringifierProcessor,
+            verbose=True
+        )
+
+        if parsed:
+            code = parsed[0]
+
+        else:
+            print("RuntimeError: Could not parse")
+            sys.exit(1)
 
     code += "»" * code.count("«")  # because » may be escaped
     # will need to change to custom universal end closing character
@@ -1687,12 +1882,32 @@ def PrintTree(tree, padding=""):
 
 def Run(
     code,
-    inputs=[],
+    inputs="",
     charcoal=None,
     grammar=CharcoalToken.Program,
+    grammars=UnicodeGrammars,
     whitespace=False,
-    normal_encoding=False
+    normal_encoding=False,
+    verbose=False
 ):
+    new_inputs = inputs
+
+    try:
+        new_inputs = json.loads(inputs)
+
+        if not isinstance(new_inputs, list):
+            raise Exception()
+
+    except:
+
+        new_inputs = (
+            inputs.split("\n") if
+            "\n" in inputs else
+            inputs.split(" ")
+        )
+
+    inputs = new_inputs
+
     if not charcoal:
         charcoal = Charcoal(inputs)
 
@@ -1703,8 +1918,10 @@ def Run(
         code,
         whitespace=whitespace,
         grammar=grammar,
+        grammars=grammars,
         processor=InterpreterProcessor,
-        normal_encoding=normal_encoding
+        normal_encoding=normal_encoding,
+        verbose=verbose
     )(charcoal)
 
     if grammar == CharcoalToken.Program:
@@ -1728,12 +1945,11 @@ def RemoveThrottle():
     )
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
         description="Interpret the Charcoal language."
     )
     parser.add_argument(
-        "-f", "--file", type=str, nargs="*", default="",
+        "file", metavar="FILE", type=str, nargs="*", default="",
         help="File path of the program."
     )
     parser.add_argument(
@@ -1781,12 +1997,20 @@ if __name__ == "__main__":
         help="Don't throttle Dump."
     )
     parser.add_argument(
+        "-dv", "--deverbosify", action="store_true",
+        help="Turn verbose code into normal code."
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true",
+        help="Use verbose mode."
+    )
+    parser.add_argument(
         "-t", "--test", action="store_true",
         help="Run unit tests."
     )
     argv = parser.parse_args()
     info = set()
-
+    
     argv.repl = argv.repl or len(sys.argv) == 1
 
     if argv.test:
@@ -1794,7 +2018,7 @@ if __name__ == "__main__":
         RunTests()
         sys.exit()
 
-    if argv.stepcanvas and len(inputs) == 1:
+    if argv.stepcanvas:
         info.add(Info.step_canvas)
 
     if argv.Wambiguities:
@@ -1820,6 +2044,20 @@ if __name__ == "__main__":
             with open(argv.file[0] + ".cl") as file:
                 code += file.read()
 
+    if argv.verbose or argv.deverbosify:
+        code = ParseExpression(
+            code,
+            grammars=VerboseGrammars,
+            processor=StringifierProcessor,
+            verbose=True
+        )[0]
+
+        if argv.deverbosify:
+            print(code)
+
+        if not argv.verbose:
+            sys.exit()
+
     if argv.astify and not argv.repl:
         print("Program")
         PrintTree(Parse(
@@ -1828,28 +2066,10 @@ if __name__ == "__main__":
             normal_encoding=argv.normalencoding
         ))
 
-    inputs = []
-
-    if len(inputs) == 1:
-        try:
-            inputs = json.loads(argv.input)
-
-            if not isinstance(inputs, list):
-                raise Exception()
-
-        except:
-
-            if "\n" in argv.input:
-                inputs = argv.input.split("\n")
-
-            else:
-                inputs = argv.input.split(" ")
-
     charcoal = Charcoal(
         info=info,
         canvas_step=argv.canvasstep,
-        original_input=argv.input,
-        inputs=inputs
+        original_input=argv.input
     )
 
     if argv.repl:
@@ -1869,6 +2089,7 @@ if __name__ == "__main__":
 
                 print(Run(
                     code,
+                    argv.input,
                     charcoal=charcoal,
                     whitespace=argv.whitespace,
                     normal_encoding=argv.normalencoding
@@ -1881,9 +2102,10 @@ if __name__ == "__main__":
             except EOFError:
                 break
 
-    elif len(inputs) <= 1:
+    elif len(argv.input) <= 1:
         result = Run(
             code,
+            argv.input,
             charcoal=charcoal,
             whitespace=argv.whitespace,
             normal_encoding=argv.normalencoding
@@ -1914,6 +2136,7 @@ if __name__ == "__main__":
 
             result = Run(
                 code,
+                argv.input,
                 charcoal=Charcoal(
                     info=info,
                     canvas_step=argv.canvasstep,

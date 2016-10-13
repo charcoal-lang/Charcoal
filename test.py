@@ -2,7 +2,10 @@ from charcoal import Run
 import unittest
 import sys
 
-# TODO: test cycle and chop, and test cursor positioning fore reflections
+# TODO: test cursor positioning for reflections
+# the ones without copy rely on rotations so we need to move the cursor
+# for Rotate first
+# test crop
 
 class CharcoalTest(unittest.TestCase):
     def test_print(self):
@@ -17,6 +20,39 @@ class CharcoalTest(unittest.TestCase):
         self.assertEqual(Run("↘abc"), "a  \n b \n  c")
         self.assertEqual(Run("↙abc"), "  a\n b \nc  ")
         self.assertEqual(Run("↓abc←def"), "  a\n  b\n  c\nfed")
+        self.assertEqual(Run("Print('abc')", verbose=True), "abc")
+        self.assertEqual(
+            Run(
+                """\
+Print('abc');Move(:Left);Move(:Left);Move(:Left);Print('abc')""",
+                verbose=True
+            ),
+            "abc"
+        )
+        self.assertEqual(Run("Print(:Right, 'abc')", verbose=True), "abc")
+        self.assertEqual(Run("Print(:Down, 'abc')", verbose=True), "a\nb\nc")
+        self.assertEqual(Run("Print(:Left, 'abc')", verbose=True), "cba")
+        self.assertEqual(Run("Print(:Up, 'abc')", verbose=True), "c\nb\na")
+        self.assertEqual(
+            Run("Print(:UpLeft, 'abc')", verbose=True),
+            "c  \n b \n  a"
+        )
+        self.assertEqual(
+            Run("Print(:UpRight, 'abc')", verbose=True),
+            "  c\n b \na  "
+        )
+        self.assertEqual(
+            Run("Print(:DownRight, 'abc')", verbose=True),
+            "a  \n b \n  c"
+        )
+        self.assertEqual(
+            Run("Print(:DownLeft, 'abc')", verbose=True),
+            "  a\n b \nc  "
+        )
+        self.assertEqual(
+            Run("Print(:Down, 'abc');Print(:Left, 'def')", verbose=True),
+            "  a\n  b\n  c\nfed"
+        )
 
     def test_multiprint(self):
         self.assertEqual(Run("Ｐabc"), "abc")
@@ -26,6 +62,25 @@ class CharcoalTest(unittest.TestCase):
         self.assertEqual(Run("Ｐ↑abc"), "c\nb\na")
         self.assertEqual(Run("Ｐ→↓abc"), "abc\nb  \nc  ")
         self.assertEqual(Run("Ｐ+abc"), "  c  \n  b  \ncbabc\n  b  \n  c  ")
+        self.assertEqual(Run("Multiprint('abc')", verbose=True), "abc")
+        self.assertEqual(Run("Multiprint(:Right, 'abc')", verbose=True), "abc")
+        self.assertEqual(
+            Run("Multiprint(:Down, 'abc')", verbose=True),
+            "a\nb\nc"
+        )
+        self.assertEqual(Run("Multiprint(:Left, 'abc')", verbose=True), "cba")
+        self.assertEqual(
+            Run("Multiprint(:Up, 'abc')", verbose=True),
+            "c\nb\na"
+        )
+        self.assertEqual(
+            Run("Multiprint(:Right, :Down, 'abc')", verbose=True),
+            "abc\nb  \nc  "
+        )
+        self.assertEqual(
+            Run("Multiprint(:+, 'abc')", verbose=True),
+            "  c  \n  b  \ncbabc\n  b  \n  c  "
+        )
 
     def test_jump(self):
         self.assertEqual(Run("aＪ³¦³a"), """\
@@ -33,10 +88,29 @@ a
      
      
     a""")
+        self.assertEqual(
+            Run("Print(\"a\");Jump(3, 3);Print(\"a\");", verbose=True),
+            """\
+a    
+     
+     
+    a""")
 
     def test_eval(self):
-        self.assertEqual(Run("ＶＳ", ["abc←←Ｍ←abc"]), "abc")
-        self.assertEqual(Run("↓ＶＳ", ["⁺⁵¦⁵"]), ("|\n" * 10)[:-1])
+        self.assertEqual(Run("ＶＳ", "abc←←Ｍ←abc"), "abc")
+        self.assertEqual(Run("↓ＶＳ", "⁺⁵¦⁵"), ("|\n" * 10)[:-1])
+        self.assertEqual(
+            Run("Evaluate(InputString())", "abc←←Ｍ←abc", verbose=True),
+            "abc"
+        )
+        self.assertEqual(
+            Run(
+                "Print(:Down, Evaluate(InputString()))",
+                "⁺⁵¦⁵",
+                verbose=True
+            ),
+            ("|\n" * 10)[:-1]
+        )
 
     def test_box(self):
         self.assertEqual(Run("Ｂ⁵¦⁵*"), """\
@@ -51,9 +125,27 @@ a
 3   1
 2   2
 13213""")
+        self.assertEqual(Run("Box(5, 5, '*')", verbose=True), """\
+*****
+*   *
+*   *
+*   *
+*****""")
+        self.assertEqual(Run("Box(5, 5, '123')", verbose=True), """\
+12312
+1   3
+3   1
+2   2
+13213""")
 
     def test_rectangle(self):
         self.assertEqual(Run("Ｒ⁵¦⁵"), """\
++---+
+|   |
+|   |
+|   |
++---+""")
+        self.assertEqual(Run("Rectangle(5, 5)", verbose=True), """\
 +---+
 |   |
 |   |
@@ -97,6 +189,63 @@ cbabc
 *-#-*
 *#-#*
 *****""")
+        self.assertEqual(
+            Run("Multiprint(:+, 'abc');SetBackground('*')", verbose=True),
+            """\
+**c**
+**b**
+cbabc
+**b**
+**c**"""
+        )
+        self.assertEqual(
+            Run("Multiprint(:+, 'abc');SetBackground('*#')", verbose=True),
+            """\
+*#c#*
+*#b#*
+cbabc
+*#b#*
+*#c#*"""
+        )
+        self.assertEqual(
+            Run(
+                "Multiprint(:+, 'abc');SetBackground('*#\\n#*')",
+                verbose=True
+            ),
+            """\
+*#c#*
+#*b*#
+cbabc
+#*b*#
+*#c#*"""
+        )
+        self.assertEqual(
+            Run("Box(5, 5, '*');SetBackground('#')", verbose=True),
+            """\
+*****
+*###*
+*###*
+*###*
+*****"""
+        )
+        self.assertEqual(
+            Run("Box(5, 5, '*');SetBackground('#-')", verbose=True),
+            """\
+*****
+*-#-*
+*-#-*
+*-#-*
+*****"""
+        )
+        self.assertEqual(
+            Run("Box(5, 5, '*');SetBackground('#-\\n-#')", verbose=True),
+            """\
+*****
+*#-#*
+*-#-*
+*#-#*
+*****"""
+        )
 
     def test_copy(self):
         self.assertEqual(Run("Ｇ+⁵*Ｃ³¦³"), """\
@@ -123,22 +272,88 @@ cbabc
  ***
    *
    *""")
+        self.assertEqual(
+            Run("Polygon(:+, 5, '*');Copy(3, 3)", verbose=True),
+            """\
+*****   
+*****   
+*****   
+********
+********
+   *****
+   *****
+   *****"""
+        )
+        self.assertEqual(
+            Run("Polygon(:Right, 5, :Down, 6, '*');Copy(3, 3)", verbose=True),
+            """\
+*****   
+    *   
+    *   
+   *****
+    *  *
+    *  *
+       *
+       *
+       *"""
+        )
+        self.assertEqual(
+            Run("Print('***\\n  *\\n  *');Copy(1, 1)", verbose=True),
+            """\
+*** 
+ ***
+   *
+   *"""
+        )
 
     def test_for(self):
         self.assertEqual(Run("Ｆ⁵a"), "aaaaa")
-        self.assertEqual(Run("Ａ⁵ιＦＳκ", ["foobar"]), "foobar")
+        self.assertEqual(Run("Ａ⁵ιＦＳκ", "foobar"), "foobar")
+        self.assertEqual(Run("For(5)Print('a')", verbose=True), "aaaaa")
+        self.assertEqual(
+            Run(
+                "Assign(5,i);For(InputString())Print(k)",
+                "foobar",
+                verbose=True
+            ),
+            "foobar"
+        )
 
     def test_while(self):
         self.assertEqual(Run("Ａ⁵βＷβ«abＡ⁻β¹β»"), "ababababab")
+        self.assertEqual(
+            Run("""\
+Assign(5, b);
+While(b) {
+    Print('ab');
+    Assign(Subtract(b, 1), b);
+}""", verbose=True),
+            "ababababab"
+        )
 
     def test_if(self):
         self.assertEqual(Run("¿¹asdf"), "asdf")
         self.assertEqual(Run("¿⁰asdf"), "")
         self.assertEqual(Run("¿⁰«asdf»ghjk"), "ghjk")
+        self.assertEqual(Run("If(1)Print('asdf')", verbose=True), "asdf")
+        self.assertEqual(Run("If(0)Print('asdf')", verbose=True), "")
+        self.assertEqual(Run("""\
+If(0) {
+    Print('asdf')
+} //else
+    Print('ghjk')""", verbose=True), "ghjk")
 
     def test_pivot(self):
         self.assertEqual(Run("↶¹asdf"), "   f\n  d \n s  \na   ")
         self.assertEqual(Run("↶²asdf"), "f\nd\ns\na")
+        self.assertEqual(
+            Run("PivotLeft(1);Print('asdf')", verbose=True),
+            "   f\n  d \n s  \na   "
+        )
+        self.assertEqual(
+            Run("PivotLeft(2);Print('asdf')", verbose=True),
+            "f\nd\ns\na"
+        )
 
     def test_rotate_copy(self):
         self.assertEqual(Run("abc¶de⟲Ｃ²"), """\
@@ -156,6 +371,30 @@ de
  c 
  be
  ad""")
+        self.assertEqual(
+            Run("Print('abc\\nde');RotateCopy(2)", verbose=True),
+            """\
+   da
+abceb
+de  c"""
+        )
+        self.assertEqual(
+            Run("Print('abc\\nde');RotateCopy(4)", verbose=True),
+            """\
+abc   
+de    
+    ed
+   cba"""
+            )
+        self.assertEqual(
+            Run("Print('abc\\nde');RotateCopy(6)", verbose=True),
+            """\
+abc
+de 
+ c 
+ be
+ ad"""
+        )
 
     def test_reflect_copy(self):
         self.assertEqual(Run("abc¶def¶ghi‖Ｃ←"), "cbaabc\nfeddef\nihgghi")
@@ -540,6 +779,7 @@ a e i
         self.assertEqual(Run("a c¶d¶ghi‖↗"), "adg\n  h\nc i")
         self.assertEqual(Run("a c¶d¶ghi‖↘"), "i c\nh  \ngda")
         self.assertEqual(Run("a c¶d¶ghi‖↙"), "adg\n  h\nc i")
+#        self.assertEqual(Run("a c¶d¶ghi‖↙a"), "adg\n  h\nc i")
 
     def test_polygon(self):
         self.assertEqual(Run("Ｇ+⁵a"), """\
@@ -560,6 +800,19 @@ aaaaa""")
  *#*#* 
 *#*#*#*
    *   """)
+
+    def test_cycle_chop(self):
+        self.assertEqual(Run("…abc¹⁰"), "abcabcabca")
+
+    def test_input(self):
+        self.assertEqual(
+            Run("ＷＳι", "[\"abc\", \"5\", \"foobar\"]"),
+            "abc5foobar" # TODO: change after inputs split to string and int
+        )
+        self.assertEqual(
+            Run("ＷＳι", "abc\\n5\\nfoobar"),
+            "abc5foobar"
+        )
 
     def test_escape(self):
         self.assertEqual(Run("Ｇ+⁵a´¶´‖"), """\
@@ -616,7 +869,7 @@ RNBKQBNR""")
         self.assertEqual(
             Run(
                 "ＦＳ¿⁼ι(«(↓»«Ｍ↑)",
-                ["(()(()())()((())))(())"]
+                "(()(()())()((())))(())"
             ), """\
 (                )(  )
  ()(    )()(    )  () 
@@ -627,7 +880,7 @@ RNBKQBNR""")
                 """\
 ＮβＡ-~-¶θ¿‹β⁰Ｆ³θ¿β«θＦβ⁺-~-|$¶θ»↓\
 Congratulations on your new baby! :D⟲²""",
-                ["4"]
+                "4"
             ), """\
  $ $ $ $  
  | | | |  
@@ -635,7 +888,7 @@ Congratulations on your new baby! :D⟲²""",
 ~~~~~~~~~ 
 --------- """
         )
-        self.assertEqual(Run("Ｇ↗↘←Ｎ*Ｍ↓*", ["4"]), """\
+        self.assertEqual(Run("Ｇ↗↘←Ｎ*Ｍ↓*", "4"), """\
    *   
   ***  
  ***** 

@@ -14,6 +14,7 @@ InterpreterProcessor = {
         lambda result: Direction.down_left
     ],
     CharcoalToken.Multidirectional: [
+        lambda result: result[0],
         lambda result: [
             Direction.right,
             Direction.down,
@@ -88,7 +89,15 @@ InterpreterProcessor = {
             Direction.up_right,
             Direction.down
         ] + result[1],
-        lambda result: result[0]
+        lambda result: [
+            Direction.down_left,
+            Direction.left
+        ] + result[1],
+        lambda result: [
+            Direction.down,
+            Direction.left
+        ] + result[1],
+        lambda result: []
     ],
     CharcoalToken.Side: [
         lambda result: lambda charcoal: (result[0], result[1](charcoal))
@@ -109,7 +118,7 @@ InterpreterProcessor = {
 
     CharcoalToken.Arrows: [
         lambda result: [result[0]] + result[1],
-        lambda result: []
+        lambda result: result
     ],
     CharcoalToken.Sides: [
         lambda result: lambda charcoal: [

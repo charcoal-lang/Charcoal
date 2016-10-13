@@ -12,6 +12,7 @@ UnicodeGrammars = {
         ["↙"]
     ],
     CharcoalToken.Multidirectional: [
+        [CharcoalToken.Arrows],
         ["+", CharcoalToken.Multidirectional],
         ["X", CharcoalToken.Multidirectional],
         ["*", CharcoalToken.Multidirectional],
@@ -27,7 +28,9 @@ UnicodeGrammars = {
         ["T", CharcoalToken.Multidirectional],
         ["V", CharcoalToken.Multidirectional],
         ["Y", CharcoalToken.Multidirectional],
-        [CharcoalToken.Arrows]
+        ["7", CharcoalToken.Multidirectional],
+        ["¬", CharcoalToken.Multidirectional],
+        []
     ],
     CharcoalToken.Side: [
         [CharcoalToken.Arrow, CharcoalToken.Expression]
@@ -39,7 +42,7 @@ UnicodeGrammars = {
 
     CharcoalToken.Arrows: [
         [CharcoalToken.Arrow, CharcoalToken.Arrows],
-        []
+        [CharcoalToken.Arrow]
     ],
     CharcoalToken.Sides: [
         [CharcoalToken.Side, CharcoalToken.Sides],

@@ -17,8 +17,12 @@ ASTProcessor = {
         lambda result: "Down Left"
     ],
     CharcoalToken.Multidirectional: [
-        PassThrough
-    ] * len(UnicodeGrammars[CharcoalToken.Multidirectional]),
+        lambda result: ["Multidirectional"] + result
+    ] + [
+        lambda result: [result[1][0], result[0]] + result[1][1:]
+    ] * (len(UnicodeGrammars[CharcoalToken.Multidirectional]) - 2) + [
+        lambda result: ["Multidirectional"]
+    ],
     CharcoalToken.Side: [
         lambda result: ["Side"] + result
     ],
@@ -37,8 +41,8 @@ ASTProcessor = {
     ],
 
     CharcoalToken.Arrows: [
-        lambda result: ["Arrows", result[0]] + result[1][1:],
-        lambda result: ["Arrows"]
+        lambda result: [result[1][0], result[0]] + result[1][1:],
+        lambda result: ["Arrows", result[0]]
     ],
     CharcoalToken.Sides: [
         lambda result: ["Sides", result[0]] + result[1][1:],
@@ -90,7 +94,7 @@ ASTProcessor = {
     ],
 
     CharcoalToken.Program: [
-        lambda result: [result[1][0], result[0]] + result[1][1:],
+        lambda result:  [result[1][0], result[0]] + result[1][1:],
         lambda result: ["Program"]
     ],
     CharcoalToken.Command: [
