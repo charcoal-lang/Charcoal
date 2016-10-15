@@ -13,12 +13,13 @@ class CharcoalToken(Enum):
     Sides = 12
     Expressions = 13
 
-    List = 31
-
     Expression = 21
     Niladic = 22
     Monadic = 23
     Dyadic = 24
+
+    List = 31
+    ArrowList = 32
 
     Program = 51
     Command = 52
@@ -31,18 +32,27 @@ class CharcoalToken(Enum):
     Move = 59
     Pivot = 60
     Jump = 61
-    Rotate = 62
-    Reflect = 63
-    Copy = 64
-    For = 65
-    While = 66
-    If = 67
-    Assign = 68
-    InputString = 69
-    InputNumber = 70
-    Fill = 71
-    SetBackground = 72
-    Dump = 73
-    Refresh = 74
-    RefreshFor = 75
-    RefreshWhile = 76
+    RotateCopyMultiple = 82
+    ReflectCopyMultiple = 83
+    RotateOverlapMultiple = 84
+    ReflectOverlapMultiple = 85
+    RotateCopy = 62
+    ReflectCopy = 63
+    RotateOverlap = 64
+    ReflectOverlap = 65
+    Rotate = 66
+    Reflect = 67
+    Copy = 68
+    For = 69
+    While = 70
+    If = 71
+    Assign = 72
+    InputString = 73
+    InputNumber = 74
+    Fill = 75
+    SetBackground = 76
+    Dump = 77
+    Refresh = 78
+    RefreshFor = 79
+    RefreshWhile = 80
+    Evaluate = 81
