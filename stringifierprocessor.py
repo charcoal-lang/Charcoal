@@ -131,108 +131,51 @@ StringifierProcessor = {
         lambda result: result[0] + result[2],
         lambda result: ""
     ],
-    CharcoalToken.Command: [
-        lambda result: result[0]
-    ] * len(UnicodeGrammars[CharcoalToken.Command]),
     CharcoalToken.Body: [
         lambda result: "«" + result[1] + "»",
         lambda result: result[0]
     ],
-    CharcoalToken.Print: [
+    CharcoalToken.Command: [
+        lambda result: "Ｓ" + result[2],
+        lambda result: "Ｎ" + result[2],
+        lambda result: "Ｖ" + result[2],
         lambda result: result[2] + result[4],
-        lambda result: result[2]
-    ],
-    CharcoalToken.Multiprint: [
+        lambda result: result[2],
         lambda result: "Ｐ" + result[2] + result[4],
-        lambda result: "Ｐ" + result[2]
-    ],
-    CharcoalToken.Rectangle: [
-        lambda result: "ＢＲ" + result[2] + result[3]
-    ],
-    CharcoalToken.Box: [
-        lambda result: "Ｂ" + result[2] + result[3] + result[4]
-    ],
-    CharcoalToken.Polygon: [
+        lambda result: "Ｐ" + result[2],
         lambda result: "Ｇ" + result[2] + result[4],
         lambda result: "Ｇ" + result[2] + result[4] + result[5],
-    ],
-    CharcoalToken.Move: [
+        lambda result: "ＢＲ" + result[2] + result[3],
+        lambda result: "Ｂ" + result[2] + result[3] + result[4],
         lambda result: "Ｍ" + result[2],
-        lambda result: "Ｍ" + result[2] + result[3]
-    ],
-    CharcoalToken.Pivot: [
+        lambda result: "Ｍ" + result[2] + result[3],
         lambda result: "↶" + result[2],
         lambda result: "↶",
         lambda result: "↷" + result[2],
-        lambda result: "↷"
-    ],
-    CharcoalToken.Jump: [
-        lambda result: "Ｊ" + result[2] + result[3]
-    ],
-    CharcoalToken.RotateCopy: [
+        lambda result: "↷",
+        lambda result: "Ｊ" + result[2] + result[3],
         lambda result: "⟲Ｃ" + result[2],
-        lambda result: "⟲Ｃ" + result[2]
-    ],
-    CharcoalToken.ReflectCopy: [
+        lambda result: "⟲Ｃ" + result[2],
         lambda result: "‖Ｃ" + result[2],
-        lambda result: "‖Ｃ" + result[2]
-    ],
-    CharcoalToken.RotateOverlap: [
+        lambda result: "‖Ｃ" + result[2],
         lambda result: "⟲Ｏ" + result[2],
-        lambda result: "⟲Ｏ" + result[2]
-    ],
-    CharcoalToken.ReflectOverlap: [
+        lambda result: "⟲Ｏ" + result[2],
         lambda result: "‖Ｏ" + result[2],
-        lambda result: "‖Ｏ" + result[2]
-    ],
-    CharcoalToken.Rotate: [
-        lambda result: "⟲" + result[2]
-    ],
-    CharcoalToken.Reflect: [
-        lambda result: "‖" + result[2]
-    ],
-    CharcoalToken.Copy: [
-        lambda result: "Ｃ" + result[2] + result[3]
-    ],
-    CharcoalToken.For: [
-        lambda result: "Ｆ" + result[2] + result[4]
-    ],
-    CharcoalToken.While: [
-        lambda result: "Ｗ" + result[2] + result[4]
-    ],
-    CharcoalToken.If: [
+        lambda result: "‖Ｏ" + result[2],
+        lambda result: "⟲" + result[2],
+        lambda result: "‖" + result[2],
+        lambda result: "Ｃ" + result[2] + result[3],
+        lambda result: "Ｆ" + result[2] + result[4],
+        lambda result: "Ｗ" + result[2] + result[4],
         lambda result: "¿" + result[2] + result[4] + result[5],
-        lambda result: "¿" + result[2] + result[4]
-    ],
-    CharcoalToken.Assign: [
-        lambda result: "Ａ" + result[2] + result[3]
-    ],
-    CharcoalToken.Fill: [
-        lambda result: "¤" + result[2]
-    ],
-    CharcoalToken.SetBackground: [
-        lambda result: "ＵＢ" + result[2]
-    ],
-    CharcoalToken.Dump: [
-        lambda result: "Ｄ"
-    ],
-    CharcoalToken.RefreshFor: [
-        lambda result: "ＨＦ" + result[2] + result[4] + result[5]
-    ],
-    CharcoalToken.RefreshWhile: [
-        lambda result: "ＨＷ" + result[2] + result[4] + result[5]
-    ],
-    CharcoalToken.Refresh: [
+        lambda result: "¿" + result[2] + result[4],
+        lambda result: "Ａ" + result[2] + result[3],
+        lambda result: "¤" + result[2],
+        lambda result: "ＵＢ" + result[2],
+        lambda result: "Ｄ",
+        lambda result: "ＨＦ" + result[2] + result[4] + result[5],
+        lambda result: "ＨＷ" + result[2] + result[4] + result[5],
         lambda result: "Ｈ" + result[2],
         lambda result: "Ｈ"
-    ],
-    CharcoalToken.Evaluate: [
-        lambda result: "Ｖ" + result[2]
-    ],
-    CharcoalToken.InputString: [
-        lambda result: "Ｓ" + result[2]
-    ],
-    CharcoalToken.InputNumber: [
-        lambda result: "Ｎ" + result[2]
     ]
 }

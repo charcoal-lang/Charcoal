@@ -196,21 +196,22 @@ InterpreterProcessor = {
         ),
         lambda result: lambda charcoal: None
     ],
-    CharcoalToken.Command: [
-        lambda result: lambda charcoal: result[0](charcoal)
-    ] * len(UnicodeGrammars[CharcoalToken.Command]),
     CharcoalToken.Body: [
         lambda result: lambda charcoal: result[1](charcoal),
         lambda result: lambda charcoal: result[0](charcoal)
     ],
-    CharcoalToken.Print: [
+    CharcoalToken.Command: [
+        lambda result: lambda charcoal: charcoal.InputString(result[1]),
+        lambda result: lambda charcoal: charcoal.InputNumber(result[1]),
+        lambda result: lambda charcoal: charcoal.Evaluate(
+            result[1](charcoal),
+            True
+        ),
         lambda result: lambda charcoal: charcoal.Print(
             result[1](charcoal),
             directions={result[0]}
         ),
-        lambda result: lambda charcoal: charcoal.Print(result[0](charcoal))
-    ],
-    CharcoalToken.Multiprint: [
+        lambda result: lambda charcoal: charcoal.Print(result[0](charcoal)),
         lambda result: lambda charcoal: charcoal.Multiprint(
             result[2](charcoal),
             directions=set(result[1])
@@ -218,22 +219,7 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: charcoal.Multiprint(
             result[1](charcoal),
             directions={Direction.right}
-        )
-    ],
-    CharcoalToken.Rectangle: [
-        lambda result: lambda charcoal: charcoal.Rectangle(
-            result[1](charcoal),
-            result[2](charcoal)
-        )
-    ],
-    CharcoalToken.Box: [
-        lambda result: lambda charcoal: charcoal.Rectangle(
-            result[1](charcoal),
-            result[2](charcoal),
-            result[3](charcoal)
-        )
-    ],
-    CharcoalToken.Polygon: [
+        ),
         lambda result: lambda charcoal: charcoal.Polygon(
             result[1](charcoal),
             result[2](charcoal)
@@ -242,17 +228,22 @@ InterpreterProcessor = {
             [
                 [(side, length) for side in result[1]]
                 for length in [result[2](charcoal)]
-            ][0], result[3](charcoal))
-    ],
-    CharcoalToken.Move: [
+            ][0], result[3](charcoal)),
+        lambda result: lambda charcoal: charcoal.Rectangle(
+            result[1](charcoal),
+            result[2](charcoal)
+        ),
+        lambda result: lambda charcoal: charcoal.Rectangle(
+            result[1](charcoal),
+            result[2](charcoal),
+            result[3](charcoal)
+        ),
         lambda result: lambda charcoal: charcoal.Move(result[0]),
         lambda result: lambda charcoal: charcoal.Move(result[1]),
         lambda result: lambda charcoal: charcoal.Move(
             result[2],
             result[1](charcoal)
-        )
-    ],
-    CharcoalToken.Pivot: [
+        ),
         lambda result: lambda charcoal: charcoal.Pivot(
             Pivot.left,
             result[1](charcoal)
@@ -262,63 +253,35 @@ InterpreterProcessor = {
             Pivot.right,
             result[1](charcoal)
         ),
-        lambda result: lambda charcoal: charcoal.Pivot(Pivot.right)
-    ],
-    CharcoalToken.Jump: [
+        lambda result: lambda charcoal: charcoal.Pivot(Pivot.right),
         lambda result: lambda charcoal: charcoal.Jump(
             result[1](charcoal),
             result[2](charcoal)
-        )
-    ],
-    CharcoalToken.RotateCopy: [
+        ),
         lambda result: lambda charcoal: charcoal.RotateCopy(
             result[1](charcoal)
         ),
         lambda result: lambda charcoal: charcoal.RotateCopy(
             result[1](charcoal)
-        )
-    ],
-    CharcoalToken.ReflectCopy: [
+        ),
         lambda result: lambda charcoal: charcoal.ReflectCopy(result[1]),
-        lambda result: lambda charcoal: charcoal.ReflectCopy(result[1])
-    ],
-    CharcoalToken.RotateOverlap: [
+        lambda result: lambda charcoal: charcoal.ReflectCopy(result[1]),
         lambda result: lambda charcoal: charcoal.RotateOverlap(
             result[1](charcoal)
         ),
         lambda result: lambda charcoal: charcoal.RotateOverlap(
             result[1](charcoal)
-        )
-    ],
-    CharcoalToken.ReflectOverlap: [
+        ),
         lambda result: lambda charcoal: charcoal.ReflectOverlap(result[1]),
-        lambda result: lambda charcoal: charcoal.ReflectOverlap(result[1])
-    ],
-    CharcoalToken.Rotate: [
-        lambda result: lambda charcoal: charcoal.Rotate(result[1](charcoal))
-    ],
-    CharcoalToken.Reflect: [
-        lambda result: lambda charcoal: charcoal.Reflect(result[1])
-    ],
-    CharcoalToken.Rotate: [
-        lambda result: lambda charcoal: charcoal.Rotate(result[1](charcoal))
-    ],
-    CharcoalToken.Reflect: [
-        lambda result: lambda charcoal: charcoal.Reflect(result[1])
-    ],
-    CharcoalToken.Copy: [
+        lambda result: lambda charcoal: charcoal.ReflectOverlap(result[1]),
+        lambda result: lambda charcoal: charcoal.Rotate(result[1](charcoal)),
+        lambda result: lambda charcoal: charcoal.Reflect(result[1]),
         lambda result: lambda charcoal: charcoal.Copy(
             result[1](charcoal),
             result[2](charcoal)
-        )
-    ],
-    CharcoalToken.For: [
-        lambda result: lambda charcoal: charcoal.For(result[1], result[2])
-    ],
-    CharcoalToken.While: [
-        lambda result: lambda charcoal: charcoal.While(result[1], result[2])
-    ],
-    CharcoalToken.If: [
+        ),
+        lambda result: lambda charcoal: charcoal.For(result[1], result[2]),
+        lambda result: lambda charcoal: charcoal.While(result[1], result[2]),
         lambda result: lambda charcoal: charcoal.If(
             result[1],
             result[2],
@@ -328,53 +291,27 @@ InterpreterProcessor = {
             result[1],
             result[2],
             lambda result: lambda charcoal: None
-        )
-    ],
-    CharcoalToken.Assign: [
+        ),
         lambda result: lambda charcoal: charcoal.Assign(
             result[2],
             result[1](charcoal)
-        )
-    ],
-    CharcoalToken.Fill: [
-        lambda result: lambda charcoal: charcoal.Fill(result[1](charcoal))
-    ],
-    CharcoalToken.SetBackground: [
+        ),
+        lambda result: lambda charcoal: charcoal.Fill(result[1](charcoal)),
         lambda result: lambda charcoal: charcoal.SetBackground(
             result[1](charcoal)
-        )
-    ],
-    CharcoalToken.Dump: [
-        lambda result: lambda charcoal: charcoal.Dump()
-    ],
-    CharcoalToken.RefreshFor: [
+        ),
+        lambda result: lambda charcoal: charcoal.Dump(),
         lambda result: lambda charcoal: charcoal.RefreshFor(
             result[1](charcoal),
             result[2],
             result[3]
-        )
-    ],
-    CharcoalToken.RefreshWhile: [
+        ),
         lambda result: lambda charcoal: charcoal.RefreshWhile(
             result[1](charcoal),
             result[2],
             result[3]
-        )
-    ],
-    CharcoalToken.Refresh: [
+        ),
         lambda result: lambda charcoal: charcoal.Refresh(result[1](charcoal)),
         lambda result: lambda charcoal: charcoal.Refresh()
-    ],
-    CharcoalToken.Evaluate: [
-        lambda result: lambda charcoal: charcoal.Evaluate(
-            result[1](charcoal),
-            True
-        )
-    ],
-    CharcoalToken.InputString: [
-        lambda result: lambda charcoal: charcoal.InputString(result[1])
-    ],
-    CharcoalToken.InputNumber: [
-        lambda result: lambda charcoal: charcoal.InputNumber(result[1])
     ]
 }

@@ -118,45 +118,16 @@ VerboseGrammars = {
         [CharcoalToken.Command, CharcoalToken.Separator, CharcoalToken.Program],
         []
     ],
-    CharcoalToken.Command: [
-        [CharcoalToken.InputString],
-        [CharcoalToken.InputNumber],
-        [CharcoalToken.Evaluate],
-        [CharcoalToken.Print],
-        [CharcoalToken.Multiprint],
-        [CharcoalToken.Polygon],
-        [CharcoalToken.Rectangle],
-        [CharcoalToken.Box],
-        [CharcoalToken.Move],
-        [CharcoalToken.Pivot],
-        [CharcoalToken.Jump],
-        [CharcoalToken.RotateCopy],
-        [CharcoalToken.ReflectCopy],
-        [CharcoalToken.RotateOverlap],
-        [CharcoalToken.ReflectOverlap],
-        [CharcoalToken.Rotate],
-        [CharcoalToken.Reflect],
-        [CharcoalToken.Copy],
-        [CharcoalToken.For],
-        [CharcoalToken.While],
-        [CharcoalToken.If],
-        [CharcoalToken.Assign],
-        [CharcoalToken.Fill],
-        [CharcoalToken.SetBackground],
-        [CharcoalToken.Dump],
-        [CharcoalToken.RefreshFor],
-        [CharcoalToken.RefreshWhile],
-        [CharcoalToken.Refresh]
-    ],
     CharcoalToken.Body: [
         ["{", CharcoalToken.Program, "}"],
         [CharcoalToken.Command]
     ],
-    CharcoalToken.Print: [
+    CharcoalToken.Command: [
+        ["InputString", "(", CharcoalToken.Name, ")"],
+        ["InputNumber", "(", CharcoalToken.Name, ")"],
+        ["Evaluate", "(", CharcoalToken.Expression, ")"],
         ["Print", "(", CharcoalToken.Arrow, CharcoalToken.Separator, CharcoalToken.Expression, ")"],
-        ["Print", "(", CharcoalToken.Expression, ")"]
-    ],
-    CharcoalToken.Multiprint: [
+        ["Print", "(", CharcoalToken.Expression, ")"],
         [
             "Multiprint",
             "(",
@@ -165,22 +136,7 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             ")"
         ],
-        ["Multiprint", "(", CharcoalToken.Expression, ")"]
-    ],
-    CharcoalToken.Rectangle: [
-        ["Rectangle", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"]
-    ],
-    CharcoalToken.Box: [
-        [
-            "Box",
-            "(",
-            CharcoalToken.Expression,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression,
-            ")"
-        ]
-    ],
-    CharcoalToken.Polygon: [
+        ["Multiprint", "(", CharcoalToken.Expression, ")"],
         ["Polygon", "(", CharcoalToken.Sides, CharcoalToken.Separator, CharcoalToken.Expression, ")"],
         [
             "Polygon",
@@ -190,53 +146,36 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             CharcoalToken.Expression,
             ")"
-        ]
-    ],
-    CharcoalToken.Move: [
+        ],
+        ["Rectangle", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
+        [
+            "Box",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")"
+        ],
         ["Move", "(", CharcoalToken.Arrow, ")"],
-        ["Move", "(", CharcoalToken.Expression, CharcoalToken.Arrow, ")"]
-    ],
-    CharcoalToken.Pivot: [
+        ["Move", "(", CharcoalToken.Expression, CharcoalToken.Arrow, ")"],
         ["PivotLeft", "(", CharcoalToken.Expression, ")"],
         ["PivotLeft", "(", ")"],
         ["PivotRight", "(", CharcoalToken.Expression, ")"],
-        ["PivotRight", "(", ")"]
-    ],
-    CharcoalToken.Jump: [
-        ["Jump", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"]
-    ],
-    CharcoalToken.RotateCopy: [
+        ["PivotRight", "(", ")"],
+        ["Jump", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         ["RotateCopy", "(", CharcoalToken.List, ")"],
-        ["RotateCopy", "(", CharcoalToken.Expression, ")"]
-    ],
-    CharcoalToken.ReflectCopy: [
+        ["RotateCopy", "(", CharcoalToken.Expression, ")"],
         ["ReflectCopy", "(", CharcoalToken.ArrowList, ")"],
-        ["ReflectCopy", "(", CharcoalToken.Arrow, ")"]
-    ],
-    CharcoalToken.RotateOverlap: [
+        ["ReflectCopy", "(", CharcoalToken.Arrow, ")"],
         ["RotateOverlap", "(", CharcoalToken.List, ")"],
-        ["RotateOverlap", "(", CharcoalToken.Expression, ")"]
-    ],
-    CharcoalToken.ReflectOverlap: [
+        ["RotateOverlap", "(", CharcoalToken.Expression, ")"],
         ["ReflectOverlap", "(", CharcoalToken.Arrow, ")"],
-        ["ReflectOverlap", "(", CharcoalToken.Arrow, ")"]
-    ],
-    CharcoalToken.Rotate: [
-        ["Rotate", "(", CharcoalToken.Expression, ")"]
-    ],
-    CharcoalToken.Reflect: [
-        ["Reflect", "(", CharcoalToken.Arrow, ")"]
-    ],
-    CharcoalToken.Copy: [
-        ["Copy", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"]
-    ],
-    CharcoalToken.For: [
-        ["For", "(", CharcoalToken.Expression, ")", CharcoalToken.Body]
-    ],
-    CharcoalToken.While: [
-        ["While", "(", CharcoalToken.Expression, ")", CharcoalToken.Body]
-    ],
-    CharcoalToken.If: [
+        ["ReflectOverlap", "(", CharcoalToken.Arrow, ")"],
+        ["Rotate", "(", CharcoalToken.Expression, ")"],
+        ["Reflect", "(", CharcoalToken.Arrow, ")"],
+        ["Copy", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
+        ["For", "(", CharcoalToken.Expression, ")", CharcoalToken.Body],
+        ["While", "(", CharcoalToken.Expression, ")", CharcoalToken.Body],
         [
             "If",
             "(",
@@ -245,21 +184,11 @@ VerboseGrammars = {
             CharcoalToken.Body,
             CharcoalToken.Body
         ],
-        ["If", "(", CharcoalToken.Expression, ")", CharcoalToken.Body]
-    ],
-    CharcoalToken.Assign: [
-        ["Assign", "(", CharcoalToken.Expression, CharcoalToken.Name, ")"]
-    ],
-    CharcoalToken.Fill: [
-        ["Fill", "(", CharcoalToken.Expression, ")"]
-    ],
-    CharcoalToken.SetBackground: [
-        ["SetBackground", "(", CharcoalToken.Expression, ")"]
-    ],
-    CharcoalToken.Dump: [
-        ["Dump", "(", ")"]
-    ],
-    CharcoalToken.RefreshFor: [
+        ["If", "(", CharcoalToken.Expression, ")", CharcoalToken.Body],
+        ["Assign", "(", CharcoalToken.Expression, CharcoalToken.Name, ")"],
+        ["Fill", "(", CharcoalToken.Expression, ")"],
+        ["SetBackground", "(", CharcoalToken.Expression, ")"],
+        ["Dump", "(", ")"],
         [
             "RefreshFor",
             "(",
@@ -268,9 +197,7 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             CharcoalToken.Body,
             ")"
-        ]
-    ],
-    CharcoalToken.RefreshWhile: [
+        ],
         [
             "RefreshWhile",
             "(",
@@ -278,19 +205,8 @@ VerboseGrammars = {
             ")",
             CharcoalToken.Expression,
             CharcoalToken.Body
-        ]
-    ],
-    CharcoalToken.Refresh: [
+        ],
         ["Refresh", "(", CharcoalToken.Expression, ")"],
         ["Refresh", "(", ")"]
-    ],
-    CharcoalToken.Evaluate: [
-        ["Evaluate", "(", CharcoalToken.Expression, ")"]
-    ],
-    CharcoalToken.InputString: [
-        ["InputString", "(", CharcoalToken.Name, ")"]
-    ],
-    CharcoalToken.InputNumber: [
-        ["InputNumber", "(", CharcoalToken.Name, ")"]
     ]
 }

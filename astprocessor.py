@@ -100,105 +100,48 @@ ASTProcessor = {
         lambda result:  [result[1][0], result[0]] + result[1][1:],
         lambda result: ["Program"]
     ],
-    CharcoalToken.Command: [
-        lambda result: result[0]
-    ] * len(UnicodeGrammars[CharcoalToken.Command]),
     CharcoalToken.Body: [
         lambda result: result[1],
         lambda result: result[0]
     ],
-    CharcoalToken.Print: [
+    CharcoalToken.Command: [
+        lambda result: ["Input String", result[1]],
+        lambda result: ["Input Number", result[1]],
+        lambda result: ["Evaluate", result[1]],
         lambda result: ["Print"] + result,
-        lambda result: ["Print"] + result
-    ],
-    CharcoalToken.Multiprint: [
+        lambda result: ["Print"] + result,
         lambda result: ["Multiprint"] + result[1:],
-        lambda result: ["Multiprint"] + result[1:]
-    ],
-    CharcoalToken.Rectangle: [
-        lambda result: ["Rectangle"] + result[1:]
-    ],
-    CharcoalToken.Box: [
-        lambda result: ["Box"] + result[1:]
-    ],
-    CharcoalToken.Polygon: [
+        lambda result: ["Multiprint"] + result[1:],
+        lambda result: ["Rectangle"] + result[1:],
+        lambda result: ["Box"] + result[1:],
         lambda result: ["Polygon"] + result[1:],
-        lambda result: ["Polygon"] + result[1:]
-    ],
-    CharcoalToken.Move: [
+        lambda result: ["Polygon"] + result[1:],
         lambda result: ["Move"] + result,
         lambda result: ["Move"] + result[1:],
-        lambda result: ["Move"] + result[1:]
-    ],
-    CharcoalToken.Pivot: [
+        lambda result: ["Move"] + result[1:],
         lambda result: ["Pivot Left", result[1]],
         lambda result: ["Pivot Left"],
         lambda result: ["Pivot Right", result[1]],
-        lambda result: ["Pivot Right"]
-    ],
-    CharcoalToken.Jump: [
-        lambda result: ["Jump"] + result[1:]
-    ],
-    CharcoalToken.RotateCopy: [
-        lambda result: ["Rotate copy"] + result[1:]
-    ],
-    CharcoalToken.ReflectCopy: [
-        lambda result: ["Reflect copy"] + result[1:]
-    ],
-    CharcoalToken.RotateOverlap: [
-        lambda result: ["Rotate overlap"] + result[1:]
-    ],
-    CharcoalToken.ReflectOverlap: [
-        lambda result: ["Reflect overlap"] + result[1:]
-    ],
-    CharcoalToken.Rotate: [
-        lambda result: ["Rotate"] + result[1:]
-    ],
-    CharcoalToken.Reflect: [
-        lambda result: ["Reflect"] + result[1:]
-    ],
-    CharcoalToken.Copy: [
-        lambda result: ["Copy"] + result[1:]
-    ],
-    CharcoalToken.For: [
-        lambda result: ["For"] + result[1:]
-    ],
-    CharcoalToken.While: [
-        lambda result: ["While"] + result[1:]
-    ],
-    CharcoalToken.If: [
+        lambda result: ["Pivot Right"],
+        lambda result: ["Jump"] + result[1:],
+        lambda result: ["Rotate copy"] + result[1:],
+        lambda result: ["Reflect copy"] + result[1:],
+        lambda result: ["Rotate overlap"] + result[1:],
+        lambda result: ["Reflect overlap"] + result[1:],
+        lambda result: ["Rotate"] + result[1:],
+        lambda result: ["Reflect"] + result[1:],
+        lambda result: ["Copy"] + result[1:],
+        lambda result: ["For"] + result[1:],
+        lambda result: ["While"] + result[1:],
         lambda result: ["If"] + result[1:],
-        lambda result: ["If"] + result[1:]
-    ],
-    CharcoalToken.Assign: [
-        lambda result: ["Assign"] + result[1:]
-    ],
-    CharcoalToken.Fill: [
-        lambda result: ["Fill"] + result[1:]
-    ],
-    CharcoalToken.SetBackground: [
-        lambda result: ["SetBackground", result[1]]
-    ],
-    CharcoalToken.Dump: [
-        lambda result: "Dump"
-    ],
-    CharcoalToken.RefreshFor: [
-        lambda result: ["Refresh for"] + result[1:]
-    ],
-    CharcoalToken.RefreshWhile: [
-        lambda result: ["Refresh while"] + result[1:]
-    ],
-    CharcoalToken.Refresh: [
+        lambda result: ["If"] + result[1:],
+        lambda result: ["Assign"] + result[1:],
+        lambda result: ["Fill"] + result[1:],
+        lambda result: ["SetBackground", result[1]],
+        lambda result: ["Dump"],
+        lambda result: ["Refresh for"] + result[1:],
+        lambda result: ["Refresh while"] + result[1:],
         lambda result: ["Refresh", result[1]],
         lambda result: ["Refresh"]
-    ],
-    CharcoalToken.Evaluate: [
-        lambda result: ["Evaluate", result[1]]
-    ],
-    CharcoalToken.InputString: [
-        lambda result: ["Input String", result[1]]
-    ],
-    CharcoalToken.InputNumber: [
-        lambda result: ["Input Number", result[1]]
     ]
 }

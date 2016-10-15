@@ -110,161 +110,77 @@ UnicodeGrammars = {
         [CharcoalToken.Command, CharcoalToken.Program],
         []
     ],
-    CharcoalToken.Command: [
-        [CharcoalToken.InputString],
-        [CharcoalToken.InputNumber],
-        [CharcoalToken.Evaluate],
-        [CharcoalToken.Print],
-        [CharcoalToken.Multiprint],
-        [CharcoalToken.Polygon],
-        [CharcoalToken.Rectangle],
-        [CharcoalToken.Box],
-        [CharcoalToken.Move],
-        [CharcoalToken.Pivot],
-        [CharcoalToken.Jump],
-        [CharcoalToken.RotateCopy],
-        [CharcoalToken.ReflectCopy],
-        [CharcoalToken.RotateOverlap],
-        [CharcoalToken.ReflectOverlap],
-        [CharcoalToken.Rotate],
-        [CharcoalToken.Reflect],
-        [CharcoalToken.Copy],
-        [CharcoalToken.For],
-        [CharcoalToken.While],
-        [CharcoalToken.If],
-        [CharcoalToken.Assign],
-        [CharcoalToken.Fill],
-        [CharcoalToken.SetBackground],
-        [CharcoalToken.Dump],
-        [CharcoalToken.RefreshFor],
-        [CharcoalToken.RefreshWhile],
-        [CharcoalToken.Refresh]
-    ],
     CharcoalToken.Body: [
         ["«", CharcoalToken.Program, "»"],
         [CharcoalToken.Command]
     ],
-    CharcoalToken.Print: [
+    CharcoalToken.Command: [
+        ["Ｓ", CharcoalToken.Name],
+        ["Ｎ", CharcoalToken.Name],
+        ["Ｖ", CharcoalToken.Expression],
         [CharcoalToken.Arrow, CharcoalToken.Expression],
-        [CharcoalToken.Expression]
-    ],
-    CharcoalToken.Multiprint: [
+        [CharcoalToken.Expression],
         ["Ｐ", CharcoalToken.Multidirectional, CharcoalToken.Expression],
-        ["Ｐ", CharcoalToken.Expression]
-    ],
-    CharcoalToken.Rectangle: [
-        ["ＢＲ", CharcoalToken.Expression, CharcoalToken.Expression]
-    ],
-    CharcoalToken.Box: [
-        [
-            "Ｂ",
-            CharcoalToken.Expression,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ]
-    ],
-    CharcoalToken.Polygon: [
+        ["Ｐ", CharcoalToken.Expression],
         ["Ｇ", CharcoalToken.Sides, CharcoalToken.Expression],
         [
             "Ｇ",
             CharcoalToken.Multidirectional,
             CharcoalToken.Expression,
             CharcoalToken.Expression
-        ]
-    ],
-    CharcoalToken.Move: [
+        ],
+        ["ＢＲ", CharcoalToken.Expression, CharcoalToken.Expression],
+        [
+            "Ｂ",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression
+        ],
         [CharcoalToken.Arrow],
         ["Ｍ", CharcoalToken.Arrow],
-        ["Ｍ", CharcoalToken.Expression, CharcoalToken.Arrow]
-    ],
-    CharcoalToken.Pivot: [
+        ["Ｍ", CharcoalToken.Expression, CharcoalToken.Arrow],
         ["↶", CharcoalToken.Expression],
         ["↶"],
         ["↷", CharcoalToken.Expression],
-        ["↷"]
-    ],
-    CharcoalToken.Jump: [
-        ["Ｊ", CharcoalToken.Expression, CharcoalToken.Expression]
-    ],
-    CharcoalToken.RotateCopy: [
+        ["↷"],
+        ["Ｊ", CharcoalToken.Expression, CharcoalToken.Expression],
         ["⟲Ｃ", CharcoalToken.List],
-        ["⟲Ｃ", CharcoalToken.Expression]
-    ],
-    CharcoalToken.ReflectCopy: [
+        ["⟲Ｃ", CharcoalToken.Expression],
         ["‖Ｃ", CharcoalToken.ArrowList],
-        ["‖Ｃ", CharcoalToken.Arrow]
-    ],
-    CharcoalToken.RotateOverlap: [
+        ["‖Ｃ", CharcoalToken.Arrow],
         ["⟲Ｏ", CharcoalToken.List],
-        ["⟲Ｏ", CharcoalToken.Expression]
-    ],
-    CharcoalToken.ReflectOverlap: [
+        ["⟲Ｏ", CharcoalToken.Expression],
         ["‖Ｏ", CharcoalToken.ArrowList],
-        ["‖Ｏ", CharcoalToken.Arrow]
-    ],
-    CharcoalToken.Rotate: [
-        ["⟲", CharcoalToken.Expression]
-    ],
-    CharcoalToken.Reflect: [
-        ["‖", CharcoalToken.Arrow]
-    ],
-    CharcoalToken.Copy: [
-        ["Ｃ", CharcoalToken.Expression, CharcoalToken.Expression]
-    ],
-    CharcoalToken.For: [
-        ["Ｆ", CharcoalToken.Expression, CharcoalToken.Body]
-    ],
-    CharcoalToken.While: [
-        ["Ｗ", CharcoalToken.Expression, CharcoalToken.Body]
-    ],
-    CharcoalToken.If: [
+        ["‖Ｏ", CharcoalToken.Arrow],
+        ["⟲", CharcoalToken.Expression],
+        ["‖", CharcoalToken.Arrow],
+        ["Ｃ", CharcoalToken.Expression, CharcoalToken.Expression],
+        ["Ｆ", CharcoalToken.Expression, CharcoalToken.Body],
+        ["Ｗ", CharcoalToken.Expression, CharcoalToken.Body],
         [
             "¿",
             CharcoalToken.Expression,
             CharcoalToken.Body,
             CharcoalToken.Body
         ],
-        ["¿", CharcoalToken.Expression, CharcoalToken.Body]
-    ],
-    CharcoalToken.Assign: [
-        ["Ａ", CharcoalToken.Expression, CharcoalToken.Name]
-    ],
-    CharcoalToken.Fill: [
-        ["¤", CharcoalToken.Expression]
-    ],
-    CharcoalToken.SetBackground: [
-        ["ＵＢ", CharcoalToken.Expression]
-    ],
-    CharcoalToken.Dump: [
-        ["Ｄ"]
-    ],
-    CharcoalToken.RefreshFor: [
+        ["¿", CharcoalToken.Expression, CharcoalToken.Body],
+        ["Ａ", CharcoalToken.Expression, CharcoalToken.Name],
+        ["¤", CharcoalToken.Expression],
+        ["ＵＢ", CharcoalToken.Expression],
+        ["Ｄ"],
         [
             "ＨＦ",
             CharcoalToken.Expression,
             CharcoalToken.Expression,
             CharcoalToken.Body
-        ]
-    ],
-    CharcoalToken.RefreshWhile: [
+        ],
         [
             "ＨＷ",
             CharcoalToken.Expression,
             CharcoalToken.Expression,
             CharcoalToken.Body
-        ]
-    ],
-    CharcoalToken.Refresh: [
+        ],
         ["Ｈ", CharcoalToken.Expression],
         ["Ｈ"]
-    ],
-    CharcoalToken.Evaluate: [
-        ["Ｖ", CharcoalToken.Expression]
-    ],
-    CharcoalToken.InputString: [
-        ["Ｓ", CharcoalToken.Name]
-    ],
-    CharcoalToken.InputNumber: [
-        ["Ｎ", CharcoalToken.Name]
     ]
 }

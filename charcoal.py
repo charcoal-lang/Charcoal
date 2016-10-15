@@ -6,6 +6,7 @@
 # image to ascii
 # do rotation with copy
 # separate string and int inputs
+# possibly make deverbosify shorter
 
 from __future__ import print_function
 from __future__ import division
@@ -38,7 +39,7 @@ if os.name == "nt":
     except:
         print("""\
 Please install the 'colorama' module ('pip install colorama') \
-for the Refresh command to work properly.""")
+for the 'Refresh' command to work properly.""")
 
 if not hasattr(__builtins__, "raw_input"):
     raw_input = input
@@ -1913,16 +1914,7 @@ def PrintTree(tree, padding=""):
                 print(new_padding + str(item))
 
 
-def Run(
-    code,
-    inputs="",
-    charcoal=None,
-    grammar=CharcoalToken.Program,
-    grammars=UnicodeGrammars,
-    whitespace=False,
-    normal_encoding=False,
-    verbose=False
-):
+def ProcessInput(inputs):
     new_inputs = inputs
 
     try:
@@ -1939,7 +1931,20 @@ def Run(
             inputs.split(" ")
         )
 
-    inputs = new_inputs
+    return new_inputs
+
+
+def Run(
+    code,
+    inputs="",
+    charcoal=None,
+    grammar=CharcoalToken.Program,
+    grammars=UnicodeGrammars,
+    whitespace=False,
+    normal_encoding=False,
+    verbose=False
+):
+    inputs = ProcessInput(inputs)
 
     if not charcoal:
         charcoal = Charcoal(inputs)
@@ -1963,17 +1968,44 @@ def Run(
     return result
 
 
+def GetProgram(
+    code,
+    inputs="",
+    charcoal=None,
+    grammar=CharcoalToken.Program,
+    grammars=UnicodeGrammars,
+    whitespace=False,
+    normal_encoding=False,
+    verbose=False
+):
+    result = Parse(
+        code,
+        whitespace=whitespace,
+        grammar=grammar,
+        grammars=grammars,
+        processor=InterpreterProcessor,
+        normal_encoding=normal_encoding,
+        verbose=verbose
+    )
+
+    return result
+
+
 def AddAmbiguityWarnings():
     ASTProcessor[CharcoalToken.Monadic][4] = (
         lambda result: "Random [Warning: May be ambiguous]"
     )
-    ASTProcessor[CharcoalToken.Refresh][0] = lambda: [
+    ASTProcessor[CharcoalToken.Command][-2] = lambda result: [
+        "Refresh [Warning: May be ambiguous]",
+        result[1]
+    ]
+    ASTProcessor[CharcoalToken.Command][-1] = lambda result: [
         "Refresh [Warning: May be ambiguous]"
     ]
 
 
 def RemoveThrottle():
-    InterpreterProcessor[CharcoalToken.Dump][0] = (
+    InterpreterProcessor[-5] = (
         lambda result: lambda charcoal: charcoal.DumpNoThrottle()
     )
 
@@ -1982,7 +2014,7 @@ if __name__ == "__main__":
         description="Interpret the Charcoal language."
     )
     parser.add_argument(
-        "file", metavar="FILE", type=str, nargs="*", default="",
+        "file", metavar="FILE", type=str, nargs="?", default="",
         help="File path of the program."
     )
     parser.add_argument(
@@ -1992,6 +2024,22 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i", "--input", type=str, nargs="*", default="",
         help="Input."
+    )
+    parser.add_argument(
+        "-o", "--output", type=str, nargs="*", default="",
+        help="Expected output."
+    )
+    parser.add_argument(
+        "-if", "--inputfile", type=str, nargs="?", default="",
+        help="Path to input file."
+    )
+    parser.add_argument(
+        "-of", "--outputfile", type=str, nargs="?", default="",
+        help="Path to file with expected output."
+    )
+    parser.add_argument(
+        "-qt", "--quiettesting", action="store_true",
+        help="Don't print output for each individual testcase."
     )
     parser.add_argument(
         "-cs", "--canvasstep", type=int, nargs="?", default=500,
@@ -2067,23 +2115,73 @@ if __name__ == "__main__":
 
     code = argv.code
 
-    for path in argv.file:
+    if argv.file:
 
-        if os.path.isfile(argv.file[0]):
-            with open(argv.file[0]) as file:
-                code += file.read()
+        if os.path.isfile(argv.file):
+            with open(argv.file) as file:
+                code = file.read()
 
         else:
-            with open(argv.file[0] + ".cl") as file:
-                code += file.read()
+            with open(argv.file + ".cl") as file:
+                    code = file.read()
+
+    if argv.inputfile:
+        with open(argv.input) as file:
+            raw_file_input = file.read()
+
+        try:
+            file_input = list(map(str, json.loads(raw_file_input)))
+
+            if not isinstance(file_input, list):
+                raise Exception()
+
+        except:
+
+            file_input = (
+                raw_file_input.split("\n") if
+                "\n" in raw_file_input else
+                raw_file_input.split(" ")
+            )
+
+        argv.input += file_input
+
+        del raw_file_input
+        del file_input
+
+    if argv.inputfile:
+        with open(argv.input) as file:
+            raw_file_output = file.read()
+
+        try:
+            file_output = list(map(str, json.loads(raw_file_output)))
+
+            if not isinstance(file_ouptut, list):
+                raise Exception()
+
+        except:
+
+            file_output = (
+                raw_file_output.split("\n") if
+                "\n" in raw_file_output else
+                raw_file_output.split(" ")
+            )
+
+        argv.output += raw_file_output
+
+        del raw_file_output
+        del file_output
 
     if argv.verbose or argv.deverbosify:
-        code = ParseExpression(
-            code,
-            grammars=VerboseGrammars,
-            processor=StringifierProcessor,
-            verbose=True
-        )[0]
+        code = re.sub(
+            r"»+$",
+            "",
+            ParseExpression(
+                code,
+                grammars=VerboseGrammars,
+                processor=StringifierProcessor,
+                verbose=True
+            )[0]
+        )
 
         if argv.deverbosify:
             print(code)
@@ -2099,7 +2197,7 @@ if __name__ == "__main__":
             normal_encoding=argv.normalencoding
         ))
 
-    charcoal = Charcoal(
+    global_charcoal = Charcoal(
         info=info,
         canvas_step=argv.canvasstep,
         original_input=argv.input
@@ -2123,7 +2221,7 @@ if __name__ == "__main__":
                 print(Run(
                     code,
                     argv.input,
-                    charcoal=charcoal,
+                    charcoal=global_charcoal,
                     whitespace=argv.whitespace,
                     normal_encoding=argv.normalencoding
                 ))
@@ -2135,11 +2233,11 @@ if __name__ == "__main__":
             except EOFError:
                 break
 
-    elif len(argv.input) <= 1:
+    elif len(argv.input) <= 1 and not len(argv.output):
         result = Run(
             code,
             argv.input,
-            charcoal=charcoal,
+            charcoal=global_charcoal,
             whitespace=argv.whitespace,
             normal_encoding=argv.normalencoding
         )
@@ -2148,22 +2246,83 @@ if __name__ == "__main__":
             print(result)
 
     else:
-        for i in range(len(inputs)):
-            inp = inputs[i]
+        successes = failures = 0
+        argv.input = [""] + [ProcessInput(inp) for inp in argv.input]
+        argv.output = [""] + argv.output
+        output_length = len(argv.output)
+        test_charcoal = Charcoal()
+        program = GetProgram(
+            code,
+            whitespace=argv.whitespace,
+            normal_encoding=argv.normalencoding
+        )
 
-            print("Test case %i:\n====" % i)
+        if argv.quiettesting:
 
-            result = Run(
-                code,
-                inp,
-                charcoal=Charcoal(
-                    info=info,
-                    canvas_step=argv.canvasstep,
-                    original_input=argv.input,
-                    inputs=inp
-                ),
-                whitespace=argv.whitespace,
-                normal_encoding=argv.normalencoding
-            )
+            for i in range(1, len(argv.input)):
 
-            print(result)
+                test_charcoal.Clear()
+                test_charcoal.AddInputs(argv.input[i])
+                program(test_charcoal)
+                result = str(test_charcoal)
+
+                if i < output_length:
+                    success = result == argv.output[i]
+
+                    if success:
+                        successes += 1
+
+                    else:
+                        failures += 1
+
+        else:
+            next_padding = 10
+            padding = "=" * 12
+            success_padding = ["=" * 19, "=" * 21]
+            success_string = ["failed", "succeded"]
+
+            for i in range(1, len(argv.input)):
+
+                if i == next_padding:
+                    padding += "="
+                    next_padding *= 10
+
+                test_charcoal.Clear()
+                test_charcoal.AddInputs(argv.input[i])
+                program(test_charcoal)
+                result = str(test_charcoal)
+
+                if i < output_length:
+                    success = result == argv.output[i]
+
+                    if success:
+                        successes += 1
+
+                    else:
+                        failures += 1
+
+                    print("%s\nTest case %i %s:\n%s" % (
+                        success_padding[success],
+                        i,
+                        success_string[success],
+                        success_padding[success]
+                    ))
+
+                else:
+                    print("%s\nTest case %i:\n%s" % (padding, i, padding))
+
+                print(result)
+
+        if output_length > 1:
+            real_output_length = output_length - 1
+            print("%i/%i successes (%g%%)" % (
+                successes,
+                real_output_length,
+                successes * 100 / real_output_length
+            ))
+
+            print("%i/%i failures (%g%%)" % (
+                failures,
+                real_output_length,
+                failures * 100 / real_output_length
+            ))
