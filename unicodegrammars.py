@@ -59,6 +59,9 @@ UnicodeGrammars = {
     CharcoalToken.List: [
         ["⟦", CharcoalToken.Expressions, "⟧"]
     ],
+    CharcoalToken.ArrowList: [
+        ["⟦", CharcoalToken.Multidirectional, "⟧"]
+    ],
 
     CharcoalToken.Expression: [
         [CharcoalToken.Number, CharcoalToken.Separator],
@@ -184,15 +187,19 @@ UnicodeGrammars = {
         ["Ｊ", CharcoalToken.Expression, CharcoalToken.Expression]
     ],
     CharcoalToken.RotateCopy: [
+        ["⟲Ｃ", CharcoalToken.List],
         ["⟲Ｃ", CharcoalToken.Expression]
     ],
     CharcoalToken.ReflectCopy: [
+        ["‖Ｃ", CharcoalToken.ArrowList],
         ["‖Ｃ", CharcoalToken.Arrow]
     ],
     CharcoalToken.RotateOverlap: [
+        ["⟲Ｏ", CharcoalToken.List],
         ["⟲Ｏ", CharcoalToken.Expression]
     ],
     CharcoalToken.ReflectOverlap: [
+        ["‖Ｏ", CharcoalToken.ArrowList],
         ["‖Ｏ", CharcoalToken.Arrow]
     ],
     CharcoalToken.Rotate: [

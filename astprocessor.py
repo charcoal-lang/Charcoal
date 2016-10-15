@@ -56,6 +56,9 @@ ASTProcessor = {
     CharcoalToken.List: [
         lambda result: ["List"] + result[1][1:]
     ],
+    CharcoalToken.ArrowList: [
+        lambda result: ["Arrow list"] + result[1][1:]
+    ],
 
     CharcoalToken.Expression: [
         lambda result: result[0],

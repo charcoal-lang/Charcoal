@@ -61,6 +61,9 @@ VerboseGrammars = {
     CharcoalToken.List: [
         ["[", CharcoalToken.Expressions, "]"]
     ],
+    CharcoalToken.ArrowList: [
+        ["[", CharcoalToken.Multidirectional, "]"]
+    ],
 
     CharcoalToken.Expression: [
         [CharcoalToken.Number, CharcoalToken.Separator],
@@ -203,15 +206,19 @@ VerboseGrammars = {
         ["Jump", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"]
     ],
     CharcoalToken.RotateCopy: [
+        ["RotateCopy", "(", CharcoalToken.List, ")"],
         ["RotateCopy", "(", CharcoalToken.Expression, ")"]
     ],
     CharcoalToken.ReflectCopy: [
+        ["ReflectCopy", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectCopy", "(", CharcoalToken.Arrow, ")"]
     ],
     CharcoalToken.RotateOverlap: [
+        ["RotateOverlap", "(", CharcoalToken.List, ")"],
         ["RotateOverlap", "(", CharcoalToken.Expression, ")"]
     ],
     CharcoalToken.ReflectOverlap: [
+        ["ReflectOverlap", "(", CharcoalToken.Arrow, ")"],
         ["ReflectOverlap", "(", CharcoalToken.Arrow, ")"]
     ],
     CharcoalToken.Rotate: [

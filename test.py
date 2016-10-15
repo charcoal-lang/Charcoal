@@ -806,12 +806,28 @@ aaaaa""")
 
     def test_input(self):
         self.assertEqual(
-            Run("ＷＳι", "[\"abc\", \"5\", \"foobar\"]"),
-            "abc5foobar" # TODO: change after inputs split to string and int
+            Run("ＷＳι", "[\"abc\", 5, \"foobar\"]"),
+            "abc5foobar"
         )
         self.assertEqual(
-            Run("ＷＳι", "abc\\n5\\nfoobar"),
+            Run("ＷＳι", "abc\n5\nfoobar"),
             "abc5foobar"
+        )
+        self.assertEqual(
+            Run("ＷＳι", "abc 5 foobar"),
+            "abc5foobar"
+        )
+        self.assertEqual(
+            Run("ＷＮι", "[1, 2, \"3\"]"),
+            "------"
+        )
+        self.assertEqual(
+            Run("ＷＮι", "1\n2\n3"),
+            "------"
+        )
+        self.assertEqual(
+            Run("ＷＮι", "1 2 3"),
+            "------"
         )
 
     def test_escape(self):
@@ -855,6 +871,33 @@ RNBKQBNR""")
         self.assertEqual(Run("""\
 ×⁶()↙↓¹⁰↖↖¹⁰↓↓²↘⁸Ｍ↑__↖←¤:↗¤\
 3.141592653589793238462643383279502884197169"""), """\
+()()()()()()
+|\\3.1415926|
+|:\\53589793|
+\\::\\2384626|
+ \\::\\433832|
+  \\::\\79502|
+   \\::\\8841|
+    \\::\\971|
+     \\::\\69|
+      \\::\\3|
+       \\__\\|""")
+        self.assertEqual(Run("""\
+Print(Multiply(6, '()'));
+Move(:DownLeft);
+Print(:Down, 10);
+Move(:UpLeft);
+Print(:UpLeft, 10);
+Move(:Down);
+Print(:Down, 2);
+Print(:DownRight, 8);
+Move(:Up);
+Print('__');
+Move(:UpLeft);
+Move(:Left);
+Fill(':');
+Move(:UpRight);
+Fill('3.141592653589793238462643383279502884197169')""", verbose=True), """\
 ()()()()()()
 |\\3.1415926|
 |:\\53589793|

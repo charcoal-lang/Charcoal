@@ -85,7 +85,10 @@ StringifierProcessor = {
     ],
 
     CharcoalToken.List: [
-        lambda result: result[1]
+        lambda result: "⟦" + result[1] + "⟧"
+    ],
+    CharcoalToken.ArrowList: [
+        lambda result: "⟦" + result[1] + "⟧"
     ],
 
     CharcoalToken.Expression: [
@@ -167,15 +170,19 @@ StringifierProcessor = {
         lambda result: "Ｊ" + result[2] + result[3]
     ],
     CharcoalToken.RotateCopy: [
+        lambda result: "⟲Ｃ" + result[2],
         lambda result: "⟲Ｃ" + result[2]
     ],
     CharcoalToken.ReflectCopy: [
+        lambda result: "‖Ｃ" + result[2],
         lambda result: "‖Ｃ" + result[2]
     ],
     CharcoalToken.RotateOverlap: [
+        lambda result: "⟲Ｏ" + result[2],
         lambda result: "⟲Ｏ" + result[2]
     ],
     CharcoalToken.ReflectOverlap: [
+        lambda result: "‖Ｏ" + result[2],
         lambda result: "‖Ｏ" + result[2]
     ],
     CharcoalToken.Rotate: [

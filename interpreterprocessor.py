@@ -136,6 +136,9 @@ InterpreterProcessor = {
     CharcoalToken.List: [
         lambda result: lambda charcoal: result[1](charcoal)
     ],
+    CharcoalToken.ArrowList: [
+        lambda result: result[1]
+    ],
 
     CharcoalToken.Expression: [
         lambda result: lambda charcoal: result[0],
@@ -270,17 +273,25 @@ InterpreterProcessor = {
     CharcoalToken.RotateCopy: [
         lambda result: lambda charcoal: charcoal.RotateCopy(
             result[1](charcoal)
+        ),
+        lambda result: lambda charcoal: charcoal.RotateCopy(
+            result[1](charcoal)
         )
     ],
     CharcoalToken.ReflectCopy: [
+        lambda result: lambda charcoal: charcoal.ReflectCopy(result[1]),
         lambda result: lambda charcoal: charcoal.ReflectCopy(result[1])
     ],
     CharcoalToken.RotateOverlap: [
         lambda result: lambda charcoal: charcoal.RotateOverlap(
             result[1](charcoal)
+        ),
+        lambda result: lambda charcoal: charcoal.RotateOverlap(
+            result[1](charcoal)
         )
     ],
     CharcoalToken.ReflectOverlap: [
+        lambda result: lambda charcoal: charcoal.ReflectOverlap(result[1]),
         lambda result: lambda charcoal: charcoal.ReflectOverlap(result[1])
     ],
     CharcoalToken.Rotate: [

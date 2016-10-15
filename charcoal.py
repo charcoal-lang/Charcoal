@@ -7,7 +7,6 @@
 # do rotation with copy
 # separate string and int inputs
 
-
 from __future__ import print_function
 from __future__ import division
 from __future__ import unicode_literals
@@ -453,13 +452,13 @@ class Charcoal:
                     character = string[i % string_length]
                     
                     if character == "\000":
+                        self.Move(direction)
                         continue
-
-                    self.FillLines()
 
                     if coordinates:
                         coordinates.Add(self.x, self.y)
 
+                    self.FillLines()
                     self.Put(character)
                     self.Move(direction)
 
@@ -524,6 +523,7 @@ class Charcoal:
                     for character in line:
 
                         if character == "\000":
+                            self.Move(direction)
                             continue
 
                         self.FillLines()
@@ -537,6 +537,7 @@ class Charcoal:
                 for character in lines[-1]:
 
                     if character == "\000":
+                        self.Move(direction)
                         continue
 
                     self.FillLines()
@@ -779,6 +780,14 @@ class Charcoal:
         self.y += y
 
     def ReflectCopy(self, direction):
+
+        if isinstance(direction, list):
+
+            for direction_ in direction:
+                self.ReflectCopy(direction_)
+
+            return
+
         finished = True
 
         if direction == Direction.left:
@@ -930,6 +939,14 @@ class Charcoal:
             self.RefreshFastText("Reflect copy", self.canvas_step)
 
     def ReflectOverlap(self, direction):
+
+        if isinstance(direction, list):
+
+            for direction_ in direction:
+                self.ReflectOverlap(direction_)
+
+            return
+
         finished = True
 
         if direction == Direction.left:
@@ -1122,6 +1139,14 @@ class Charcoal:
             self.RefreshFastText("Reflect", self.canvas_step)
 
     def RotateCopy(self, rotations, anchor=Direction.down_right):
+
+        if isinstance(rotations, list):
+
+            for rotation in rotations:
+                self.RotateCopy(rotation, anchor)
+
+            return
+
         if rotations % 2:
             print("RuntimeError: Cannot rotate an odd number of times")
 
@@ -1182,7 +1207,15 @@ class Charcoal:
 
         pass
 
-    def RotateOverlap(self, rotations):
+    def RotateOverlap(self, rotations, anchor=Direction.down_right):
+
+        if isinstance(rotations, list):
+
+            for rotation in rotations:
+                self.RotateOverlap(rotation, anchor)
+
+            return
+
         # TODO
 
         if Info.step_canvas in self.info:
@@ -1893,7 +1926,7 @@ def Run(
     new_inputs = inputs
 
     try:
-        new_inputs = json.loads(inputs)
+        new_inputs = list(map(str, json.loads(inputs)))
 
         if not isinstance(new_inputs, list):
             raise Exception()
@@ -2118,25 +2151,11 @@ if __name__ == "__main__":
         for i in range(len(inputs)):
             inp = inputs[i]
 
-            try:
-                inp = json.loads(inp)
-
-                if not isinstance(inp, list):
-                    raise Exception()
-
-            except:
-
-                if "\n" in argv.input:
-                    inp = argv.input.split("\n")
-
-                else:
-                    inp = argv.input.split(" ")
-
             print("Test case %i:\n====" % i)
 
             result = Run(
                 code,
-                argv.input,
+                inp,
                 charcoal=Charcoal(
                     info=info,
                     canvas_step=argv.canvasstep,
