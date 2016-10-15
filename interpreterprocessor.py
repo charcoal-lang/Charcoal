@@ -220,17 +220,17 @@ InterpreterProcessor = {
             directions={Direction.right}
         )
     ],
+    CharcoalToken.Rectangle: [
+        lambda result: lambda charcoal: charcoal.Rectangle(
+            result[1](charcoal),
+            result[2](charcoal)
+        )
+    ],
     CharcoalToken.Box: [
         lambda result: lambda charcoal: charcoal.Rectangle(
             result[1](charcoal),
             result[2](charcoal),
             result[3](charcoal)
-        )
-    ],
-    CharcoalToken.Rectangle: [
-        lambda result: lambda charcoal: charcoal.Rectangle(
-            result[1](charcoal),
-            result[2](charcoal)
         )
     ],
     CharcoalToken.Polygon: [

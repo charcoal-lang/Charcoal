@@ -27,8 +27,8 @@ class CharcoalToken(Enum):
     Body = 54
     Multiprint = 55
     Polygon = 56
-    Box = 57
-    Rectangle = 58
+    Rectangle = 57
+    Box = 58
     Move = 59
     Pivot = 60
     Jump = 61

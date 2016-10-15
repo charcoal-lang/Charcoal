@@ -146,11 +146,11 @@ StringifierProcessor = {
         lambda result: "Ｐ" + result[2] + result[4],
         lambda result: "Ｐ" + result[2]
     ],
+    CharcoalToken.Rectangle: [
+        lambda result: "ＢＲ" + result[2] + result[3]
+    ],
     CharcoalToken.Box: [
         lambda result: "Ｂ" + result[2] + result[3] + result[4]
-    ],
-    CharcoalToken.Rectangle: [
-        lambda result: "Ｒ" + result[2] + result[3]
     ],
     CharcoalToken.Polygon: [
         lambda result: "Ｇ" + result[2] + result[4],

@@ -139,7 +139,7 @@ a
 13213""")
 
     def test_rectangle(self):
-        self.assertEqual(Run("Ｒ⁵¦⁵"), """\
+        self.assertEqual(Run("ＢＲ⁵¦⁵"), """\
 +---+
 |   |
 |   |

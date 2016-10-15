@@ -115,11 +115,11 @@ ASTProcessor = {
         lambda result: ["Multiprint"] + result[1:],
         lambda result: ["Multiprint"] + result[1:]
     ],
-    CharcoalToken.Box: [
-        lambda result: ["Box"] + result[1:]
-    ],
     CharcoalToken.Rectangle: [
         lambda result: ["Rectangle"] + result[1:]
+    ],
+    CharcoalToken.Box: [
+        lambda result: ["Box"] + result[1:]
     ],
     CharcoalToken.Polygon: [
         lambda result: ["Polygon"] + result[1:],

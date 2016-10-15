@@ -500,7 +500,8 @@ class Charcoal:
             self.x = old_x
             self.y = old_y
 
-            newline_direction = NewlineDirection[direction]
+            if direction == Direction.right or direction == Direction.left:
+                initial_x = self.x
 
                 for line in lines:
                     self.PrintLine({direction}, len(line), line)

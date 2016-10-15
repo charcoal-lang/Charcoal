@@ -117,8 +117,8 @@ UnicodeGrammars = {
         [CharcoalToken.Print],
         [CharcoalToken.Multiprint],
         [CharcoalToken.Polygon],
-        [CharcoalToken.Box],
         [CharcoalToken.Rectangle],
+        [CharcoalToken.Box],
         [CharcoalToken.Move],
         [CharcoalToken.Pivot],
         [CharcoalToken.Jump],
@@ -152,6 +152,9 @@ UnicodeGrammars = {
         ["Ｐ", CharcoalToken.Multidirectional, CharcoalToken.Expression],
         ["Ｐ", CharcoalToken.Expression]
     ],
+    CharcoalToken.Rectangle: [
+        ["ＢＲ", CharcoalToken.Expression, CharcoalToken.Expression]
+    ],
     CharcoalToken.Box: [
         [
             "Ｂ",
@@ -159,9 +162,6 @@ UnicodeGrammars = {
             CharcoalToken.Expression,
             CharcoalToken.Expression
         ]
-    ],
-    CharcoalToken.Rectangle: [
-        ["Ｒ", CharcoalToken.Expression, CharcoalToken.Expression]
     ],
     CharcoalToken.Polygon: [
         ["Ｇ", CharcoalToken.Sides, CharcoalToken.Expression],

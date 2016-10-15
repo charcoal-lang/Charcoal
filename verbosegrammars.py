@@ -125,8 +125,8 @@ VerboseGrammars = {
         [CharcoalToken.Print],
         [CharcoalToken.Multiprint],
         [CharcoalToken.Polygon],
-        [CharcoalToken.Box],
         [CharcoalToken.Rectangle],
+        [CharcoalToken.Box],
         [CharcoalToken.Move],
         [CharcoalToken.Pivot],
         [CharcoalToken.Jump],
@@ -167,6 +167,9 @@ VerboseGrammars = {
         ],
         ["Multiprint", "(", CharcoalToken.Expression, ")"]
     ],
+    CharcoalToken.Rectangle: [
+        ["Rectangle", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"]
+    ],
     CharcoalToken.Box: [
         [
             "Box",
@@ -176,9 +179,6 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             ")"
         ]
-    ],
-    CharcoalToken.Rectangle: [
-        ["Rectangle", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"]
     ],
     CharcoalToken.Polygon: [
         ["Polygon", "(", CharcoalToken.Sides, CharcoalToken.Separator, CharcoalToken.Expression, ")"],
