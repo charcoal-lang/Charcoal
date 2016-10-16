@@ -2114,6 +2114,10 @@ if __name__ == "__main__":
         help="Print AST."
     )
     parser.add_argument(
+        "-oa", "--onlyastify", action="store_true",
+        help="Print AST and exit."
+    )
+    parser.add_argument(
         "-p", "--prompt", action="store_true",
         help="Prompt for input."
     )
@@ -2249,13 +2253,16 @@ if __name__ == "__main__":
         if not argv.verbose:
             sys.exit()
 
-    if argv.astify and not argv.repl:
+    if argv.astify or argv.onlyastify and not argv.repl:
         print("Program")
         PrintTree(Parse(
             code,
             whitespace=argv.whitespace,
             normal_encoding=argv.normalencoding
         ))
+
+        if argv.onlyastify:
+            sys.exit()
 
     global_charcoal = Charcoal(
         info=info,
