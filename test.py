@@ -611,6 +611,8 @@ ghi
 
     def test_reflect_overlap(self):
         self.assertEqual(Run("abc¶def¶ghi‖Ｏ←"), "cbabc\nfedef\nihghi")
+        self.assertEqual(Run("abc¶def¶ghi‖Ｏ←a"), " cbabc\n fedef\naihghi")
+        #self.assertEqual(Run("abc¶def¶ghi‖Ｏ→a"), "abcba \ndefed \nghihga")
         self.assertEqual(Run("abc¶d¶gh‖Ｏ←"), "cbabc\n  d  \n hgh ")
         self.assertEqual(Run("abc¶d¶gh‖Ｏ→"), "abcba\nd   d\ngh hg")
         self.assertEqual(Run("abc¶  d¶ gh‖Ｏ←"), "cbabc\nd   d\nhg gh")
@@ -801,18 +803,32 @@ ghi
 a e i
  d h 
   g  """)
+        self.assertEqual(Run("abc¶def¶ghi⟲¹a"), """\
+  c   
+ b f a
+a e i 
+ d h  
+  g   """)
+        self.assertEqual(Run("abc¶def¶ghi⟲³a"), """\
+ a   
+  i  
+ f h 
+c e g
+ b d 
+  a  """)
+        self.assertEqual(Run("a c¶d¶g⟲²a"), "c  \n  a\nadg")
+        self.assertEqual(Run("a c¶d¶g⟲⁶a"), "gda\na  \n  c")
+        self.assertEqual(Run("a c¶d¶g⟲⁴a"), " ag\n  d\nc a")
 
     def test_reflect(self):
-        self.assertEqual(Run("abc¶def¶ghi‖←"), "cba\nfed\nihg")
-        self.assertEqual(Run("abc¶d¶gh‖←"), "cba\n  d\n hg")
-        self.assertEqual(Run("abc¶d¶gh‖→"), "cba\n  d\n hg")
-        self.assertEqual(Run("a c¶d¶ghi‖↑"), "ghi\nd  \na c")
-        self.assertEqual(Run("a c¶d¶ghi‖↓"), "ghi\nd  \na c")
-        self.assertEqual(Run("a c¶d¶ghi‖↖"), "i c\nh  \ngda")
-        self.assertEqual(Run("a c¶d¶ghi‖↗"), "adg\n  h\nc i")
-        self.assertEqual(Run("a c¶d¶ghi‖↘"), "i c\nh  \ngda")
-        self.assertEqual(Run("a c¶d¶ghi‖↙"), "adg\n  h\nc i")
-#        self.assertEqual(Run("a c¶d¶ghi‖↙a"), "adg\n  h\nc i")
+        self.assertEqual(Run("a c¶d¶ghi‖←a"), " c a\n   d\naihg")
+        self.assertEqual(Run("a c¶d¶ghi‖→a"), " c a\n   d\naihg")
+        self.assertEqual(Run("a c¶d¶ghi‖↑a"), "ghia\nd   \na c ")
+        self.assertEqual(Run("a c¶d¶ghi‖↓a"), "ghia\nd   \na c ")
+        self.assertEqual(Run("a c¶d¶ghi‖↖a"), "a  \ni c\nh  \ngda")
+        self.assertEqual(Run("a c¶d¶ghi‖↗a"), "adg\n  h\nc i\n  a")
+        self.assertEqual(Run("a c¶d¶ghi‖↙a"), "adg\n  h\nc i\n  a")
+        self.assertEqual(Run("a c¶d¶ghi‖↘a"), "a  \ni c\nh  \ngda")
 
     def test_polygon(self):
         self.assertEqual(Run("Ｇ+⁵a"), """\

@@ -302,17 +302,17 @@ class Charcoal:
         line = self.lines[y_index]
 
         delta_index = len(re.match("^\000*", line).group())
-        line = re.sub("\000+$", "", line)
+        line = re.sub("\000+$", "", line[delta_index:])
 
         if not line:
-            self.lines[y_index] = string
             length = len(string)
+            self.lines[y_index] = string
             self.indices[y_index] = self.x
             self.lengths[y_index] = length
             self.right_indices[y_index] = self.x + length
             return
 
-        start = self.x + delta_index - x_index
+        start = self.x - delta_index - x_index
         end = start + len(string)
 
         if start - len(line) > 0 or end < 0:
@@ -1159,7 +1159,7 @@ class Charcoal:
             self.indices.reverse()
             self.lengths.reverse()
             self.right_indices.reverse()
-            self.top = -self.top - len(self.lines)
+            self.top = -self.top - len(self.lines) + 1
             self.y = -self.y
 
         elif (
@@ -1168,8 +1168,6 @@ class Charcoal:
         ):
             self.Rotate(2)
             self.Reflect(Direction.right)
-            self.x = -self.x
-            self.y = -self.y
 
         elif (
             direction == Direction.up_right or
@@ -1177,8 +1175,6 @@ class Charcoal:
         ):
             self.Rotate(6)
             self.Reflect(Direction.right)
-            self.x = -self.x
-            self.y = -self.y
 
         if Info.step_canvas in self.info:
             self.RefreshFastText("Reflect", self.canvas_step)
@@ -1274,12 +1270,9 @@ class Charcoal:
 
         left = min(self.indices)
         right = max(self.right_indices)
-        self.top = -right
-
-        initial_x = self.x
-        initial_y = self.y
 
         if rotations == 2:
+
             lines = self.Lines()
             number_of_lines = len(lines[0])
             self.indices = [self.top] * number_of_lines
@@ -1294,26 +1287,27 @@ class Charcoal:
                 for j in range(len(lines)):
                     self.lines[i] += lines[j][number_of_lines - i - 1]
 
-            self.top = left
+            self.top = -right + 1
+            self.x, self.y = self.y, -self.x
 
         elif rotations == 4:
-            lines = self.Lines()
-            number_of_lines = len(lines[0])
-            [self.right_indices, self.indices] = [
-                [-index for index in self.indices],
-                [-index for index in self.right_indices]
-            ]
-            self.lines = [line[::-1] for line in self.lines]
+            self.right_indices, self.indices = (
+                [-index + 1 for index in self.indices][::-1],
+                [-right_index + 1 for right_index in self.right_indices][::-1]
+            )
+            self.lengths.reverse()
+            self.lines = [line[::-1] for line in self.lines][::-1]
+            self.top = -self.top - len(self.lines) + 1
+            self.x, self.y = -self.x, -self.y
 
         elif rotations == 6:
+            x, y = self.x, self.y
             lines = self.Lines()
             number_of_lines = len(lines[0])
             line_length = len(lines)
-            self.indices = [self.top] * number_of_lines
+            self.indices = [-self.top - len(self.lines) + 1] * number_of_lines
             self.lengths = [len(lines)] * number_of_lines
-            self.right_indices = (
-                [self.top + len(self.lines)] * number_of_lines
-            )
+            self.right_indices = [-self.top + 1] * number_of_lines
             self.lines = [""] * number_of_lines
 
             for i in range(number_of_lines):
@@ -1322,6 +1316,7 @@ class Charcoal:
                     self.lines[i] += lines[line_length - j - 1][i]
 
             self.top = left
+            self.x, self.y = -self.y, self.x
 
         else:
             self.Move({
@@ -1344,9 +1339,6 @@ class Charcoal:
                 5: Direction.down_left,
                 7: Direction.down_right
             }[rotations]})
-
-        self.x = initial_x
-        self.y = initial_y
 
         if Info.step_canvas in self.info:
             self.RefreshFastText("Rotate", self.canvas_step)
