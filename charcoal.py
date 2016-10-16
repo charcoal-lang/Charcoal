@@ -355,17 +355,51 @@ class Charcoal:
     def FillLines(self):
         if self.y > self.top + len(self.lines) - 1:
             number = self.y - self.top - len(self.lines) + 1
+            x_number = self.x - self.indices[-1]
+            x_sign = Sign(x_number)
+            x_number *= x_sign
+            x_number = min(number, x_number)
+            difference = number - x_number
+            if x_sign == 1:
+                indices = (
+                    [0] * difference +
+                    list(range(1, x_number + 1))
+                )
+            elif x_sign == -1:
+                indices = (
+                    [0] * difference +
+                    list(range(-x_number, 0)[::-1])
+                )
+            else:
+                indices = [0] * number
             self.lines += [""] * number
-            self.indices += [0] * number
+            self.indices += indices
             self.lengths += [0] * number
-            self.right_indices += [0] * number
+            self.right_indices += indices
 
         elif self.y < self.top:
             number = self.top - self.y
+            x_number = self.x - self.indices[0]
+            x_sign = Sign(x_number)
+            x_number *= x_sign
+            x_number = min(number, x_number)
+            difference = number - x_number
+            if x_sign == 1:
+                indices = (
+                    list(range(1, x_number + 1)[::-1]) +
+                    [0] * difference
+                )
+            elif x_sign == -1:
+                indices = (
+                    list(range(-x_number, 0)) +
+                    [0] * difference
+                )
+            else:
+                indices = [0] * number
             self.lines = [""] * number + self.lines
-            self.indices = [0] * number + self.indices
+            self.indices = indices + self.indices
             self.lengths = [0] * number + self.lengths
-            self.right_indices = [0] * number + self.right_indices
+            self.right_indices = indices + self.right_indices
             self.top = self.y
 
     def SetBackground(self, string):
@@ -501,18 +535,37 @@ class Charcoal:
             self.x = old_x
             self.y = old_y
 
-            if direction == Direction.right or direction == Direction.left:
+            if direction == Direction.right:
                 initial_x = self.x
 
                 for line in lines:
-                    self.PrintLine({direction}, len(line), line)
+
+                    if not re.match("^\000*$", line):
+                        self.PrintLine({Direction.right}, len(line), line)
+
                     self.x = initial_x
                     self.y += 1
 
                 self.y -= 1
 
                 if lines[-1]:
-                    self.Move(direction, len(lines[-1]))
+                    self.Move(Direction.right, len(lines[-1]))
+
+            elif direction == Direction.left:
+                initial_x = self.x
+
+                for line in lines:
+
+                    if not re.match("^\000*$", line):
+                        self.PrintLine({Direction.left}, len(line), line)
+
+                    self.x = initial_x
+                    self.y -= 1
+
+                self.y += 1
+
+                if lines[-1]:
+                    self.Move(Direction.left, len(lines[-1]))
 
             else:
                 newline_direction = NewlineDirection[direction]
@@ -720,38 +773,46 @@ class Charcoal:
         points = set()
         queue = [(self.y, self.x)]
 
-        while len(queue):
-            self.y, self.x = queue[0]
+        try:
 
-            while self.Get() == "\000":
-                self.Move(Direction.up)
+            while len(queue):
+                self.y, self.x = queue[0]
 
-            self.Move(Direction.down)
-            queue = queue[1:]
-            points.add((self.y, self.x))
+                while self.Get() == "\000":
+                    self.Move(Direction.up)
 
-            if (self.y, self.x - 1) not in points:
-                self.x -= 1
-
-                if self.Get() == "\000":
-                    queue += [(self.y, self.x)]
-
-                self.x += 1
-
-            if (self.y, self.x + 1) not in points:
-                self.x += 1
-
-                if self.Get() == "\000":
-                    queue += [(self.y, self.x)]
-                self.x -= 1
-
-            self.y += 1
-            value = self.Get()
-
-            while value == "\000":
+                self.Move(Direction.down)
+                queue = queue[1:]
                 points.add((self.y, self.x))
+
+                if (self.y, self.x - 1) not in points:
+                    self.x -= 1
+
+                    if self.Get() == "\000":
+                        queue += [(self.y, self.x)]
+
+                    self.x += 1
+
+                if (self.y, self.x + 1) not in points:
+                    self.x += 1
+
+                    if self.Get() == "\000":
+                        queue += [(self.y, self.x)]
+                    self.x -= 1
+
                 self.y += 1
                 value = self.Get()
+
+                while value == "\000":
+                    points.add((self.y, self.x))
+                    self.y += 1
+                    value = self.Get()
+
+        except:
+            print("RuntimeError: Attempting to fill open area")
+
+            if Info.is_repl not in self.info:
+                sys.exit(1)
 
         points = list(points)
         points.sort()
@@ -896,7 +957,7 @@ class Charcoal:
                 self.PrintLine({Direction.up}, length, line[::-1])
 
         elif direction == Direction.down_left:
-            bottom_left, negative_x = max(
+            bottom_left, x = max(
                 (y - x + 1, x - i)
                 for x, y, i in zip(
                     self.indices,
@@ -904,7 +965,6 @@ class Charcoal:
                     range(len(self.indices))[::-1]
                 )
             )
-            x = -negative_x
             self.x = x
 
             for line, length, index in zip(
@@ -1055,7 +1115,7 @@ class Charcoal:
                 self.PrintLine({Direction.up}, length, line[::-1])
 
         elif direction == Direction.down_left:
-            bottom_left, negative_x = max(
+            bottom_left, x = max(
                 (y - x, x - i)
                 for x, y, i in zip(
                     self.indices,
@@ -1063,7 +1123,7 @@ class Charcoal:
                     range(len(self.indices))[::-1]
                 )
             )
-            x = -negative_x
+            x = x
             self.x = x + 1
 
             for line, length, index in zip(

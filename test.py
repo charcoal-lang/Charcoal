@@ -13,6 +13,7 @@ class CharcoalTest(unittest.TestCase):
         self.assertEqual(Run("abc←←Ｍ←abc"), "abc")
         self.assertEqual(Run("→abc"), "abc")
         self.assertEqual(Run("↓abc"), "a\nb\nc")
+        self.assertEqual(Run("←abc¶def"), "fed\ncba")
         self.assertEqual(Run("←abc"), "cba")
         self.assertEqual(Run("↑abc"), "c\nb\na")
         self.assertEqual(Run("↖abc"), "c  \n b \n  a")
@@ -403,6 +404,22 @@ de
         self.assertEqual(Run("abc¶  d¶ gh‖Ｃ←"), "cbaabc\nd    d\nhg  gh")
         self.assertEqual(Run("a c¶d¶ghi‖Ｃ↑"), "ghi\nd  \na c\na c\nd  \nghi")
         self.assertEqual(Run("a c¶d¶ghi‖Ｃ↓"), "a c\nd  \nghi\nghi\nd  \na c")
+        self.assertEqual(Run("a¶¶¶¶¶→→→→a‖Ｃ↙"), """\
+   a   
+       
+       
+a      
+       
+      a
+     a """)
+        self.assertEqual(Run("a¶¶¶¶¶←←←←a‖Ｃ↘"), """\
+   a   
+       
+       
+      a
+       
+a      
+ a     """)
         self.assertEqual(Run("a c¶d¶ghi‖Ｃ↖"), """\
 i c   
 h     
@@ -605,6 +622,20 @@ jkl
 ghi
 d  
 a c""")
+        self.assertEqual(Run("a¶¶¶¶¶→→→→a‖Ｏ↙"), """\
+  a   
+      
+a     
+      
+      
+     a""")
+        self.assertEqual(Run("a¶¶¶¶¶←←←←a‖Ｏ↘"), """\
+   a  
+      
+     a
+      
+      
+a     """)
         self.assertEqual(Run("a c¶d¶ghi‖Ｏ↖"), """\
 i c  
 h    
@@ -925,11 +956,11 @@ Fill('3.141592653589793238462643383279502884197169')""", verbose=True), """\
 Congratulations on your new baby! :D⟲²""",
                 "4"
             ), """\
- $ $ $ $  
- | | | |  
---------- 
-~~~~~~~~~ 
---------- """
+ $ $ $ $ 
+ | | | | 
+---------
+~~~~~~~~~
+---------"""
         )
         self.assertEqual(Run("Ｇ↗↘←Ｎ*Ｍ↓*", "4"), """\
    *   
