@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# vim: set fileencoding=<encoding name> :
 
 # TODO List:
 # bresenham
@@ -7,10 +6,6 @@
 # do rotation with copy
 # separate string and int inputs
 # possibly make deverbosify shorter
-
-from __future__ import print_function
-from __future__ import division
-from __future__ import unicode_literals
 
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
@@ -41,15 +36,6 @@ if os.name == "nt":
 Please install the 'colorama' module ('pip install colorama') \
 for the 'Refresh' command to work properly.""")
 
-if not hasattr(__builtins__, "raw_input"):
-    raw_input = input
-
-    def input(prompt):
-        return eval(raw_input(prompt))
-
-if not hasattr(__builtins__, "basestring"):
-    basestring = str
-
 
 def CleanExecute(function, *args):
     try:
@@ -62,8 +48,6 @@ def CleanExecute(function, *args):
 def Cleanify(function):
     return lambda *args: CleanExecute(function, *args)
 
-old_raw_input = raw_input
-raw_input = Cleanify(old_raw_input)
 old_input = input
 input = Cleanify(old_input)
 sleep = Cleanify(time.sleep)
@@ -221,7 +205,7 @@ class Charcoal:
         index = start % self.bg_line_length
         bg_line = bg_line[index:] + bg_line[:index]
         length = end - start
-        return (bg_line * (int(length / self.bg_line_length) + 1))[:length]
+        return (bg_line * (length // self.bg_line_length + 1))[:length]
 
     def Lines(self):
         left = min(self.indices)
@@ -462,7 +446,7 @@ class Charcoal:
                 direction == Direction.left
             ):
                 self.FillLines()
-                final = (string * (int(length / len(string)) + 1))[:length]
+                final = (string * (length // len(string) + 1))[:length]
 
                 if direction == Direction.left:
                     final = final[::-1]
@@ -1454,7 +1438,7 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
         result = ""
 
         if Info.prompt in self.info:
-            result = raw_input("Enter string: ")
+            result = input("Enter string: ")
 
         elif len(self.inputs):
             result = self.inputs[0]
@@ -1470,7 +1454,7 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
         result = 0
 
         if Info.prompt in self.info:
-            result = int(raw_input("Enter number: "))
+            result = int(input("Enter number: "))
 
         elif len(self.inputs):
             result = int(self.inputs[0])
@@ -1507,21 +1491,21 @@ make sure you explicitly use 0 for no delay if needed""")
 
         sleep(max(0, self.timeout_end - time.clock()))
         print("\033[0;0H" + str(self))
-        self.timeout_end = time.clock() + timeout / 1000.
+        self.timeout_end = time.clock() + timeout / 1000
 
     def RefreshFast(self, timeout=0):
         sleep(max(0, self.timeout_end - time.clock()))
         print("\033[0;0H" + str(self))
-        self.timeout_end = time.clock() + timeout / 1000.
+        self.timeout_end = time.clock() + timeout / 1000
 
     def RefreshFastText(self, text, timeout=0):
         sleep(max(0, self.timeout_end - time.clock()))
         print("\033[0;0H\033[2K" + text + "\n" + str(self))
-        self.timeout_end = time.clock() + timeout / 1000.
+        self.timeout_end = time.clock() + timeout / 1000
 
     def RefreshFor(self, timeout, variable, body):
         print("\033[2J")
-        timeout /= 1000.
+        timeout /= 1000
         loop_variable = self.GetLoopVariable()
         variable = variable(self)
 
@@ -1536,7 +1520,7 @@ make sure you explicitly use 0 for no delay if needed""")
 
     def RefreshWhile(self, timeout, condition, body):
         print("\033[2J")
-        timeout /= 1000.
+        timeout /= 1000
         loop_variable = self.GetLoopVariable()
         self.scope[loop_variable] = condition(self)
 
@@ -1560,7 +1544,7 @@ make sure you explicitly use 0 for no delay if needed""")
         if isinstance(length, list) or isinstance(length, str):
             length = len(length)
 
-        return (iterable * (int(length / len(iterable)) + 1))[:length]
+        return (iterable * (length // len(iterable) + 1))[:length]
 
     def Crop(self, width, height):
         top_crop = max(0, self.y - self.top)
@@ -2275,7 +2259,7 @@ if __name__ == "__main__":
         while True:
 
             try:
-                code = old_raw_input("Charcoal> ")
+                code = old_input("Charcoal> ")
 
                 if argv.astify:
                     print("Program")

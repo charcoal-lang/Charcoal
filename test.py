@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from charcoal import Run
 import unittest
 import sys

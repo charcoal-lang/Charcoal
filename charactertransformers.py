@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-# vim: set fileencoding=<encoding name> :
-
 RotateRight = {
     "-": "|",
     "|": "-",
