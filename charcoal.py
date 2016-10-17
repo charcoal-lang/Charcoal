@@ -3,9 +3,9 @@
 # TODO List:
 # bresenham
 # image to ascii
-# do rotation with copy
+# RotateCopy, RotateOverlap and cursor movement for them
 # separate string and int inputs
-# possibly make deverbosify shorter
+# possibly make deverbosify better
 
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
@@ -921,6 +921,9 @@ class Charcoal:
                 self.y = top_left - index
                 self.PrintLine({Direction.up}, length, line)
 
+            self.x = top_left - initial_y
+            self.y = top_left - initial_x
+
         elif direction == Direction.up_right:
             top_right, negative_x = min(
                 (y - x - 1, i - x + 1)
@@ -940,6 +943,9 @@ class Charcoal:
                 self.y = right_index + top_right
                 self.PrintLine({Direction.up}, length, line[::-1])
 
+            self.x = initial_y - top_right - 1
+            self.y = top_right + initial_x + 1
+
         elif direction == Direction.down_left:
             bottom_left, x = max(
                 (y - x + 1, x - i)
@@ -957,6 +963,9 @@ class Charcoal:
                 self.x -= 1
                 self.y = index + bottom_left
                 self.PrintLine({Direction.down}, length, line)
+
+            self.x = initial_y - bottom_left
+            self.y = bottom_left + initial_x
 
         elif direction == Direction.down_right:
             bottom_right, negative_x = max(
@@ -977,8 +986,8 @@ class Charcoal:
                 self.y = bottom_right - right_index
                 self.PrintLine({Direction.down}, length, line[::-1])
 
-        self.x = initial_x
-        self.y = initial_y
+            self.x = bottom_right - initial_y - 1
+            self.y = bottom_right - initial_x - 1
 
         if Info.step_canvas in self.info:
             self.RefreshFastText("Reflect copy", self.canvas_step)
@@ -1015,7 +1024,7 @@ class Charcoal:
 
         elif direction == Direction.right:
             right = max(self.right_indices)
-            self.x += (right - self.x) * 2
+            self.x += (right - self.x - 1) * 2 
             self.lines = [
                 line +
                 "\000" * (right - right_index) +
@@ -1079,6 +1088,9 @@ class Charcoal:
                 self.y = top_left - index
                 self.PrintLine({Direction.up}, length, line)
 
+            self.x = top_left - initial_y
+            self.y = top_left - initial_x
+
         elif direction == Direction.up_right:
             top_right, negative_x = min(
                 (y - x, i - x + 1)
@@ -1097,6 +1109,9 @@ class Charcoal:
                 self.x += 1
                 self.y = right_index + top_right
                 self.PrintLine({Direction.up}, length, line[::-1])
+
+            self.x = initial_y - top_right - 1
+            self.y = top_right + initial_x + 1
 
         elif direction == Direction.down_left:
             bottom_left, x = max(
@@ -1117,6 +1132,9 @@ class Charcoal:
                 self.y = index + bottom_left
                 self.PrintLine({Direction.down}, length, line)
 
+            self.x = initial_y - bottom_left
+            self.y = bottom_left + initial_x
+
         elif direction == Direction.down_right:
             bottom_right, negative_x = max(
                 (x + y, -x + i + 1)
@@ -1136,8 +1154,8 @@ class Charcoal:
                 self.y = bottom_right - right_index
                 self.PrintLine({Direction.down}, length, line[::-1])
 
-        self.x = initial_x
-        self.y = initial_y
+            self.x = bottom_right - initial_y - 1
+            self.y = bottom_right - initial_x - 1
 
         if Info.step_canvas in self.info:
             self.RefreshFastText("Reflect overlap", self.canvas_step)
@@ -1239,9 +1257,6 @@ class Charcoal:
                     self.x -= 1
                     self.y = bottom + right - right_index
                     self.PrintLine({Direction.down}, length, line[::-1])
-
-        self.x = initial_x
-        self.y = initial_y
 
         if Info.step_canvas in self.info:
             self.RefreshFastText("Rotate copy", self.canvas_step)

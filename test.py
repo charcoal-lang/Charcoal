@@ -4,9 +4,6 @@ from charcoal import Run
 import unittest
 import sys
 
-# TODO: test cursor positioning for reflections
-# the ones without copy rely on rotations so we need to move the cursor
-# for Rotate first
 # test crop
 
 class CharcoalTest(unittest.TestCase):
@@ -403,6 +400,36 @@ de
         self.assertEqual(Run("abc¶def¶ghi‖Ｃ←"), "cbaabc\nfeddef\nihgghi")
         self.assertEqual(Run("abc¶d¶gh‖Ｃ←"), "cbaabc\n  dd  \n hggh ")
         self.assertEqual(Run("abc¶d¶gh‖Ｃ→"), "abccba\nd    d\ngh  hg")
+        self.assertEqual(Run("abc¶def¶ghi↑‖Ｃ↖a"), """\
+ a    
+ifc   
+heb   
+gda   
+   abc
+   def
+   ghi""")
+        self.assertEqual(Run("abc¶def¶ghi↑‖Ｃ↗a"), """\
+   adg
+   beh
+   cfi
+abc a 
+def   
+ghi   """)
+        self.assertEqual(Run("abc¶def¶ghi↑‖Ｃ↙a"), """\
+   abc
+   def
+   ghi
+adg   
+beh   
+cfi   
+ a    """)
+        self.assertEqual(Run("abc¶def¶ghi↑‖Ｃ↘a"), """\
+abc   
+def   
+ghi a 
+   ifc
+   heb
+   gda""")
         self.assertEqual(Run("abc¶  d¶ gh‖Ｃ←"), "cbaabc\nd    d\nhg  gh")
         self.assertEqual(Run("a c¶d¶ghi‖Ｃ↑"), "ghi\nd  \na c\na c\nd  \nghi")
         self.assertEqual(Run("a c¶d¶ghi‖Ｃ↓"), "a c\nd  \nghi\nghi\nd  \na c")
@@ -612,7 +639,33 @@ ghi
     def test_reflect_overlap(self):
         self.assertEqual(Run("abc¶def¶ghi‖Ｏ←"), "cbabc\nfedef\nihghi")
         self.assertEqual(Run("abc¶def¶ghi‖Ｏ←a"), " cbabc\n fedef\naihghi")
-        #self.assertEqual(Run("abc¶def¶ghi‖Ｏ→a"), "abcba \ndefed \nghihga")
+        self.assertEqual(Run("abc¶def¶ghi‖Ｏ→a"), "abcba\ndefed\ngaihg")
+        self.assertEqual(Run("abc¶def¶ghi↑‖Ｏ↖a"), """\
+ a   
+ifc  
+heb  
+gdabc
+  def
+  ghi""")
+        self.assertEqual(Run("abc¶def¶ghi↑‖Ｏ↗a"), """\
+  adg
+  beh
+abcfi
+defa 
+ghi  """)
+        self.assertEqual(Run("abc¶def¶ghi↑‖Ｏ↙a"), """\
+  abc
+  def
+adghi
+beh  
+cfi  
+ a   """)
+        self.assertEqual(Run("abc¶def¶ghi↑‖Ｏ↘a"), """\
+abc  
+defa 
+ghifc
+  heb
+  gda""")
         self.assertEqual(Run("abc¶d¶gh‖Ｏ←"), "cbabc\n  d  \n hgh ")
         self.assertEqual(Run("abc¶d¶gh‖Ｏ→"), "abcba\nd   d\ngh hg")
         self.assertEqual(Run("abc¶  d¶ gh‖Ｏ←"), "cbabc\nd   d\nhg gh")
