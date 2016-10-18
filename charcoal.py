@@ -1444,12 +1444,12 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
     def InputString(self, key=""):
         result = ""
 
-        if Info.prompt in self.info:
-            result = input("Enter string: ")
-
-        elif len(self.inputs):
+        if len(self.inputs):
             result = self.inputs[0]
             self.inputs = self.inputs[1:]
+
+        elif Info.prompt in self.info:
+            result = input("Enter string: ")
 
         if key:
             self.scope[key] = result
@@ -1460,12 +1460,12 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
     def InputNumber(self, key=""):
         result = 0
 
-        if Info.prompt in self.info:
-            result = int(input("Enter number: "))
-
-        elif len(self.inputs):
+        if len(self.inputs):
             result = int(self.inputs[0])
             self.inputs = self.inputs[1:]
+
+        elif Info.prompt in self.info:
+            result = int(input("Enter number: "))
 
         if key:
             self.scope[key] = result
