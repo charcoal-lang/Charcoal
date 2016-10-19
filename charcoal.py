@@ -2104,11 +2104,11 @@ if __name__ == "__main__":
         help="Code."
     )
     parser.add_argument(
-        "-i", "--input", type=str, nargs="*", default="",
+        "-i", "--input", type=str, nargs="*", default=[],
         help="Input."
     )
     parser.add_argument(
-        "-o", "--output", type=str, nargs="*", default="",
+        "-o", "--output", type=str, nargs="*", default=[],
         help="Expected output."
     )
     parser.add_argument(
