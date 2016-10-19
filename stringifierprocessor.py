@@ -62,9 +62,9 @@ StringifierProcessor = {
         ))]
     ],
     CharcoalToken.Number: [
-        lambda result: "".join(
+        lambda result: ["".join(
             SuperscriptToNormal[int(n)] for n in str(result[0])
-        )
+        )]
     ],
     CharcoalToken.Name: [
         lambda result: "αβγδεζηθικλμνξπρσςτυφχψω"[
