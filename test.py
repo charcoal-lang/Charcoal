@@ -902,6 +902,16 @@ aaaaa""")
  *#*#* 
 *#*#*#*
    *   """)
+        self.assertEqual(Run("Ｇ↘↗↙↙⁵#"), """\
+#########
+######## 
+#######  
+######   
+#####    
+####     
+###      
+##       
+#        """)
 
     def test_cycle_chop(self):
         self.assertEqual(Run("…abc¹⁰"), "abcabcabca")

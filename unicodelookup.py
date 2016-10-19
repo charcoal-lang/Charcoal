@@ -1,4 +1,6 @@
 UnicodeLookup = {}
+ReverseLookup = {}
+OrdinalLookup = {}
 
 for fullwidth, upper in zip(
     "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ",
@@ -29,6 +31,21 @@ for arrow, ascii_equivalent in zip(
 ): # device controls, separators, shift out, shift in, data link escape
     UnicodeLookup[chr(ord(ascii_equivalent) + 128)] = arrow
 
-for other, ascii_character in zip("¿‽‖´·¤¦¶", "?!,`.;:\n"):
+for other, ascii_character in zip("¿‽‖´·¤¦“”", "?!,`.;:'\""):
     # TODO: not sure about !, , and ;
     UnicodeLookup[chr(ord(ascii_character) + 128)] = other
+
+for replacement, replaced in zip("¶", "\n"):
+    UnicodeLookup[replaced] = replacement
+
+for eight_bit in UnicodeLookup:
+    character = UnicodeLookup[eight_bit]
+    ReverseLookup[character] = eight_bit
+    OrdinalLookup[character] = ord(eight_bit)
+
+for ascii_character in range(32, 128):
+    character = chr(ascii_character)
+    ReverseLookup[character] = character
+    OrdinalLookup[character] = ascii_character
+
+Codepage = [UnicodeLookup.get(chr(code), chr(code)) for code in range(0, 256)]

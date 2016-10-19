@@ -228,7 +228,20 @@ InterpreterProcessor = {
             [
                 [(side, length) for side in result[1]]
                 for length in [result[2](charcoal)]
-            ][0], result[3](charcoal)),
+            ][0], result[3](charcoal)
+        ),
+        lambda result: lambda charcoal: charcoal.Polygon(
+            result[1](charcoal),
+            result[2](charcoal),
+            fill=False
+        ),
+        lambda result: lambda charcoal: charcoal.Polygon(
+            [
+                [(side, length) for side in result[1]]
+                for length in [result[2](charcoal)]
+            ][0], result[3](charcoal),
+            fill=False
+        ),
         lambda result: lambda charcoal: charcoal.Rectangle(
             result[1](charcoal),
             result[2](charcoal)

@@ -17,6 +17,7 @@ from astprocessor import ASTProcessor
 from interpreterprocessor import InterpreterProcessor
 from stringifierprocessor import StringifierProcessor
 from unicodelookup import UnicodeLookup
+from compression import Decompressed
 from enum import Enum
 import random
 import re
@@ -28,12 +29,15 @@ import json
 import codecs
 
 if os.name == "nt":
+
     try:
         from colorama import init
         init()
+
     except:
         print("""\
-Please install the 'colorama' module ('pip install colorama') \
+Please install the 'colorama' module ('pip install colorama'\n
+ or 'pip3 install colorama') \
 for the 'Refresh' command to work properly.""")
 
 
@@ -593,11 +597,6 @@ class Charcoal:
         self.Print(string, directions, multiprint=True)
 
     def Polygon(self, sides, character, fill=True):
-
-        if not fill:
-            self.Multiline(sides, character)
-            return
-
         multichar_fill = len(character) > 1
 
         if multichar_fill:
@@ -628,8 +627,11 @@ class Charcoal:
         direction = DirectionFromXYSigns[sign_x][sign_y]
         length = (delta_x or delta_y) * (sign_x or sign_y) + 1
 
-        if delta_x and delta_y and delta_x * sign_x != delta_y * sign_y:
-            # Can't be autofilled
+        if (
+            not fill or
+            delta_x and delta_y and delta_x * sign_x != delta_y * sign_y
+        ):
+            # Can't be/shouldn't be autofilled
             return
 
         final_x = self.x
@@ -678,6 +680,9 @@ class Charcoal:
         else:
 
             for row in coordinates.coordinates:
+
+                if len(row) % 2:
+                    row = row[:-1] + row[-2:]
 
                 while row:
                     start, end = row[:2]
@@ -1461,11 +1466,22 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
         result = 0
 
         if len(self.inputs):
-            result = int(self.inputs[0])
+
+            try:
+                result = int(self.inputs[0])
+
+            except:
+                result = 0
+
             self.inputs = self.inputs[1:]
 
         elif Info.prompt in self.info:
-            result = int(input("Enter number: "))
+
+            try:
+                result = int(input("Enter number: "))
+
+            except:
+                result = 0
 
         if key:
             self.scope[key] = result
@@ -1680,7 +1696,7 @@ def ParseExpression(
 
                         tokens += processor[token][0]([codecs.decode(
                             code[old_index + 1:index - 1],
-                            'unicode_escape'
+                            "unicode_escape"
                         )])
 
                     elif token == CharcoalToken.Number:
@@ -1766,8 +1782,24 @@ def ParseExpression(
                             character = code[index]
 
                         if old_index == index:
-                            success = False
-                            break
+
+                            if character == "“" or character == "”":
+                                index += 1
+                                character = code[index]
+
+                                while character != "”":
+                                    index += 1
+                                    character = code[index]
+
+                                index += 1
+
+                                tokens += processor[token][0]([
+                                    Decompressed(code[old_index:index])
+                                ])
+
+                            else:
+                                success = False
+                                break
 
                         tokens += processor[token][0]([re.sub(
                             r"´(.)",
@@ -1797,7 +1829,9 @@ def ParseExpression(
                             character >= "⁴" and character <= "⁹" or
                             character in ["⁰", "¹", "²", "³"]
                         ):
-                            result = result * 10 + SuperscriptToNormal[character]
+                            result = result * 10 + SuperscriptToNormal[
+                                character
+                            ]
                             index += 1
 
                             if index == len(code):
@@ -1912,10 +1946,7 @@ def Parse(
             print("RuntimeError: Could not parse")
             sys.exit(1)
 
-    code += "»" * code.count("«")  # because » may be escaped
-    # will need to change to custom universal end closing character
-    # (not to be used by user)
-    # if we also have autoclosing delimited strings, lists etc
+    code += "»" * code.count("«")
     result = ParseExpression(
         code,
         grammar=grammar,
@@ -1982,7 +2013,7 @@ def ProcessInput(inputs):
             inputs.split(" ")
         )
 
-    return new_inputs
+    return new_inputs if len(new_inputs) > 1 or new_inputs[0] else []
 
 
 def Run(
@@ -2081,6 +2112,10 @@ if __name__ == "__main__":
         help="Expected output."
     )
     parser.add_argument(
+        "-rif", "--rawinputfile", type=str, nargs="?", default="",
+        help="Path to raw input file."
+    )
+    parser.add_argument(
         "-if", "--inputfile", type=str, nargs="?", default="",
         help="Path to input file."
     )
@@ -2117,6 +2152,11 @@ if __name__ == "__main__":
         help="Open as REPL instead of interpreting."
     )
     parser.add_argument(
+        "-rs", "--restricted", action="store_true",
+        help="""Disable prompt input, REPL mode, \
+non-raw file input and file output."""
+    )
+    parser.add_argument(
         "-w", "--whitespace", action="store_true",
         help="Ignore all whitespace unless prefixed by a ´."
     )
@@ -2141,6 +2181,10 @@ if __name__ == "__main__":
         help="Use verbose mode."
     )
     parser.add_argument(
+        "-sl", "--showlength", action="store_true",
+        help="Show the length of the code."
+    )
+    parser.add_argument(
         "-t", "--test", action="store_true",
         help="Run unit tests."
     )
@@ -2161,10 +2205,10 @@ if __name__ == "__main__":
         info.add(Info.warn_ambiguities)
         AddAmbiguityWarnings()
 
-    if argv.prompt:
+    if not argv.restricted and argv.prompt:
         info.add(Info.prompt)
 
-    if argv.repl:
+    if not argv.restricted and argv.repl:
         info.add(Info.prompt)
         info.add(Info.is_repl)
 
@@ -2180,8 +2224,12 @@ if __name__ == "__main__":
             with open(argv.file + ".cl") as file:
                     code = file.read()
 
-    if argv.inputfile:
-        with open(argv.input) as file:
+    if argv.rawinputfile:
+        with open(argv.rawinputfile) as file:
+            argv.input = [file.read()] + argv.input
+
+    if not argv.restricted and argv.inputfile:
+        with open(argv.inputfile) as file:
             raw_file_input = file.read()
 
         try:
@@ -2203,8 +2251,8 @@ if __name__ == "__main__":
         del raw_file_input
         del file_input
 
-    if argv.inputfile:
-        with open(argv.input) as file:
+    if not argv.restricted and argv.outputfile:
+        with open(argv.outputfile) as file:
             raw_file_output = file.read()
 
         try:
@@ -2243,6 +2291,12 @@ if __name__ == "__main__":
 
         if not argv.verbose:
             sys.exit()
+
+    if argv.showlength:
+        print("Charcoal, %i bytes: `%s`" % (
+            len(code),
+            re.sub("`", "\`", code)
+        ))
 
     if argv.astify or argv.onlyastify and not argv.repl:
         print("Program")
@@ -2294,7 +2348,7 @@ if __name__ == "__main__":
     elif len(argv.input) <= 1 and not len(argv.output):
         result = Run(
             code,
-            argv.input,
+            argv.input[0] if len(argv.input) else "",
             charcoal=global_charcoal,
             whitespace=argv.whitespace,
             normal_encoding=argv.normalencoding

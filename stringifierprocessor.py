@@ -1,5 +1,6 @@
 from charcoaltoken import CharcoalToken
 from unicodegrammars import UnicodeGrammars
+from compression import Compressed
 import re
 
 SuperscriptToNormal = "⁰¹²³⁴⁵⁶⁷⁸⁹"
@@ -46,7 +47,7 @@ StringifierProcessor = {
         lambda result: ""
     ],
     CharcoalToken.String: [
-        lambda result: [re.sub(
+        lambda result: [Compressed(re.sub(
             r"\n",
             r"¶",
             re.sub(
@@ -58,7 +59,7 @@ StringifierProcessor = {
                 r"´\1",
                 result[0]
             )
-        )]
+        ))]
     ],
     CharcoalToken.Number: [
         lambda result: "".join(
@@ -145,6 +146,8 @@ StringifierProcessor = {
         lambda result: "Ｐ" + result[2],
         lambda result: "Ｇ" + result[2] + result[4],
         lambda result: "Ｇ" + result[2] + result[4] + result[5],
+        lambda result: "ＧＨ" + result[2] + result[4],
+        lambda result: "ＧＨ" + result[2] + result[4] + result[5],
         lambda result: "ＢＲ" + result[2] + result[3],
         lambda result: "Ｂ" + result[2] + result[3] + result[4],
         lambda result: "Ｍ" + result[2],

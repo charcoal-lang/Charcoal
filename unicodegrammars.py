@@ -129,6 +129,13 @@ UnicodeGrammars = {
             CharcoalToken.Expression,
             CharcoalToken.Expression
         ],
+        ["ＧＨ", CharcoalToken.Sides, CharcoalToken.Expression],
+        [
+            "ＧＨ",
+            CharcoalToken.Multidirectional,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression
+        ],
         ["ＢＲ", CharcoalToken.Expression, CharcoalToken.Expression],
         [
             "Ｂ",

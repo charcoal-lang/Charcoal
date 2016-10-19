@@ -147,6 +147,16 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             ")"
         ],
+        ["PolygonHollow", "(", CharcoalToken.Sides, CharcoalToken.Separator, CharcoalToken.Expression, ")"],
+        [
+            "PolygonHollow",
+            "(",
+            CharcoalToken.Multidirectional,
+            CharcoalToken.Separator,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")"
+        ],
         ["Rectangle", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         [
             "Box",
