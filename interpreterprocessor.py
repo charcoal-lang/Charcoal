@@ -325,6 +325,11 @@ InterpreterProcessor = {
             result[3]
         ),
         lambda result: lambda charcoal: charcoal.Refresh(result[1](charcoal)),
-        lambda result: lambda charcoal: charcoal.Refresh()
+        lambda result: lambda charcoal: charcoal.Refresh(),
+        lambda result: lambda charcoal: charcoal.Crop(
+            result[1](charcoal),
+            result[2](charcoal)
+        ),
+        lambda result: lambda charcoal: charcoal.Clear()
     ]
 }

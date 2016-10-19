@@ -31,7 +31,7 @@ for arrow, ascii_equivalent in zip(
 ): # device controls, separators, shift out, shift in, data link escape
     UnicodeLookup[chr(ord(ascii_equivalent) + 128)] = arrow
 
-for other, ascii_character in zip("¿‽‖´·¤¦“”", "?!,`.;:'\""):
+for other, ascii_character in zip("¿‽‖´·¤¦“”⎚", "?!,`.;:'\" "):
     # TODO: not sure about !, , and ;
     UnicodeLookup[chr(ord(ascii_character) + 128)] = other
 

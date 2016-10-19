@@ -48,8 +48,8 @@ StringifierProcessor = {
     ],
     CharcoalToken.String: [
         lambda result: [Compressed(re.sub(
-            r"\n",
-            r"¶",
+            "\n",
+            "¶",
             re.sub(
                 r"""\
 ([ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ\
@@ -179,6 +179,8 @@ StringifierProcessor = {
         lambda result: "ＨＦ" + result[2] + result[4] + result[5],
         lambda result: "ＨＷ" + result[2] + result[4] + result[5],
         lambda result: "Ｈ" + result[2],
-        lambda result: "Ｈ"
+        lambda result: "Ｈ",
+        lambda result: "Ｔ" + result[2] + result[3],
+        lambda result: "⎚"
     ]
 }

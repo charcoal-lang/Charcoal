@@ -217,6 +217,8 @@ VerboseGrammars = {
             CharcoalToken.Body
         ],
         ["Refresh", "(", CharcoalToken.Expression, ")"],
-        ["Refresh", "(", ")"]
+        ["Refresh", "(", ")"],
+        ["Trim", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
+        ["Clear", "(", ")"]
     ]
 }

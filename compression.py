@@ -34,18 +34,20 @@ def Compressed(string):
     ):
         return string
 
+    original_string = string
+
     string = re.sub("¶", "\n", string)
 
     compressed_permutated = CompressPermutations(string)
     compressed = CompressString(string)
 
-    string_length = len(string) - 2
+    string_length = len(original_string) - 2
 
     if (
         string_length < len(compressed_permutated) and
         string_length < len(compressed)
     ):
-        return string
+        return original_string
 
     if len(compressed_permutated) < len(compressed):
         return "”" + compressed_permutated + "”"

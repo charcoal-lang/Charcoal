@@ -188,6 +188,8 @@ UnicodeGrammars = {
             CharcoalToken.Body
         ],
         ["Ｈ", CharcoalToken.Expression],
-        ["Ｈ"]
+        ["Ｈ"],
+        ["Ｔ", CharcoalToken.Expression, CharcoalToken.Expression],
+        ["⎚"]
     ]
 }

@@ -1029,7 +1029,7 @@ class Charcoal:
 
         elif direction == Direction.right:
             right = max(self.right_indices)
-            self.x += (right - self.x - 1) * 2 
+            self.x += (right - self.x - 1) * 2
             self.lines = [
                 line +
                 "\000" * (right - right_index) +
