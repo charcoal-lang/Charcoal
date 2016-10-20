@@ -4,8 +4,8 @@ import re
 
 # TODO: reserve chars for string start and end
 
-digits += "."
-symbols = "!\"#$%&'()*+,-/:;<=>?@[\]^_`{|}~"
+digits
+symbols = ".!\"#$%&'()*+,-/:;<=>?@[\]^_`{|}~"
 whitespace = "\n "
 default_order = "wslnu"
 charset_fragment_lookup = {
@@ -29,7 +29,7 @@ gap = ord("\"")
 def Compressed(string):
 
     if not all(
-        character == "¶" or character > " " and character < "~"
+        character == "¶" or character >= " " and character <= "~"
         for character in string
     ):
         return string
@@ -38,19 +38,19 @@ def Compressed(string):
 
     string = re.sub("¶", "\n", string)
 
-    compressed_permutated = CompressPermutations(string)
+    compressed_permuted = CompressPermutations(string)
     compressed = CompressString(string)
 
     string_length = len(original_string) - 2
 
     if (
-        string_length < len(compressed_permutated) and
+        string_length < len(compressed_permuted) and
         string_length < len(compressed)
     ):
         return original_string
 
-    if len(compressed_permutated) < len(compressed):
-        return "”" + compressed_permutated + "”"
+    if len(compressed_permuted) < len(compressed):
+        return "”" + compressed_permuted + "”"
 
     else:
         return "“" + compressed + "”"

@@ -830,7 +830,13 @@ class Charcoal:
         self.x += x
         self.y += y
 
-    def ReflectCopy(self, direction):
+    def ReflectTransform(self, direction):
+        self.Reflect(direction, True)
+
+    def ReflectMirror(self, direction):
+        self.ReflectCopy(direction, True)
+
+    def ReflectCopy(self, direction, transform=False):
 
         if isinstance(direction, list):
 
@@ -846,6 +852,14 @@ class Charcoal:
             self.x -= (self.x - left) * 2 + 1
             self.background_inside = True
             self.lines = [
+                "".join(
+                    HorizontalFlip.get(character, character)
+                    for character in line[::-1]
+                ) +
+                "\000\000" * (index - left) +
+                line
+                for line, index in zip(self.lines, self.indices)
+            ] if transform else [
                 line[::-1] +
                 "\000\000" * (index - left) +
                 line
@@ -864,6 +878,14 @@ class Charcoal:
             right = max(self.right_indices)
             self.x += (right - self.x) * 2 + 1
             self.lines = [
+                line +
+                "\000\000" * (right - right_index) +
+                "".join(
+                    HorizontalFlip.get(character, character)
+                    for character in line[::-1]
+                )
+                for line, right_index in zip(self.lines, self.right_indices)
+            ] if transform else [
                 line +
                 "\000\000" * (right - right_index) +
                 line[::-1]
@@ -885,14 +907,32 @@ class Charcoal:
         elif direction == Direction.up:
             self.y -= (self.top - self.y) * 2 + 1
             self.top -= len(self.lines) - 1
-            self.lines = self.lines[::-1] + self.lines
+            self.lines = (
+                [
+                    "".join(
+                        VerticalFlip.get(character, character)
+                        for character in line
+                    ) for line in self.lines[::-1]
+                ]
+                if transform else
+                self.lines[::-1]
+            ) + self.lines
             self.indices = self.indices[::-1] + self.indices
             self.lengths = self.lengths[::-1] + self.lengths
             self.right_indices = self.right_indices[::-1] + self.right_indices
 
         elif direction == Direction.down:
             self.y += (len(self.lines) - self.y) * 2 + 1
-            self.lines += self.lines[::-1]
+            self.lines += (
+                [
+                    "".join(
+                        VerticalFlip.get(character, character)
+                        for character in line
+                    ) for line in self.lines[::-1]
+                ]
+                if transform else
+                self.lines[::-1]
+            )
             self.indices += self.indices[::-1]
             self.lengths += self.lengths[::-1]
             self.right_indices += self.right_indices[::-1]
@@ -905,8 +945,8 @@ class Charcoal:
 
         initial_x = self.x
         initial_y = self.y
-
         self.Trim()
+
         if direction == Direction.up_left:
             top_left, negative_x = min(
                 (x + y - 1, -i - x)
@@ -919,12 +959,30 @@ class Charcoal:
             x = -negative_x
             self.x = x
 
-            for line, length, index in zip(
-                self.lines[:], self.lengths[:], self.indices[:]
-            ):
-                self.x -= 1
-                self.y = top_left - index
-                self.PrintLine({Direction.up}, length, line)
+            if transform:
+
+                for line, length, index in zip(
+                    self.lines[:], self.lengths[:], self.indices[:]
+                ):
+                    self.x -= 1
+                    self.y = top_left - index
+                    self.PrintLine(
+                        {Direction.up},
+                        length,
+                        "".join(
+                            NESWFlip.get(character, character)
+                            for character in line
+                        )
+                    )
+
+            else:
+
+                for line, length, index in zip(
+                    self.lines[:], self.lengths[:], self.indices[:]
+                ):
+                    self.x -= 1
+                    self.y = top_left - index
+                    self.PrintLine({Direction.up}, length, line)
 
             self.x = top_left - initial_y
             self.y = top_left - initial_x
@@ -941,12 +999,30 @@ class Charcoal:
             x = -negative_x
             self.x = x
 
-            for line, length, right_index in zip(
-                self.lines[:], self.lengths[:], self.right_indices[:]
-            ):
-                self.x += 1
-                self.y = right_index + top_right
-                self.PrintLine({Direction.up}, length, line[::-1])
+            if transform:
+
+                for line, length, index in zip(
+                    self.lines[:], self.lengths[:], self.indices[:]
+                ):
+                    self.x -= 1
+                    self.y = top_left - index
+                    self.PrintLine(
+                        {Direction.up},
+                        length,
+                        "".join(
+                            NWSEFlip.get(character, character)
+                            for character in line
+                        )
+                    )
+
+            else:
+
+                for line, length, right_index in zip(
+                    self.lines[:], self.lengths[:], self.right_indices[:]
+                ):
+                    self.x += 1
+                    self.y = right_index + top_right
+                    self.PrintLine({Direction.up}, length, line[::-1])
 
             self.x = initial_y - top_right - 1
             self.y = top_right + initial_x + 1
@@ -962,12 +1038,30 @@ class Charcoal:
             )
             self.x = x
 
-            for line, length, index in zip(
-                self.lines[::-1], self.lengths[::-1], self.indices[::-1]
-            ):
-                self.x -= 1
-                self.y = index + bottom_left
-                self.PrintLine({Direction.down}, length, line)
+            if transform:
+
+                for line, length, index in zip(
+                    self.lines[:], self.lengths[:], self.indices[:]
+                ):
+                    self.x -= 1
+                    self.y = top_left - index
+                    self.PrintLine(
+                        {Direction.up},
+                        length,
+                        "".join(
+                            NWSEFlip.get(character, character)
+                            for character in line
+                        )
+                    )
+
+            else:
+
+                for line, length, index in zip(
+                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
+                ):
+                    self.x -= 1
+                    self.y = index + bottom_left
+                    self.PrintLine({Direction.down}, length, line)
 
             self.x = initial_y - bottom_left
             self.y = bottom_left + initial_x
@@ -984,12 +1078,30 @@ class Charcoal:
             x = -negative_x
             self.x = x
 
-            for line, length, right_index in zip(
-                self.lines[::-1], self.lengths[::-1], self.right_indices[::-1]
-            ):
-                self.x += 1
-                self.y = bottom_right - right_index
-                self.PrintLine({Direction.down}, length, line[::-1])
+            if transform:
+
+                for line, length, index in zip(
+                    self.lines[:], self.lengths[:], self.indices[:]
+                ):
+                    self.x -= 1
+                    self.y = top_left - index
+                    self.PrintLine(
+                        {Direction.up},
+                        length,
+                        "".join(
+                            NESWFlip.get(character, character)
+                            for character in line
+                        )
+                    )
+
+            else:
+
+                for line, length, right_index in zip(
+                    self.lines[::-1], self.lengths[::-1], self.right_indices[::-1]
+                ):
+                    self.x += 1
+                    self.y = bottom_right - right_index
+                    self.PrintLine({Direction.down}, length, line[::-1])
 
             self.x = bottom_right - initial_y - 1
             self.y = bottom_right - initial_x - 1
@@ -1165,7 +1277,7 @@ class Charcoal:
         if Info.step_canvas in self.info:
             self.RefreshFastText("Reflect overlap", self.canvas_step)
 
-    def Reflect(self, direction):
+    def Reflect(self, direction, transform=False):
         if direction == Direction.left or direction == Direction.right:
             self.indices, self.right_indices = [
                 1 - right_index
@@ -1174,10 +1286,25 @@ class Charcoal:
                 1 - index
                 for index in self.indices
             ]
-            self.lines = [line[::-1] for line in self.lines]
+            self.lines = [
+                "".join(
+                    HorizontalFlip.get(character, character)
+                    for character in line[::-1]
+                ) for line in self.lines
+            ] if transform else [
+                line[::-1] for line in self.lines
+            ]
             self.x = -self.x
 
         elif direction == Direction.up or direction == Direction.down:
+
+            if transform:
+                for i in range(len(self.lines)):
+                    self.lines[i] = "".join(
+                        VerticalFlip.get(character, character)
+                        for character in self.lines[i]
+                    )
+
             self.lines.reverse()
             self.indices.reverse()
             self.lengths.reverse()
@@ -1189,15 +1316,31 @@ class Charcoal:
             direction == Direction.up_left or
             direction == Direction.down_right
         ):
+
+            if transform:
+                for i in range(len(self.lines)):
+                    self.lines[i] = "".join(
+                        NESWFlip.get(character, character)
+                        for character in self.lines[i]
+                    )
+
             self.Rotate(2)
-            self.Reflect(Direction.right)
+            self.Reflect(Direction.right, False)
 
         elif (
             direction == Direction.up_right or
             direction == Direction.down_left
         ):
+
+            if transform:
+                for i in range(len(self.lines)):
+                    self.lines[i] = "".join(
+                        NWSEFlip.get(character, character)
+                        for character in self.lines[i]
+                    )
+
             self.Rotate(6)
-            self.Reflect(Direction.right)
+            self.Reflect(Direction.right, False)
 
         if Info.step_canvas in self.info:
             self.RefreshFastText("Reflect", self.canvas_step)
@@ -1587,6 +1730,36 @@ make sure you explicitly use 0 for no delay if needed""")
             self.lengths[i] -= left_crop - right_crop + length
             self.right_indices[i] += right_crop - length
 
+    def Extend(self, horizontal=0, vertical=0):
+        
+        horizontal += 1
+        vertical += 1
+
+        if horizontal:
+            self.background_inside = True
+            joiner = "\x00" * (horizontal - 1)
+            self.lines = [joiner.join(line) for line in self.lines]
+            self.lengths = [
+                (length - 1) * horizontal + 1
+                for length in self.lengths
+            ]
+            self.indices = [index * horizontal for index in self.indices]
+            self.right_indices = [
+                (right_index - 1) * horizontal + 1
+                for right_index in self.right_indices
+            ]
+
+        if vertical:
+            new_number = (len(self.lines) - 1) * vertical + 1
+            lines = [""] * new_number
+            indices = [0] * new_number
+            right_indices = [0] * new_number
+            lines[::vertical] = self.lines
+            indices[::vertical] = self.indices
+            right_indices[::vertical] = self.right_indices
+            self.lines = lines
+            self.indices = indices
+            self.right_indices = right_indices
 
 def PassThrough(result):
     return result
@@ -2295,7 +2468,7 @@ non-raw file input and file output."""
     if argv.showlength:
         print("Charcoal, %i bytes: `%s`" % (
             len(code),
-            re.sub("`", "\`", code)
+            repr(re.sub("`", "\`", code))
         ))
 
     if argv.astify or argv.onlyastify and not argv.repl:

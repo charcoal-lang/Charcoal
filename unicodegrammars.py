@@ -151,6 +151,10 @@ UnicodeGrammars = {
         ["↷", CharcoalToken.Expression],
         ["↷"],
         ["Ｊ", CharcoalToken.Expression, CharcoalToken.Expression],
+        ["‖Ｔ", CharcoalToken.ArrowList],
+        ["‖Ｔ", CharcoalToken.Arrow],
+        ["‖Ｍ", CharcoalToken.ArrowList],
+        ["‖Ｍ", CharcoalToken.Arrow],
         ["⟲Ｃ", CharcoalToken.List],
         ["⟲Ｃ", CharcoalToken.Expression],
         ["‖Ｃ", CharcoalToken.ArrowList],
@@ -190,6 +194,8 @@ UnicodeGrammars = {
         ["Ｈ", CharcoalToken.Expression],
         ["Ｈ"],
         ["Ｔ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["⎚"]
+        ["⎚"],
+        ["Ｅ", CharcoalToken.Expression, CharcoalToken.Expression],
+        ["Ｅ", CharcoalToken.Expression]
     ]
 }

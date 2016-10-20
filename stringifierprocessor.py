@@ -157,6 +157,10 @@ StringifierProcessor = {
         lambda result: "↷" + result[2],
         lambda result: "↷",
         lambda result: "Ｊ" + result[2] + result[3],
+        lambda result: "‖Ｔ" + result[2],
+        lambda result: "‖Ｔ" + result[2],
+        lambda result: "‖Ｍ" + result[2],
+        lambda result: "‖Ｍ" + result[2],
         lambda result: "⟲Ｃ" + result[2],
         lambda result: "⟲Ｃ" + result[2],
         lambda result: "‖Ｃ" + result[2],
@@ -181,6 +185,8 @@ StringifierProcessor = {
         lambda result: "Ｈ" + result[2],
         lambda result: "Ｈ",
         lambda result: "Ｔ" + result[2] + result[3],
-        lambda result: "⎚"
+        lambda result: "⎚",
+        lambda result: "Ｅ" + result[2] + result[3],
+        lambda result: "Ｅ" + result[2]
     ]
 }

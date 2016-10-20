@@ -355,6 +355,18 @@ If(0) {
             "f\nd\ns\na"
         )
 
+    def test_reflect_transform(self):
+        self.assertEqual(Run("(({{[[<<‖Ｔ→"), ">>]]}}))")
+        self.assertEqual(Run("(({{¶  [[<<‖Ｔ→"), "  }}))\n>>]]  ")
+        self.assertEqual(Run("´⎛´⎞‖Ｔ↑"), "⎝⎠")
+        self.assertEqual(Run("---‖Ｔ↖"), "|\n|\n|")
+
+    def test_reflect_mirror(self):
+        self.assertEqual(Run("(({{[[<<‖Ｍ→"), "(({{[[<<>>]]}}))")
+        self.assertEqual(Run("(({{¶  [[<<‖Ｍ→"), "(({{    }}))\n  [[<<>>]]  ")
+        self.assertEqual(Run("´⎛´⎞‖Ｍ↓"), "⎛⎞\n⎝⎠")
+        self.assertEqual(Run("---‖Ｍ↖"), "|   \n|   \n|   \n ---")
+
     def test_rotate_copy(self):
         self.assertEqual(Run("abc¶de⟲Ｃ²"), """\
    da
@@ -915,6 +927,28 @@ aaaaa""")
 
     def test_cycle_chop(self):
         self.assertEqual(Run("…abc¹⁰"), "abcabcabca")
+
+    def test_crop(self):
+        self.assertEqual(Run("abcddd¶d¶ghi¶j¶j¶jＭ³↖Ｔ³¦³"), """\
+ghi
+j  
+j  """)
+
+    def test_extend(self):
+        self.assertEqual(Run("foobarＥ¹"), "f o o b a r")
+        self.assertEqual(Run("foobar¶baz¶→→quuxＥ³¦³"), """\
+f   o   o   b   a   r
+                     
+                     
+                     
+b   a   z            
+                     
+                     
+                     
+    q   u   u   x    """)
+
+    def test_clear(self):
+        self.assertEqual(Run("foobar⎚bazquux"), "bazquux")
 
     def test_input(self):
         self.assertEqual(

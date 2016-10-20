@@ -173,6 +173,10 @@ VerboseGrammars = {
         ["PivotRight", "(", CharcoalToken.Expression, ")"],
         ["PivotRight", "(", ")"],
         ["Jump", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
+        ["ReflectTransform", "(", CharcoalToken.Arrow, ")"],
+        ["ReflectTransform", "(", CharcoalToken.Arrow, ")"],
+        ["ReflectMirror", "(", CharcoalToken.Arrow, ")"],
+        ["ReflectMirror", "(", CharcoalToken.Arrow, ")"],
         ["RotateCopy", "(", CharcoalToken.List, ")"],
         ["RotateCopy", "(", CharcoalToken.Expression, ")"],
         ["ReflectCopy", "(", CharcoalToken.ArrowList, ")"],
@@ -219,6 +223,14 @@ VerboseGrammars = {
         ["Refresh", "(", CharcoalToken.Expression, ")"],
         ["Refresh", "(", ")"],
         ["Trim", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
-        ["Clear", "(", ")"]
+        ["Clear", "(", ")"],
+        [
+            "Extend",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        ["Extend", "(", CharcoalToken.Expression, ")"]
     ]
 }

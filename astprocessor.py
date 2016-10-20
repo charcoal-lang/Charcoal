@@ -126,6 +126,10 @@ ASTProcessor = {
         lambda result: ["Pivot Right", result[1]],
         lambda result: ["Pivot Right"],
         lambda result: ["Jump"] + result[1:],
+        lambda result: ["Reflect transform"] + result[1:],
+        lambda result: ["Reflect transform"] + result[1:],
+        lambda result: ["Reflect mirror"] + result[1:],
+        lambda result: ["Reflect mirror"] + result[1:],
         lambda result: ["Rotate copy"] + result[1:],
         lambda result: ["Rotate copy"] + result[1:],
         lambda result: ["Reflect copy"] + result[1:],
@@ -150,6 +154,8 @@ ASTProcessor = {
         lambda result: ["Refresh", result[1]],
         lambda result: ["Refresh"],
         lambda result: ["Trim", result[1], result[2]],
-        lambda result: ["Clear"]
+        lambda result: ["Clear"],
+        lambda result: ["Extend", result[1], result[2]],
+        lambda result: ["Extend", result[1]]
     ]
 }

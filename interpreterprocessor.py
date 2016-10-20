@@ -271,6 +271,10 @@ InterpreterProcessor = {
             result[1](charcoal),
             result[2](charcoal)
         ),
+        lambda result: lambda charcoal: charcoal.ReflectTransform(result[1]),
+        lambda result: lambda charcoal: charcoal.ReflectTransform(result[1]),
+        lambda result: lambda charcoal: charcoal.ReflectMirror(result[1]),
+        lambda result: lambda charcoal: charcoal.ReflectMirror(result[1]),
         lambda result: lambda charcoal: charcoal.RotateCopy(
             result[1](charcoal)
         ),
@@ -330,6 +334,11 @@ InterpreterProcessor = {
             result[1](charcoal),
             result[2](charcoal)
         ),
-        lambda result: lambda charcoal: charcoal.Clear()
+        lambda result: lambda charcoal: charcoal.Clear(),
+        lambda result: lambda charcoal: charcoal.Extend(
+            result[1](charcoal),
+            result[2](charcoal)
+        ),
+        lambda result: lambda charcoal: charcoal.Extend(result[1](charcoal))
     ]
 }
