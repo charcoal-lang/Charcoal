@@ -309,10 +309,10 @@ cbabc
     def test_for(self):
         self.assertEqual(Run("Ｆ⁵a"), "aaaaa")
         self.assertEqual(Run("Ａ⁵ιＦＳκ", "foobar"), "foobar")
-        self.assertEqual(Run("For(5)Print('a')", verbose=True), "aaaaa")
+        self.assertEqual(Run("for(5)Print('a')", verbose=True), "aaaaa")
         self.assertEqual(
             Run(
-                "Assign(5,i);For(InputString())Print(k)",
+                "Assign(5,i);for(InputString())Print(k)",
                 "foobar",
                 verbose=True
             ),
@@ -324,7 +324,7 @@ cbabc
         self.assertEqual(
             Run("""\
 Assign(5, b);
-While(b) {
+while (b) {
     Print('ab');
     Assign(Subtract(b, 1), b);
 }""", verbose=True),
@@ -335,10 +335,10 @@ While(b) {
         self.assertEqual(Run("¿¹asdf"), "asdf")
         self.assertEqual(Run("¿⁰asdf"), "")
         self.assertEqual(Run("¿⁰«asdf»ghjk"), "ghjk")
-        self.assertEqual(Run("If(1)Print('asdf')", verbose=True), "asdf")
-        self.assertEqual(Run("If(0)Print('asdf')", verbose=True), "")
+        self.assertEqual(Run("if(1)Print('asdf')", verbose=True), "asdf")
+        self.assertEqual(Run("if(0)Print('asdf')", verbose=True), "")
         self.assertEqual(Run("""\
-If(0) {
+if (0) {
     Print('asdf')
 } //else
     Print('ghjk')""", verbose=True), "ghjk")

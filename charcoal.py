@@ -25,8 +25,7 @@ import argparse
 import os
 import sys
 import time
-import json
-import codecs
+import ast
 
 if os.name == "nt":
 
@@ -1867,9 +1866,8 @@ def ParseExpression(
                             success = False
                             break
 
-                        tokens += processor[token][0]([codecs.decode(
-                            code[old_index + 1:index - 1],
-                            "unicode_escape"
+                        tokens += processor[token][0]([ast.literal_eval(
+                            code[old_index:index]
                         )])
 
                     elif token == CharcoalToken.Number:
@@ -1940,10 +1938,13 @@ def ParseExpression(
                         old_index = index
                         character = code[index]
 
-                        while (
-                            character >= " " and character <= "~" or
-                            character == "¶" or character == "´"
-                        ):
+                        while character not in """\
+ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ\
+⁰¹²³⁴⁵⁶⁷⁸⁹\
+αβγδεζηθικλμνξπρσςτυφχψω\
+⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
+←↑→↓↖↗↘↙\
+↶↷⟲¿‽‖·¤¦“”⎚…""":
                             index += 1
 
                             if character == "´":
@@ -1962,9 +1963,14 @@ def ParseExpression(
 
                                 while character != "”":
                                     index += 1
+
+                                    if index >= len(code):
+                                        break
+
                                     character = code[index]
 
-                                index += 1
+                                if index < len(code):
+                                    index += 1
 
                                 tokens += processor[token][0]([
                                     Decompressed(code[old_index:index])
@@ -2173,7 +2179,7 @@ def ProcessInput(inputs):
     new_inputs = inputs
 
     try:
-        new_inputs = list(map(str, json.loads(inputs)))
+        new_inputs = list(map(str, ast.literal_eval(inputs)))
 
         if not isinstance(new_inputs, list):
             raise Exception()
@@ -2406,7 +2412,7 @@ non-raw file input and file output."""
             raw_file_input = file.read()
 
         try:
-            file_input = list(map(str, json.loads(raw_file_input)))
+            file_input = list(map(str, ast.literal_eval(raw_file_input)))
 
             if not isinstance(file_input, list):
                 raise Exception()
@@ -2429,7 +2435,7 @@ non-raw file input and file output."""
             raw_file_output = file.read()
 
         try:
-            file_output = list(map(str, json.loads(raw_file_output)))
+            file_output = list(map(str, ast.literal_eval(raw_file_output)))
 
             if not isinstance(file_ouptut, list):
                 raise Exception()
@@ -2468,7 +2474,7 @@ non-raw file input and file output."""
     if argv.showlength:
         print("Charcoal, %i bytes: `%s`" % (
             len(code),
-            repr(re.sub("`", "\`", code))
+            re.sub("`", "\`", code)
         ))
 
     if argv.astify or argv.onlyastify and not argv.repl:
@@ -2505,7 +2511,7 @@ non-raw file input and file output."""
 
                 print(Run(
                     code,
-                    argv.input,
+                    (argv.input or [""])[0],
                     charcoal=global_charcoal,
                     whitespace=argv.whitespace,
                     normal_encoding=argv.normalencoding
