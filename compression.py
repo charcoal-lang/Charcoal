@@ -4,7 +4,6 @@ import re
 
 # TODO: reserve chars for string start and end
 
-digits
 symbols = ".!\"#$%&'()*+,-/:;<=>?@[\]^_`{|}~"
 whitespace = "\n "
 default_order = "wslnu"
@@ -60,20 +59,20 @@ def CompressPermutations(string):
 
     for character in string:
 
-        if character >= "0" and character <= "9" or character == ".":
-            numeric -= 1
+        if character >= "0" and character <= "9":
+            numeric -= .1
 
         elif character >= "a" and character <= "z":
-            lowercase -= 1
+            lowercase -= 0.03846
 
         elif character >= "A" and character <= "Z":
-            uppercase -= 1
+            uppercase -= 0.03846
 
         elif character == "\n" or character == " ":
-            whitespace -= 1
+            whitespace -= .5
 
         else:
-            symbol -= 1
+            symbol -= .03125
 
     result = "".join(map(lambda t: t[1], sorted([
         (whitespace, "w"),

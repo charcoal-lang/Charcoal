@@ -1344,6 +1344,9 @@ class Charcoal:
         if Info.step_canvas in self.info:
             self.RefreshFastText("Reflect", self.canvas_step)
 
+    def RotateTransform(self, rotations):
+        self.Rotate(rotations, True)
+
     def RotateCopy(self, rotations, anchor=Direction.down_right):
 
         if isinstance(rotations, list):
@@ -1424,7 +1427,7 @@ class Charcoal:
         if Info.step_canvas in self.info:
             self.RefreshFastText("Rotate overlap", self.canvas_step)
 
-    def Rotate(self, rotations):
+    def Rotate(self, rotations, transform=False):
         rotations %= 8
 
         if not rotations:
@@ -1434,6 +1437,15 @@ class Charcoal:
         right = max(self.right_indices)
 
         if rotations == 2:
+
+            if transform:
+                self.lines = [
+                    "".join(
+                        RotateLeft.get(character, character)
+                        for character in line
+                    )
+                    for line in self.lines
+                ]
 
             lines = self.Lines()
             number_of_lines = len(lines[0])
@@ -1453,6 +1465,16 @@ class Charcoal:
             self.x, self.y = self.y, -self.x
 
         elif rotations == 4:
+
+            if transform:
+                self.lines = [
+                    "".join(
+                        RotateDown.get(character, character)
+                        for character in line
+                    )
+                    for line in self.lines
+                ]
+
             self.right_indices, self.indices = (
                 [-index + 1 for index in self.indices][::-1],
                 [-right_index + 1 for right_index in self.right_indices][::-1]
@@ -1463,6 +1485,16 @@ class Charcoal:
             self.x, self.y = -self.x, -self.y
 
         elif rotations == 6:
+
+            if transform:
+                self.lines = [
+                    "".join(
+                        RotateRight.get(character, character)
+                        for character in line
+                    )
+                    for line in self.lines
+                ]
+
             x, y = self.x, self.y
             lines = self.Lines()
             number_of_lines = len(lines[0])
@@ -2384,7 +2416,7 @@ non-raw file input and file output."""
         info.add(Info.warn_ambiguities)
         AddAmbiguityWarnings()
 
-    if not argv.restricted and argv.prompt:
+    if not argv.restricted and (argv.prompt or not argv.input):
         info.add(Info.prompt)
 
     if not argv.restricted and argv.repl:
@@ -2468,12 +2500,27 @@ non-raw file input and file output."""
         if argv.deverbosify:
             print(code)
 
-        if not argv.verbose:
-            sys.exit()
-
     if argv.showlength:
+        length = 0
+
+        for character in code:
+
+            if (
+                (character <= "\xFF" and character != "\n") or
+                (character >= "α" and character <= "ω" and character != "ο") or
+                (character >= "Ａ" and character <= "Ｚ") or
+                character in "⁰¹²³⁴⁵⁶⁷⁸⁹\
+⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
+←↑→↓↖↗↘↙\
+↶↷⟲¿‽‖´·¤¦“”⎚¶"
+            ):
+                length += 1
+
+            else:
+                length += len(bytes(character, 'utf-8'))
+
         print("Charcoal, %i bytes: `%s`" % (
-            len(code),
+            length,
             re.sub("`", "\`", code)
         ))
 
@@ -2487,6 +2534,9 @@ non-raw file input and file output."""
 
         if argv.onlyastify:
             sys.exit()
+
+    if argv.deverbosify and not argv.verbose:
+        sys.exit()
 
     global_charcoal = Charcoal(
         info=info,

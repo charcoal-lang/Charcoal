@@ -271,6 +271,9 @@ InterpreterProcessor = {
             result[1](charcoal),
             result[2](charcoal)
         ),
+        lambda result: lambda charcoal: charcoal.RotateTransform(
+            result[1](charcoal)
+        ),
         lambda result: lambda charcoal: charcoal.ReflectTransform(result[1]),
         lambda result: lambda charcoal: charcoal.ReflectTransform(result[1]),
         lambda result: lambda charcoal: charcoal.ReflectMirror(result[1]),
@@ -278,14 +281,8 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: charcoal.RotateCopy(
             result[1](charcoal)
         ),
-        lambda result: lambda charcoal: charcoal.RotateCopy(
-            result[1](charcoal)
-        ),
         lambda result: lambda charcoal: charcoal.ReflectCopy(result[1]),
         lambda result: lambda charcoal: charcoal.ReflectCopy(result[1]),
-        lambda result: lambda charcoal: charcoal.RotateOverlap(
-            result[1](charcoal)
-        ),
         lambda result: lambda charcoal: charcoal.RotateOverlap(
             result[1](charcoal)
         ),
