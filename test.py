@@ -950,6 +950,13 @@ b   a   z
     def test_clear(self):
         self.assertEqual(Run("foobar⎚bazquux"), "bazquux")
 
+    def test_exponentiate(self):
+        self.assertEqual(Run("Ｘ²¦³"), "--------")
+
+    def test_index(self):
+        self.assertEqual(Run("§abc²"), "c")
+        self.assertEqual(Run("§⟦¹a²b³⟧²"), "--")
+
     def test_input(self):
         self.assertEqual(
             Run("ＷＳι", "[\"abc\", 5, \"foobar\"]"),

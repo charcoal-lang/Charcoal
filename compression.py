@@ -1,4 +1,4 @@
-from unicodelookup import OrdinalLookup, Codepage
+from codepage import OrdinalLookup, Codepage
 from string import ascii_lowercase, ascii_uppercase, digits
 import re
 
@@ -148,6 +148,10 @@ def DecompressPermutations(string):
     while index:
         letters.insert(index % base, default_order[5 - base])
         index //= base
+        base += 1
+
+    while base <= 5:
+        letters.insert(0, default_order[5 - base])
         base += 1
 
     charset = "".join(

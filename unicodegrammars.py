@@ -103,7 +103,9 @@ UnicodeGrammars = {
         ["›"],
         ["∧"],
         ["∨"],
-        ["…"]
+        ["…"],
+        ["Ｘ"],
+        ["§"]
     ],
 
     CharcoalToken.Program: [

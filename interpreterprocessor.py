@@ -129,7 +129,7 @@ InterpreterProcessor = {
     CharcoalToken.Expressions: [
         lambda result: lambda charcoal: [
             result[0](charcoal)
-        ] + result[2](charcoal),
+        ] + result[1](charcoal),
         lambda result: lambda charcoal: [result[0](charcoal)]
     ],
 
@@ -186,7 +186,9 @@ InterpreterProcessor = {
         lambda result: lambda left, right, charcoal: int(left or right),
         lambda result: lambda left, right, charcoal: charcoal.CycleChop(
             left, right
-        )
+        ),
+        lambda result: lambda left, right, charcoal: left ** right,
+        lambda result: lambda left, right, charcoal: left[right]
     ],
 
     CharcoalToken.Program: [

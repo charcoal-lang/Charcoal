@@ -111,7 +111,9 @@ VerboseGrammars = {
         ["Greater"],
         ["And"],
         ["Or"],
-        ["Mold"]
+        ["Mold"],
+        ["Exponentiate"],
+        ["AtIndex"]
     ],
 
     CharcoalToken.Program: [

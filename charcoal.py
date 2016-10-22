@@ -16,7 +16,7 @@ from verbosegrammars import VerboseGrammars
 from astprocessor import ASTProcessor
 from interpreterprocessor import InterpreterProcessor
 from stringifierprocessor import StringifierProcessor
-from unicodelookup import UnicodeLookup
+from codepage import UnicodeLookup, UnicodeCommands, InCodepage
 from compression import Decompressed
 from enum import Enum
 import random
@@ -1970,13 +1970,7 @@ def ParseExpression(
                         old_index = index
                         character = code[index]
 
-                        while character not in """\
-ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ\
-⁰¹²³⁴⁵⁶⁷⁸⁹\
-αβγδεζηθικλμνξπρσςτυφχψω\
-⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
-←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖·¤¦“”⎚…""":
+                        while character not in UnicodeCommands:
                             index += 1
 
                             if character == "´":
@@ -2505,15 +2499,7 @@ non-raw file input and file output."""
 
         for character in code:
 
-            if (
-                (character <= "\xFF" and character != "\n") or
-                (character >= "α" and character <= "ω" and character != "ο") or
-                (character >= "Ａ" and character <= "Ｚ") or
-                character in "⁰¹²³⁴⁵⁶⁷⁸⁹\
-⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
-←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖´·¤¦“”⎚¶"
-            ):
+            if InCodepage(character):
                 length += 1
 
             else:

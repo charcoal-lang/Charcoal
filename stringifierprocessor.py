@@ -1,7 +1,10 @@
 from charcoaltoken import CharcoalToken
+from codepage import UnicodeCommands
 from unicodegrammars import UnicodeGrammars
 from compression import Compressed
 import re
+
+rCommand = re.compile("([%s])" % UnicodeCommands)
 
 SuperscriptToNormal = "⁰¹²³⁴⁵⁶⁷⁸⁹"
 
@@ -50,14 +53,7 @@ StringifierProcessor = {
         lambda result: [Compressed(re.sub(
             "\n",
             "¶",
-            re.sub(
-                """\
-([ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ\
-⁰¹²³⁴⁵⁶⁷⁸⁹\
-αβγδεζηθικλμνξπρσςτυφχψω\
-⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
-←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖´·¤¦“”⎚¶])""",
+            rCommand.sub(
                 r"´\1",
                 result[0]
             )
@@ -127,7 +123,9 @@ StringifierProcessor = {
         lambda result: "›",
         lambda result: "∧",
         lambda result: "∨",
-        lambda result: "…"
+        lambda result: "…",
+        lambda result: "Ｘ",
+        lambda result: "§"
     ],
 
     CharcoalToken.Program: [

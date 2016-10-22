@@ -31,7 +31,7 @@ for arrow, ascii_equivalent in zip(
 ): # device controls, separators, shift out, shift in, data link escape
     UnicodeLookup[chr(ord(ascii_equivalent) + 128)] = arrow
 
-for other, ascii_character in zip("¿‽‖´·¤¦“”⎚…", "?!,`.;:'\" _"):
+for other, ascii_character in zip("¿‽‖´·¤¦“”⎚…§", "?!,`.;:'\" _$"):
     # TODO: not sure about !, , and ;
     UnicodeLookup[chr(ord(ascii_character) + 128)] = other
 
@@ -49,3 +49,22 @@ for ascii_character in range(32, 128):
     OrdinalLookup[character] = ascii_character
 
 Codepage = [UnicodeLookup.get(chr(code), chr(code)) for code in range(0, 256)]
+
+def InCodepage(character):
+    return (
+        (character <= "\xFF" and character != "\n") or
+                (character >= "α" and character <= "ω" and character != "ο") or
+                (character >= "Ａ" and character <= "Ｚ") or
+                character in "⁰¹²³⁴⁵⁶⁷⁸⁹\
+⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
+←↑→↓↖↗↘↙\
+↶↷⟲¿‽‖´·¤¦“”⎚¶…§"
+    )
+
+UnicodeCommands = """\
+ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ\
+⁰¹²³⁴⁵⁶⁷⁸⁹\
+αβγδεζηθικλμνξπρσςτυφχψω\
+⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
+←↑→↓↖↗↘↙\
+↶↷⟲¿‽‖·¤¦“”⎚…§"""
