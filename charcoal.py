@@ -93,6 +93,72 @@ class Coordinates:
         self.coordinates[y - self.top] += [x]
 
 
+class Scope:
+    def __init__(self, parent={}):
+        self.parent = parent
+        self.lookup = {}
+
+    def __contains__(self, key):
+        return key in self.parent or key in self.lookup
+
+    def __getitem__(self, key):
+
+        if key in self.lookup:
+            return self.lookup[key]
+
+        else:
+            return self.parent[key]
+
+    def __setitem__(self, key, value):
+
+        if key in self.lookup:
+            self.lookup[key] = value
+
+        elif key in self.parent:
+            self.parent[key] = value
+
+        else:
+            self.lookup[key] = value
+
+    def __delitem__(self, key):
+
+        if key in self.lookup:
+            del self.lookup[key]
+
+        else:
+            del self.parent[key]
+
+    def __repr__(self):
+        string = "{"
+
+        for key in self.lookup:
+            value = self.lookup[key]
+            string += "%s: %s, " % (
+                key,
+                (
+                    getParentFunctionName(value) if islambda(value) else "".join(list(map(str, value))) if
+                    isinstance(value, list) else
+                    repr(value)
+                )
+            )
+
+        string = string[:-2] + "}"
+
+        if string == "}":
+            string = "{}"
+
+        return (
+            string +
+            "\n" +
+            rLinestart.sub("    ", repr(self.parent))
+        )
+
+    def set(self, key, value):
+        self[key] = value
+
+    def delete(self, key):
+        del self[key]
+
 class Charcoal:
     def __init__(
         self,
@@ -199,7 +265,7 @@ class Charcoal:
                         line +
                         self.background * (right - right_index) +
                         "\n"
-                    )            
+                    )
 
             return string[:-1]
 
@@ -275,7 +341,7 @@ class Charcoal:
         self.indices = [0]
         self.lengths = [0]
         self.right_indices = [0]
-        self.scope = {}
+        self.scope = Scope()
         self.inputs = []
         self.direction = Direction.right
         self.background = " "
@@ -472,7 +538,7 @@ class Charcoal:
 
                 for i in range(length):
                     character = string[i % string_length]
-                    
+
                     if character == "\000":
                         self.Move(direction)
                         continue
@@ -1554,13 +1620,15 @@ class Charcoal:
         if Info.step_canvas in self.info:
             self.RefreshFastText("Copy", self.canvas_step)
 
-    def GetLoopVariable(self):
+    def GetFreeVariable(self):
+
         for character in "ικλμνξπρςστυφχψωαβγδεζηθ":
 
             if character not in self.scope:
                 return character
 
     def For(self, expression, body):
+
         if not expression:
 
             if len(self.inputs):
@@ -1571,7 +1639,8 @@ class Charcoal:
                 pass
                 # TODO
 
-        loop_variable = self.GetLoopVariable()
+        self.scope = Scope(self.scope)
+        loop_variable = self.GetFreeVariable()
         variable = expression(self)
 
         if isinstance(variable, int):
@@ -1581,15 +1650,21 @@ class Charcoal:
             self.scope[loop_variable] = item
             body(self)
 
+        self.scope = self.scope.parent
+
     def While(self, condition, body):
-        loop_variable = self.GetLoopVariable()
+        self.scope = Scope(self.scope)
+        loop_variable = self.GetFreeVariable()
         self.scope[loop_variable] = condition(self)
 
         while self.scope[loop_variable]:
             body(self)
             self.scope[loop_variable] = condition(self)
 
+        self.scope = self.scope.parent
+
     def If(self, condition, if_true, if_false):
+
         if condition(self):
             if_true(self)
 
@@ -1703,7 +1778,8 @@ make sure you explicitly use 0 for no delay if needed""")
     def RefreshFor(self, timeout, variable, body):
         print("\033[2J")
         timeout /= 1000
-        loop_variable = self.GetLoopVariable()
+        self.scope = Scope(self.scope)
+        loop_variable = self.GetFreeVariable()
         variable = variable(self)
 
         if isinstance(variable, int):
@@ -1715,10 +1791,13 @@ make sure you explicitly use 0 for no delay if needed""")
             body(self)
             self.RefreshFast()
 
+        self.scope = self.scope.parent
+
     def RefreshWhile(self, timeout, condition, body):
         print("\033[2J")
         timeout /= 1000
-        loop_variable = self.GetLoopVariable()
+        self.scope = Scope(self.scope)
+        loop_variable = self.GetFreeVariable()
         self.scope[loop_variable] = condition(self)
 
         while self.scope[loop_variable]:
@@ -1726,6 +1805,8 @@ make sure you explicitly use 0 for no delay if needed""")
             body(self)
             self.RefreshFast()
             self.scope[loop_variable] = condition(self)
+
+        self.scope = self.scope.parent
 
     def Evaluate(self, code, is_command=False):
         if is_command:
@@ -1762,7 +1843,6 @@ make sure you explicitly use 0 for no delay if needed""")
             self.right_indices[i] += right_crop - length
 
     def Extend(self, horizontal=0, vertical=0):
-        
         horizontal += 1
         vertical += 1
 
@@ -1791,6 +1871,16 @@ make sure you explicitly use 0 for no delay if needed""")
             self.lines = lines
             self.indices = indices
             self.right_indices = right_indices
+
+    def RunFunction(self, function, arguments):
+        self.scope = Scope(self.scope)
+
+        for argument in arguments:
+            self.scope[self.GetFreeVariable()] = argument
+
+        function(self)
+
+        self.scope = self.scope.parent
 
 def PassThrough(result):
     return result
@@ -1823,7 +1913,7 @@ def ParseExpression(
 
                 while index < len(code) and code[index] in "\r\n\t ":
                     index += 1
-                
+
                 next_chars = code[index:index + 2]
 
                 while next_chars == "//" or next_chars == "/*":
@@ -1891,7 +1981,7 @@ def ParseExpression(
                                     break
 
                                 character = code[index]
-                        
+
                         index += 1
 
                         if index - old_index < 2:
@@ -2395,7 +2485,7 @@ non-raw file input and file output."""
     )
     argv = parser.parse_args()
     info = set()
-    
+
     argv.repl = argv.repl or len(sys.argv) == 1
 
     if argv.test:

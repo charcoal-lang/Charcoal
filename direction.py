@@ -13,3 +13,4 @@ class Direction(Enum):
 class Pivot(Enum):
     left = 1
     right = 2
+

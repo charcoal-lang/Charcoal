@@ -308,6 +308,7 @@ cbabc
 
     def test_for(self):
         self.assertEqual(Run("Ｆ⁵a"), "aaaaa")
+        self.assertEqual(Run("ＦabcιＦdefι"), "abcdef")
         self.assertEqual(Run("Ａ⁵ιＦＳκ", "foobar"), "foobar")
         self.assertEqual(Run("for(5)Print('a')", verbose=True), "aaaaa")
         self.assertEqual(
