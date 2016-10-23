@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# VIM: let b:airline_whitespace_disabled=1
 
 from charcoal import Run
 import unittest
