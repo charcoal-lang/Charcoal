@@ -71,7 +71,25 @@ VerboseGrammars = {
         [CharcoalToken.Name, CharcoalToken.Separator],
         [CharcoalToken.List, CharcoalToken.Separator],
         [
-            CharcoalToken.Dyadic,
+            CharcoalToken.LazyTernary,
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")",
+            CharcoalToken.Separator
+        ],
+        [
+            CharcoalToken.Ternary,
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")",
+            CharcoalToken.Separator
+        ],
+        [
+            CharcoalToken.LazyBinary,
             "(",
             CharcoalToken.Expression,
             CharcoalToken.Expression,
@@ -79,20 +97,35 @@ VerboseGrammars = {
             CharcoalToken.Separator
         ],
         [
-            CharcoalToken.Monadic,
+            CharcoalToken.Binary,
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")",
+            CharcoalToken.Separator
+        ],
+        [
+            CharcoalToken.LazyUnary,
             "(",
             CharcoalToken.Expression,
             ")",
             CharcoalToken.Separator
         ],
-        [CharcoalToken.Niladic, "(", ")", CharcoalToken.Separator]
+        [
+            CharcoalToken.Unary,
+            "(",
+            CharcoalToken.Expression,
+            ")",
+            CharcoalToken.Separator
+        ],
+        [CharcoalToken.Nilary, "(", ")", CharcoalToken.Separator]
     ],
-    CharcoalToken.Niladic: [
+    CharcoalToken.Nilary: [
         ["InputString"],
         ["InputNumber"],
         ["Random"]
     ],
-    CharcoalToken.Monadic: [
+    CharcoalToken.Unary: [
         ["Negate"],
         ["Length"],
         ["Not"],
@@ -100,7 +133,7 @@ VerboseGrammars = {
         ["Random"],
         ["Evaluate"]
     ],
-    CharcoalToken.Dyadic: [
+    CharcoalToken.Binary: [
         ["Add"],
         ["Subtract"],
         ["Multiply"],
@@ -109,11 +142,20 @@ VerboseGrammars = {
         ["Equals"],
         ["Less"],
         ["Greater"],
-        ["And"],
-        ["Or"],
         ["Mold"],
         ["Exponentiate"],
         ["AtIndex"]
+    ],
+    CharcoalToken.Ternary: [
+    ],
+    CharcoalToken.LazyUnary: [
+    ],
+    CharcoalToken.LazyBinary: [
+        ["And"],
+        ["Or"]
+    ],
+    CharcoalToken.LazyTernary: [
+        ["Ternary"]
     ],
 
     CharcoalToken.Program: [

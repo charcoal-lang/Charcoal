@@ -959,6 +959,47 @@ b   a   z
         self.assertEqual(Run("§abc²"), "c")
         self.assertEqual(Run("§⟦¹a²b³⟧²"), "--")
 
+    def test_ternary(self):
+        self.assertEqual(Run("⎇¹¦¹÷¹¦⁰"), "-")
+
+    def test_plus(self):
+        self.assertEqual(Run("⁺¹a"), "1a")
+        self.assertEqual(Run("⁺¹¦¹"), "--")
+
+    def test_minus(self):
+        self.assertEqual(Run("⁻²¦¹"), "-")
+
+    def test_multiply(self):
+        self.assertEqual(Run("×²¦³"), "------")
+        self.assertEqual(Run("×²¦abc"), "abcabc")
+        self.assertEqual(Run("×²¦⟦abc⟧"), "abc\nabc")
+
+    def test_divide(self):
+        self.assertEqual(Run("÷⁵¦²"), "--")
+        self.assertEqual(Run("÷abcabcab¦³"), "ab")
+        self.assertEqual(Run("÷⟦a¹a²b²c³⟧¦³"), "a\n1")
+
+    def test_and(self):
+        self.assertEqual(Run("∧⁰¦÷¹¦⁰"), "")
+
+    def test_or(self):
+        self.assertEqual(Run("∨¹¦÷¹¦⁰"), "-")
+
+    def test_not(self):
+        self.assertEqual(Run("¬⁰"), "-")
+
+    def test_comparison(self):
+        self.assertEqual(Run("⁼¹¦¹"), "-")
+        self.assertEqual(Run("‹⁰¦¹"), "-")
+        self.assertEqual(Run("›¹¦⁰"), "-")
+        self.assertEqual(Run("⁼⁰¦¹"), "")
+        self.assertEqual(Run("‹²¦¹"), "")
+        self.assertEqual(Run("›¹¦²"), "")
+
+    def test_cast(self):
+        self.assertEqual(Run("Ｉ¹¹¹"), "111")
+        self.assertEqual(Run("Ｉ5"), "-----")
+
     def test_input(self):
         self.assertEqual(
             Run("ＷＳι", "[\"abc\", 5, \"foobar\"]"),

@@ -146,8 +146,29 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: charcoal.scope[result[0]],
         lambda result: lambda charcoal: result[0](charcoal),
         lambda result: lambda charcoal: result[0](
+            result[1],
+            result[2],
+            result[3],
+            charcoal
+        ),
+        lambda result: lambda charcoal: result[0](
             result[1](charcoal),
             result[2](charcoal),
+            result[3](charcoal),
+            charcoal
+        ),
+        lambda result: lambda charcoal: result[0](
+            result[1],
+            result[2],
+            charcoal
+        ),
+        lambda result: lambda charcoal: result[0](
+            result[1](charcoal),
+            result[2](charcoal),
+            charcoal
+        ),
+        lambda result: lambda charcoal: result[0](
+            result[1],
             charcoal
         ),
         lambda result: lambda charcoal: result[0](
@@ -156,12 +177,12 @@ InterpreterProcessor = {
         ),
         lambda result: lambda charcoal: result[0](charcoal)
     ],
-    CharcoalToken.Niladic: [
+    CharcoalToken.Nilary: [
         lambda result: lambda charcoal: charcoal.InputString(),
         lambda result: lambda charcoal: charcoal.InputNumber(),
         lambda result: lambda charcoal: charcoal.Random()
     ],
-    CharcoalToken.Monadic: [
+    CharcoalToken.Unary: [
         lambda result: lambda item, charcoal: -item,
         lambda result: lambda item, charcoal: len(item),
         lambda result: lambda item, charcoal: int(not item),
@@ -169,7 +190,7 @@ InterpreterProcessor = {
         lambda result: lambda item, charcoal: charcoal.Random(item),
         lambda result: lambda item, charcoal: charcoal.Evaluate(item)
     ],
-    CharcoalToken.Dyadic: [
+    CharcoalToken.Binary: [
         lambda result: lambda left, right, charcoal: (
             (str(left) + str(right)) if
             isinstance(left, str) or isinstance(right, str) else
@@ -177,18 +198,37 @@ InterpreterProcessor = {
         ),
         lambda result: lambda left, right, charcoal: left - right,
         lambda result: lambda left, right, charcoal: left * right,
-        lambda result: lambda left, right, charcoal: int(left / right),
+        lambda result: lambda left, right, charcoal: (
+            (left[:int(len(left) / right)]) if
+            isinstance(left, str) or isinstance(left, list) else
+            int(left / right)
+        ),
         lambda result: lambda left, right, charcoal: left % right,
         lambda result: lambda left, right, charcoal: left == right,
         lambda result: lambda left, right, charcoal: left < right,
         lambda result: lambda left, right, charcoal: left > right,
-        lambda result: lambda left, right, charcoal: int(left and right),
-        lambda result: lambda left, right, charcoal: int(left or right),
         lambda result: lambda left, right, charcoal: charcoal.CycleChop(
             left, right
         ),
         lambda result: lambda left, right, charcoal: left ** right,
         lambda result: lambda left, right, charcoal: left[right]
+    ],
+    CharcoalToken.Ternary: [
+    ],
+    CharcoalToken.LazyUnary: [
+    ],
+    CharcoalToken.LazyBinary: [
+        lambda result: lambda left, right, charcoal: int(
+            left(charcoal) and right(charcoal)
+        ),
+        lambda result: lambda left, right, charcoal: int(
+            left(charcoal) or right(charcoal)
+        )
+    ],
+    CharcoalToken.LazyTernary: [
+        lambda result: lambda first, second, third, charcoal: charcoal.Ternary(
+            first, second, third
+        )
     ],
 
     CharcoalToken.Program: [

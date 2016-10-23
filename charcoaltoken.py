@@ -14,9 +14,13 @@ class CharcoalToken(Enum):
     Expressions = 13
 
     Expression = 21
-    Niladic = 22
-    Monadic = 23
-    Dyadic = 24
+    Nilary = 22
+    Unary = 23
+    Binary = 24
+    Ternary = 25
+    LazyUnary = 26
+    LazyBinary = 27
+    LazyTernary = 28
 
     List = 31
     ArrowList = 32
@@ -24,3 +28,4 @@ class CharcoalToken(Enum):
     Program = 51
     Command = 52
     Body = 53
+

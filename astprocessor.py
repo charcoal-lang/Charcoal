@@ -67,14 +67,18 @@ ASTProcessor = {
         lambda result: result[0],
         lambda result: result,
         lambda result: result,
+        lambda result: result,
+        lambda result: result,
+        lambda result: result,
+        lambda result: result,
         lambda result: result[0]
     ],
-    CharcoalToken.Niladic: [
+    CharcoalToken.Nilary: [
         lambda result: "Input String",
         lambda result: "Input Number",
         lambda result: "Random"
     ],
-    CharcoalToken.Monadic: [
+    CharcoalToken.Unary: [
         lambda result: "Negative",
         lambda result: "Length",
         lambda result: "Not",
@@ -82,7 +86,7 @@ ASTProcessor = {
         lambda result: "Random",
         lambda result: "Evaluate"
     ],
-    CharcoalToken.Dyadic: [
+    CharcoalToken.Binary: [
         lambda result: "Sum",
         lambda result: "Difference",
         lambda result: "Product",
@@ -91,11 +95,20 @@ ASTProcessor = {
         lambda result: "Equals",
         lambda result: "Less Than",
         lambda result: "Greater Than",
-        lambda result: "And",
-        lambda result: "Or",
         lambda result: "Cycle and chop",
         lambda result: "Exponentiate",
         lambda result: "At index"
+    ],
+    CharcoalToken.Ternary: [
+    ],
+    CharcoalToken.LazyUnary: [
+    ],
+    CharcoalToken.LazyBinary: [
+        lambda result: "And",
+        lambda result: "Or"
+    ],
+    CharcoalToken.LazyTernary: [
+        lambda result: "Ternary"
     ],
 
     CharcoalToken.Program: [

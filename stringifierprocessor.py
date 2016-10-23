@@ -95,16 +95,20 @@ StringifierProcessor = {
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
+        lambda result: result[0] + result[2] + result[3] + result[4],
+        lambda result: result[0] + result[2] + result[3] + result[4],
         lambda result: result[0] + result[2] + result[3],
+        lambda result: result[0] + result[2] + result[3],
+        lambda result: result[0] + result[2],
         lambda result: result[0] + result[2],
         lambda result: result[0]
     ],
-    CharcoalToken.Niladic: [
+    CharcoalToken.Nilary: [
         lambda result: "Ｓ",
         lambda result: "Ｎ",
         lambda result: "‽"
     ],
-    CharcoalToken.Monadic: [
+    CharcoalToken.Unary: [
         lambda result: "⁻",
         lambda result: "Ｌ",
         lambda result: "¬",
@@ -112,7 +116,7 @@ StringifierProcessor = {
         lambda result: "‽",
         lambda result: "Ｖ"
     ],
-    CharcoalToken.Dyadic: [
+    CharcoalToken.Binary: [
         lambda result: "⁺",
         lambda result: "⁻",
         lambda result: "×",
@@ -121,11 +125,20 @@ StringifierProcessor = {
         lambda result: "⁼",
         lambda result: "‹",
         lambda result: "›",
-        lambda result: "∧",
-        lambda result: "∨",
         lambda result: "…",
         lambda result: "Ｘ",
         lambda result: "§"
+    ],
+    CharcoalToken.Ternary: [
+    ],
+    CharcoalToken.LazyUnary: [
+    ],
+    CharcoalToken.LazyBinary: [
+        lambda result: "∧",
+        lambda result: "∨"
+    ],
+    CharcoalToken.LazyTernary: [
+        lambda result: "⎇"
     ],
 
     CharcoalToken.Program: [

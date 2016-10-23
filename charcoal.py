@@ -569,6 +569,9 @@ class Charcoal:
         flags=0
     ):
 
+        if isinstance(string, list):
+            string = "\n".join(map(str, string))
+
         if isinstance(string, int):
             length, string = string, ""
 
@@ -1881,6 +1884,14 @@ make sure you explicitly use 0 for no delay if needed""")
         function(self)
 
         self.scope = self.scope.parent
+
+    def Ternary(self, condition, if_true, if_false):
+
+        if condition(self):
+            return if_true(self)
+        
+        else:
+            return if_false(self)
 
 def PassThrough(result):
     return result
