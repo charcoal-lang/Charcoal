@@ -1436,16 +1436,19 @@ class Charcoal:
 
         if rotations == 2:
 
+
             if anchor == Direction.down_right:
                 right = max(self.right_indices)
                 bottom = self.top + len(self.lines)
-                self.x = right - 1
-                for line, length, index in zip(
-                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
+                self.x = right
+                for line, length, right_index in zip(
+                    self.lines[::-1],
+                    self.lengths[::-1],
+                    self.right_indices[::-1]
                 ):
-                    self.x += 1
-                    self.y = bottom - right + index
-                    self.PrintLine({Direction.down}, length, line)
+                    self.x -= 1
+                    self.y = bottom + right - right_index
+                    self.PrintLine({Direction.down}, length, line[::-1])
 
         elif rotations == 4:
 
@@ -1467,15 +1470,13 @@ class Charcoal:
             if anchor == Direction.down_right:
                 right = max(self.right_indices)
                 bottom = self.top + len(self.lines)
-                self.x = right
-                for line, length, right_index in zip(
-                    self.lines[::-1],
-                    self.lengths[::-1],
-                    self.right_indices[::-1]
+                self.x = right - 1
+                for line, length, index in zip(
+                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
                 ):
-                    self.x -= 1
-                    self.y = bottom + right - right_index
-                    self.PrintLine({Direction.down}, length, line[::-1])
+                    self.x += 1
+                    self.y = bottom - right + index
+                    self.PrintLine({Direction.down}, length, line)
 
         if Info.step_canvas in self.info:
             self.RefreshFastText("Rotate copy", self.canvas_step)
@@ -1889,7 +1890,7 @@ make sure you explicitly use 0 for no delay if needed""")
 
         if condition(self):
             return if_true(self)
-        
+
         else:
             return if_false(self)
 

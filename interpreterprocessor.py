@@ -192,6 +192,10 @@ InterpreterProcessor = {
     ],
     CharcoalToken.Binary: [
         lambda result: lambda left, right, charcoal: (
+            (left + [right]) if
+            isinstance(left, list) and not isinstance(right, list) else
+            ([left] + right) if
+            not isinstance(left, list) and isinstance(right, list) else
             (str(left) + str(right)) if
             isinstance(left, str) or isinstance(right, str) else
             (left + right)
@@ -320,6 +324,10 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: charcoal.ReflectTransform(result[1]),
         lambda result: lambda charcoal: charcoal.ReflectMirror(result[1]),
         lambda result: lambda charcoal: charcoal.ReflectMirror(result[1]),
+        lambda result: lambda charcoal: charcoal.RotateCopy(
+            result[1](charcoal),
+            result[2]
+        ),
         lambda result: lambda charcoal: charcoal.RotateCopy(
             result[1](charcoal)
         ),

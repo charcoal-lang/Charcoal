@@ -109,14 +109,14 @@ def Compress(ordinals):
     base = max(ordinals) + 1
 
     result = ""
-    number = ordinals[0] + 1
+    number = 1
 
     if base == 1:
         number = len(ordinals)
 
     else:
 
-        for ordinal in ordinals[1:]:
+        for ordinal in ordinals:
             number = number * base + ordinal
 
     while number:
@@ -183,11 +183,9 @@ def Decompress(string):
     if base == 1:
         return "\n" * number
 
-    base_plus_1 = base + 1
-
-    while number > base_plus_1:
+    while number > 1:
         remainder = number % base
         result = [remainder] + result
         number //= base
 
-    return [number - 1] + result
+    return result

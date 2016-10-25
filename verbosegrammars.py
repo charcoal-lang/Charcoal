@@ -222,6 +222,13 @@ VerboseGrammars = {
         ["ReflectTransform", "(", CharcoalToken.Arrow, ")"],
         ["ReflectMirror", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectMirror", "(", CharcoalToken.Arrow, ")"],
+        [
+            "RotateCopy",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Arrow,
+            ")"
+        ],
         ["RotateCopy", "(", CharcoalToken.Expression, ")"],
         ["ReflectCopy", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectCopy", "(", CharcoalToken.Arrow, ")"],

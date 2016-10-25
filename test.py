@@ -371,26 +371,28 @@ if (0) {
 
     def test_rotate_copy(self):
         self.assertEqual(Run("abc¶de⟲Ｃ²"), """\
-   da
-abceb
-de  c""")
+abc
+de 
+ c 
+ be
+ ad""")
         self.assertEqual(Run("abc¶de⟲Ｃ⁴"), """\
 abc   
 de    
     ed
    cba""")
         self.assertEqual(Run("abc¶de⟲Ｃ⁶"), """\
+   da
+abceb
+de  c""")
+        self.assertEqual(
+            Run("Print('abc\\nde');RotateCopy(2)", verbose=True),
+            """\
 abc
 de 
  c 
  be
- ad""")
-        self.assertEqual(
-            Run("Print('abc\\nde');RotateCopy(2)", verbose=True),
-            """\
-   da
-abceb
-de  c"""
+ ad"""
         )
         self.assertEqual(
             Run("Print('abc\\nde');RotateCopy(4)", verbose=True),
@@ -399,15 +401,13 @@ abc
 de    
     ed
    cba"""
-            )
+        )
         self.assertEqual(
             Run("Print('abc\\nde');RotateCopy(6)", verbose=True),
             """\
-abc
-de 
- c 
- be
- ad"""
+   da
+abceb
+de  c"""
         )
 
     def test_reflect_copy(self):

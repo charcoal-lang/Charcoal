@@ -45,11 +45,11 @@ ASTProcessor = {
         lambda result: ["Arrows", result[0]]
     ],
     CharcoalToken.Sides: [
-        lambda result: ["Sides", result[0]] + result[1][1:],
+        lambda result: [result[1][0], result[0]] + result[1][1:],
         lambda result: ["Sides", result[0]]
     ],
     CharcoalToken.Expressions: [
-        lambda result: ["Expressions", result[0]] + result[2][1:],
+        lambda result: [result[1][0], result[0]] + result[2][1:],
         lambda result: ["Expressions", result[0]]
     ],
 
@@ -146,6 +146,7 @@ ASTProcessor = {
         lambda result: ["Reflect transform"] + result[1:],
         lambda result: ["Reflect mirror"] + result[1:],
         lambda result: ["Reflect mirror"] + result[1:],
+        lambda result: ["Rotate copy"] + result[1:],
         lambda result: ["Rotate copy"] + result[1:],
         lambda result: ["Reflect copy"] + result[1:],
         lambda result: ["Reflect copy"] + result[1:],

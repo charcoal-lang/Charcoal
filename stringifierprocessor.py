@@ -175,6 +175,7 @@ StringifierProcessor = {
         lambda result: "‖Ｔ" + result[2],
         lambda result: "‖Ｍ" + result[2],
         lambda result: "‖Ｍ" + result[2],
+        lambda result: "⟲Ｃ" + result[2] + result[3],
         lambda result: "⟲Ｃ" + result[2],
         lambda result: "‖Ｃ" + result[2],
         lambda result: "‖Ｃ" + result[2],

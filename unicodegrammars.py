@@ -188,6 +188,7 @@ UnicodeGrammars = {
         ["‖Ｔ", CharcoalToken.Arrow],
         ["‖Ｍ", CharcoalToken.ArrowList],
         ["‖Ｍ", CharcoalToken.Arrow],
+        ["⟲Ｃ", CharcoalToken.Expression, CharcoalToken.Arrow],
         ["⟲Ｃ", CharcoalToken.Expression],
         ["‖Ｃ", CharcoalToken.ArrowList],
         ["‖Ｃ", CharcoalToken.Arrow],
