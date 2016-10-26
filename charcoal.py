@@ -2708,7 +2708,7 @@ non-raw file input and file output."""
                 ))
 
             except KeyboardInterrupt:
-                charcoal.Clear()
+                global_charcoal.Clear()
                 print("\nCleared canvas")
 
             except EOFError:
