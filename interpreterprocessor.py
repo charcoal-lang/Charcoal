@@ -132,18 +132,45 @@ InterpreterProcessor = {
         ] + result[1](charcoal),
         lambda result: lambda charcoal: [result[0](charcoal)]
     ],
+    CharcoalToken.PairExpressions: [
+        lambda result: lambda charcoal: [
+            (
+                result[0](charcoal),
+                result[1](charcoal)
+            )
+        ] + result[2](charcoal),
+        lambda result: lambda charcoal: [
+            (
+                result[0](charcoal),
+                result[1](charcoal)
+            )
+        ]
+    ],
 
     CharcoalToken.List: [
-        lambda result: lambda charcoal: result[1](charcoal)
+        lambda result: lambda charcoal: result[1](charcoal),
+        lambda result: lambda charcoal: []
     ],
     CharcoalToken.ArrowList: [
-        lambda result: result[1]
+        lambda result: result[1],
+        lambda result: []
+    ],
+    CharcoalToken.Dictionary: [
+        lambda result: lambda charcoal: dict(result[1](charcoal)),
+        lambda result: lambda charcoal: {}
     ],
 
     CharcoalToken.Expression: [
         lambda result: lambda charcoal: result[0],
         lambda result: lambda charcoal: result[0],
-        lambda result: lambda charcoal: charcoal.scope[result[0]],
+        lambda result: lambda charcoal: (
+            charcoal.scope[result[0]] if
+            result[0] in charcoal.scope else 
+            charcoal.hidden[result[0]] if
+            result[0] in charcoal.hidden else
+            None
+        ),
+        lambda result: lambda charcoal: result[0](charcoal),
         lambda result: lambda charcoal: result[0](charcoal),
         lambda result: lambda charcoal: result[0](
             result[1],
@@ -180,7 +207,8 @@ InterpreterProcessor = {
     CharcoalToken.Nilary: [
         lambda result: lambda charcoal: charcoal.InputString(),
         lambda result: lambda charcoal: charcoal.InputNumber(),
-        lambda result: lambda charcoal: charcoal.Random()
+        lambda result: lambda charcoal: charcoal.Random(),
+        lambda result: lambda charcoal: charcoal.Peek()
     ],
     CharcoalToken.Unary: [
         lambda result: lambda item, charcoal: -item,
@@ -215,17 +243,19 @@ InterpreterProcessor = {
             left, right
         ),
         lambda result: lambda left, right, charcoal: left ** right,
-        lambda result: lambda left, right, charcoal: left[right]
+        lambda result: lambda left, right, charcoal: (
+            lambda value: "" if value == "\x00" else value
+        )(left[right]) if right in left else None
     ],
     CharcoalToken.Ternary: [
     ],
     CharcoalToken.LazyUnary: [
     ],
     CharcoalToken.LazyBinary: [
-        lambda result: lambda left, right, charcoal: int(
+        lambda result: lambda left, right, charcoal: (
             left(charcoal) and right(charcoal)
         ),
-        lambda result: lambda left, right, charcoal: int(
+        lambda result: lambda left, right, charcoal: (
             left(charcoal) or right(charcoal)
         )
     ],

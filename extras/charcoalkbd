@@ -1,0 +1,58 @@
+/////////////////////////////////////////////////////////////////////////////////
+//
+// Generated keyboard layout file with the Keyboard Layout Editor.
+// For more about the software, see http://code.google.com/p/keyboardlayouteditor
+//
+
+xkb_symbols "chc"
+{
+	name[Group1] = "Charcoal";
+	key <AB01> { [              z,              Z,          UFF3A,     Greek_zeta ] }; // z Z Ｚ ζ 
+	key <AB02> { [              x,              X,          UFF38,       Greek_xi ] }; // x X Ｘ ξ 
+	key <AB03> { [              c,              C,          UFF23,      Greek_chi ] }; // c C Ｃ χ 
+	key <AB04> { [              v,              V,          UFF36, Greek_finalsmallsigma ] }; // v V Ｖ ς 
+	key <AB05> { [              b,              B,          UFF22,     Greek_beta ] }; // b B Ｂ β 
+	key <AB06> { [              n,              N,          UFF2E,       Greek_nu ] }; // n N Ｎ ν 
+	key <AB07> { [              m,              M,          UFF2D,       Greek_mu ] }; // m M Ｍ μ 
+	key <AB08> { [          comma,      leftcaret,       NoSymbol,          U2039 ] }; // , <  ‹ 
+	key <AB09> { [         period,     rightcaret, periodcentered,          U203A ] }; // . > · › 
+	key <AB10> { [      KP_Divide,       question,       division,   questiondown ] }; // / ? ÷ ¿ 
+	key <AC01> { [              a,              A,          UFF21,    Greek_alpha ] }; // a A Ａ α 
+	key <AC02> { [              s,              S,          UFF33,    Greek_sigma ] }; // s S Ｓ σ 
+	key <AC03> { [              d,              D,          UFF24,    Greek_delta ] }; // d D Ｄ δ 
+	key <AC04> { [              f,              F,          UFF26,      Greek_phi ] }; // f F Ｆ φ 
+	key <AC05> { [              g,              G,          UFF27,    Greek_gamma ] }; // g G Ｇ γ 
+	key <AC06> { [              h,              H,          UFF28,      Greek_eta ] }; // h H Ｈ η 
+	key <AC07> { [              j,              J,          UFF2A                 ] }; // j J Ｊ 
+	key <AC08> { [              k,              K,          UFF2B,    Greek_kappa ] }; // k K Ｋ κ 
+	key <AC09> { [              l,              L,          UFF2C,   Greek_lambda ] }; // l L Ｌ λ 
+	key <AC10> { [      semicolon,          colon,          U2016,      brokenbar ] }; // ; : ‖ ¦ 
+	key <AC11> { [     quoteright,       quotedbl                                 ] }; // ' " 
+	key <AD01> { [              q,              Q,          UFF31,    Greek_theta ] }; // q Q Ｑ θ 
+	key <AD02> { [              w,              W,          UFF37,    Greek_omega ] }; // w W Ｗ ω 
+	key <AD03> { [              e,              E,          UFF25,  Greek_epsilon ] }; // e E Ｅ ε 
+	key <AD04> { [              r,              R,          UFF32,      Greek_rho ] }; // r R Ｒ ρ 
+	key <AD05> { [              t,              T,          UFF34,      Greek_tau ] }; // t T Ｔ τ 
+	key <AD06> { [              y,              Y,          UFF39,      Greek_psi ] }; // y Y Ｙ ψ 
+	key <AD07> { [              u,              U,          UFF35,  Greek_upsilon ] }; // u U Ｕ υ 
+	key <AD08> { [              i,              I,          UFF29,     Greek_iota ] }; // i I Ｉ ι 
+	key <AD09> { [              o,              O,          UFF2F,       currency ] }; // o O Ｏ ¤ 
+	key <AD10> { [              p,              P,          UFF30,       Greek_pi ] }; // p P Ｐ π 
+	key <AD11> { [    bracketleft,      braceleft,          U27E6,          U2983 ] }; // [ { ⟦ ⦃ 
+	key <AD12> { [   bracketright,     braceright,          U27E7,          U2984 ] }; // ] } ⟧ ⦄ 
+	key <AE01> { [           KP_1,         exclam,    onesuperior,        notsign ] }; // 1 ! ¹ ¬ 
+	key <AE02> { [           KP_2,             at,    twosuperior                 ] }; // 2 @ ² 
+	key <AE03> { [           KP_3,     numbersign,  threesuperior                 ] }; // 3 # ³ 
+	key <AE04> { [           KP_4,         dollar,          U2074,        section ] }; // 4 $ ⁴ § 
+	key <AE05> { [           KP_5,        percent,          U2075,          UFE6A ] }; // 5 % ⁵ ﹪ 
+	key <AE06> { [           KP_6,    asciicircum,          U2076                 ] }; // 6 ^ ⁶ 
+	key <AE07> { [           KP_7,      ampersand,          U2077                 ] }; // 7 & ⁷ 
+	key <AE08> { [           KP_8,    KP_Multiply,          U2078,       multiply ] }; // 8 * ⁸ × 
+	key <AE09> { [           KP_9,      parenleft,          U2079, guillemotleft  ] }; // 9 ( ⁹ « 
+	key <AE10> { [           KP_0,     parenright,          U2070, guillemotright ] }; // 0 ) ⁰ » 
+	key <AE11> { [    KP_Subtract,       underbar,          U207B,       ellipsis ] }; // - _ ⁻ … 
+	key <AE12> { [       KP_Equal,         KP_Add,          U207C,          U207A ] }; // = + ⁼ ⁺ 
+	key <BKSL> { [      backslash,            bar                                 ] }; // \ | 
+	key <TLDE> { [      quoteleft,     asciitilde,          acute                 ] }; // ` ~ ´ 
+};
+

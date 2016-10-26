@@ -135,11 +135,7 @@ class Scope:
             value = self.lookup[key]
             string += "%s: %s, " % (
                 key,
-                (
-                    getParentFunctionName(value) if islambda(value) else "".join(list(map(str, value))) if
-                    isinstance(value, list) else
-                    repr(value)
-                )
+                repr(value)
             )
 
         string = string[:-2] + "}"
@@ -150,8 +146,11 @@ class Scope:
         return (
             string +
             "\n" +
-            rLinestart.sub("    ", repr(self.parent))
+            re.sub("^", "    ", repr(self.parent))
         )
+
+    def get(self, key, fallback):
+        return self[key] if key in self else fallback
 
     def set(self, key, value):
         self[key] = value
@@ -172,7 +171,13 @@ class Charcoal:
         self.indices = [0]
         self.lengths = [0]
         self.right_indices = [0]
-        self.scope = {}
+        self.scope = Scope()
+        self.hidden = Scope({
+            "θ": "abcdefghijklmnopqrstuvwxyz",
+            "η": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "ζ": 10,
+            "ε": ""
+        })
         self.info = info
         self.original_input = original_input
         self.inputs = inputs
@@ -342,6 +347,12 @@ class Charcoal:
         self.lengths = [0]
         self.right_indices = [0]
         self.scope = Scope()
+        self.hidden = Scope({
+            "θ": "abcdefghijklmnopqrstuvwxyz",
+            "η": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "ζ": 10,
+            "ε": ""
+        })
         self.inputs = []
         self.direction = Direction.right
         self.background = " "
@@ -625,6 +636,8 @@ class Charcoal:
 
             else:
                 newline_direction = NewlineDirection[direction]
+                delta_x = XMovement[direction]
+                delta_y = YMovement[direction]
 
                 for line in lines[:-1]:
                     line_start_x = self.x
@@ -633,12 +646,14 @@ class Charcoal:
                     for character in line:
 
                         if character == "\000":
-                            self.Move(direction)
+                            self.x += delta_x
+                            self.y += delta_y
                             continue
 
                         self.FillLines()
                         self.Put(character)
-                        self.Move(direction)
+                        self.x += delta_x
+                        self.y += delta_y
 
                     self.x = line_start_x
                     self.y = line_start_y
@@ -647,12 +662,14 @@ class Charcoal:
                 for character in lines[-1]:
 
                     if character == "\000":
-                        self.Move(direction)
+                        self.x += delta_x
+                        self.y += delta_y
                         continue
 
                     self.FillLines()
                     self.Put(character)
-                    self.Move(direction)
+                    self.x += delta_x
+                    self.y += delta_y
 
         if multiprint:
             self.x = old_x
@@ -1894,6 +1911,41 @@ make sure you explicitly use 0 for no delay if needed""")
         else:
             return if_false(self)
 
+    def GetAt(self, x, y):
+        y_index = y - self.top
+
+        if y_index < 0 or y_index >= len(self.lines):
+            return ""
+
+        line = self.lines[y_index]
+        x_index = x - self.indices[y_index]
+
+        if x_index < 0 or x_index >= self.lengths[y_index]:
+            return ""
+
+        return line[x_index]
+
+    def Peek(self):
+        return self.GetAt(self.x, self.y)
+
+    def PeekLine(self, direction=None, length=1):
+
+        if not direction:
+            direction = self.direction
+
+        x = self.x
+        y = self.y
+        delta_x += XMovement[direction]
+        delta_y += YMovement[direction]
+        result = []
+
+        for i in range(length):
+            result += [self.GetAt(x, y)]
+            x += delta_x
+            y += delta_y
+
+        return result
+
 def PassThrough(result):
     return result
 
@@ -2271,7 +2323,7 @@ def PrintTree(tree, padding=""):
     padding = re.sub(r"└$", r" ", re.sub(r"├$", r"│", padding))
     new_padding = padding + "├"
 
-    if len(tree):
+    if len(tree) > 1:
 
         for item in tree[1:-1]:
 

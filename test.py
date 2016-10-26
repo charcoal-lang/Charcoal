@@ -937,8 +937,8 @@ j
 j  """)
 
     def test_extend(self):
-        self.assertEqual(Run("foobarＥ¹"), "f o o b a r")
-        self.assertEqual(Run("foobar¶baz¶→→quuxＥ³¦³"), """\
+        self.assertEqual(Run("foobarＵＥ¹"), "f o o b a r")
+        self.assertEqual(Run("foobar¶baz¶→→quuxＵＥ³¦³"), """\
 f   o   o   b   a   r
                      
                      
@@ -958,6 +958,7 @@ b   a   z
     def test_index(self):
         self.assertEqual(Run("§abc²"), "c")
         self.assertEqual(Run("§⟦¹a²b³⟧²"), "--")
+        self.assertEqual(Run("§⦃c¹b²a³⦄a"), "---")
 
     def test_ternary(self):
         self.assertEqual(Run("⎇¹¦¹÷¹¦⁰"), "-")
@@ -965,6 +966,7 @@ b   a   z
     def test_plus(self):
         self.assertEqual(Run("⁺¹a"), "1a")
         self.assertEqual(Run("⁺¹¦¹"), "--")
+        self.assertEqual(Run("⁺””a"), "a")
 
     def test_minus(self):
         self.assertEqual(Run("⁻²¦¹"), "-")
@@ -999,6 +1001,14 @@ b   a   z
     def test_cast(self):
         self.assertEqual(Run("Ｉ¹¹¹"), "111")
         self.assertEqual(Run("Ｉ5"), "-----")
+
+    def test_peek(self):
+        self.assertEqual(Run("aＭ←×Ｋ²"), "aa")
+
+    def test_preinitialized(self):
+        self.assertEqual(Run("θ"), "abcdefghijklmnopqrstuvwxyz")
+        self.assertEqual(Run("η"), "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        self.assertEqual(Run("ζ"), "----------")
 
     def test_input(self):
         self.assertEqual(

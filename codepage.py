@@ -29,7 +29,7 @@ for arrow, ascii_equivalent in zip(
     "←↑→↓↖↗↘↙↶↷⟲",
     "\x11\x12\x13\x14\x1C\x1D\x1E\x1F\x0E\x0F\x10"
 ): # device controls, separators, shift out, shift in, data link escape
-    UnicodeLookup[chr(ord(ascii_equivalent))] = arrow
+    UnicodeLookup[ascii_equivalent] = arrow
 
 for other, ascii_character in zip("¿‖´·¤¦⎚…§⎆⎈⌀", "?;`.o: _$,&'"):
     # TODO: not sure about ;
@@ -63,10 +63,10 @@ def InCodepage(character):
 ↶↷⟲¿‽‖´·¤¦“”⎚¶…§⎇"
     )
 
-UnicodeCommands = """\
+UnicodeCommands = "\
 ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ\
 ⁰¹²³⁴⁵⁶⁷⁸⁹\
 αβγδεζηθικλμνξπρσςτυφχψω\
 ⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
 ←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖·¤¦“”⎚…§⎇"""
+↶↷⟲¿‽‖·¤¦“”⎚…§⎇"

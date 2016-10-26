@@ -2,8 +2,6 @@ from codepage import OrdinalLookup, Codepage
 from string import ascii_lowercase, ascii_uppercase, digits
 import re
 
-# TODO: reserve chars for string start and end
-
 symbols = ".!\"#$%&'()*+,-/:;<=>?@[\]^_`{|}~"
 whitespace = "\n "
 default_order = "wslnu"
@@ -26,6 +24,9 @@ gap = ord("\"")
 # TODO: finish codepage so I can do OrdinalLookup[whatever]
 
 def Compressed(string):
+
+    if not string:
+        return "””"
 
     if not all(
         character == "¶" or character >= " " and character <= "~"
@@ -127,6 +128,9 @@ def Compress(ordinals):
 
 def Decompressed(string):
 
+    if string == "””":
+        return ""
+
     if string[-1] != "”":
         return string
 
@@ -189,3 +193,4 @@ def Decompress(string):
         number //= base
 
     return result
+

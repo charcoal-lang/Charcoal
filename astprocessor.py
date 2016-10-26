@@ -49,18 +49,29 @@ ASTProcessor = {
         lambda result: ["Sides", result[0]]
     ],
     CharcoalToken.Expressions: [
-        lambda result: [result[1][0], result[0]] + result[2][1:],
+        lambda result: [result[1][0], result[0]] + result[1][1:],
         lambda result: ["Expressions", result[0]]
+    ],
+    CharcoalToken.PairExpressions: [
+        lambda result: [result[2][0], [result[0], result[1]]] + result[2][1:],
+        lambda result: ["PairExpressions", [result[0], result[1]]]
     ],
 
     CharcoalToken.List: [
-        lambda result: ["List"] + result[1][1:]
+        lambda result: ["List"] + result[1][1:],
+        lambda result: ["List"]
     ],
     CharcoalToken.ArrowList: [
-        lambda result: ["Arrow list"] + result[1][1:]
+        lambda result: ["Arrow list"] + result[1][1:],
+        lambda result: ["Arrow list"]
+    ],
+    CharcoalToken.Dictionary: [
+        lambda result: ["Dictionary"] + result[1][1:],
+        lambda result: ["Dictionary"]
     ],
 
     CharcoalToken.Expression: [
+        lambda result: result[0],
         lambda result: result[0],
         lambda result: result[0],
         lambda result: result[0],
@@ -76,7 +87,8 @@ ASTProcessor = {
     CharcoalToken.Nilary: [
         lambda result: "Input String",
         lambda result: "Input Number",
-        lambda result: "Random"
+        lambda result: "Random",
+        lambda result: "Peek"
     ],
     CharcoalToken.Unary: [
         lambda result: "Negative",

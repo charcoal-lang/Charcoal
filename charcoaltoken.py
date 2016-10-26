@@ -12,6 +12,7 @@ class CharcoalToken(Enum):
     Arrows = 11
     Sides = 12
     Expressions = 13
+    PairExpressions = 14
 
     Expression = 21
     Nilary = 22
@@ -24,6 +25,7 @@ class CharcoalToken(Enum):
 
     List = 31
     ArrowList = 32
+    Dictionary = 33
 
     Program = 51
     Command = 52

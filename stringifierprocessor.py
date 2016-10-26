@@ -82,15 +82,26 @@ StringifierProcessor = {
         lambda result: result[0] + result[2],
         lambda result: result[0]
     ],
+    CharcoalToken.PairExpressions: [
+        lambda result: result[0] + result[1] + result[2],
+        lambda result: result[0] + result[1]
+    ],
 
     CharcoalToken.List: [
-        lambda result: "⟦" + result[1] + "⟧"
+        lambda result: "⟦" + result[1] + "⟧",
+        lambda result: "⟦⟧"
     ],
     CharcoalToken.ArrowList: [
-        lambda result: "⟦" + result[1] + "⟧"
+        lambda result: "⟦" + result[1] + "⟧",
+        lambda result: "⟦⟧"
+    ],
+    CharcoalToken.Dictionary: [
+        lambda result: "⦃" + result[1] + "⦄",
+        lambda result: "⦃⦄"
     ],
 
     CharcoalToken.Expression: [
+        lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
@@ -106,7 +117,8 @@ StringifierProcessor = {
     CharcoalToken.Nilary: [
         lambda result: "Ｓ",
         lambda result: "Ｎ",
-        lambda result: "‽"
+        lambda result: "‽",
+        lambda result: "Ｋ"
     ],
     CharcoalToken.Unary: [
         lambda result: "⁻",
@@ -199,7 +211,7 @@ StringifierProcessor = {
         lambda result: "Ｈ",
         lambda result: "Ｔ" + result[2] + result[3],
         lambda result: "⎚",
-        lambda result: "Ｅ" + result[2] + result[3],
-        lambda result: "Ｅ" + result[2]
+        lambda result: "ＵＥ" + result[2] + result[3],
+        lambda result: "ＵＥ" + result[2]
     ]
 }
