@@ -50,7 +50,6 @@ ASTProcessor[CharcoalToken.Separator] = [
     function (result) { return null; }
 ];
 
-
 ASTProcessor[CharcoalToken.Arrows] = [
     function (result) {
         var returns = result[1].slice(1);
@@ -131,13 +130,15 @@ ASTProcessor[CharcoalToken.Expression] = [
     function (result) { return result; },
     function (result) { return result; },
     function (result) { return result; },
+    function (result) { return result; },
     function (result) { return result[0]; }
 ];
 
 ASTProcessor[CharcoalToken.Nilary] = [
-    function (result) { return 'Input String'; },
-    function (result) { return 'Input Number'; },
+    function (result) { return 'Input string'; },
+    function (result) { return 'Input number'; },
     function (result) { return 'Random'; },
+    function (result) { return 'Peek all'; },
     function (result) { return 'Peek'; }
 ];
 
@@ -147,7 +148,12 @@ ASTProcessor[CharcoalToken.Unary] = [
     function (result) { return 'Not'; },
     function (result) { return 'Cast'; },
     function (result) { return 'Random'; },
-    function (result) { return 'Evaluate'; }
+    function (result) { return 'Evaluate'; },
+    function (result) { return 'Pop'; },
+    function (result) { return 'To lowercase'; },
+    function (result) { return 'To uppercase'; },
+    function (result) { return 'Minimum'; },
+    function (result) { return 'Maximum'; }
 ];
 
 ASTProcessor[CharcoalToken.Binary] = [
@@ -157,11 +163,17 @@ ASTProcessor[CharcoalToken.Binary] = [
     function (result) { return 'Quotient'; },
     function (result) { return 'Modulo'; },
     function (result) { return 'Equals'; },
-    function (result) { return 'Less Than'; },
-    function (result) { return 'Greater Than'; },
-    function (result) { return 'Cycle and chop'; },
+    function (result) { return 'Less than'; },
+    function (result) { return 'Greater than'; },
+    function (result) { return 'Inclusive range'; },
+    function (result) { return 'Mold'; },
     function (result) { return 'Exponentiate'; },
-    function (result) { return 'At index'; }
+    function (result) { return 'At index'; },
+    function (result) { return 'Push'; },
+    function (result) { return 'Join'; },
+    function (result) { return 'Split'; },
+    function (result) { return 'Find all'; },
+    function (result) { return 'Find'; }
 ];
 
 ASTProcessor[CharcoalToken.Ternary] = [
@@ -179,6 +191,13 @@ ASTProcessor[CharcoalToken.LazyTernary] = [
     function (result) { return 'Ternary'; }
 ];
 
+ASTProcessor[CharcoalToken.OtherOperator] = [
+    function (result) {
+        var returns = result.slice(1);
+        returns.unshift('Peek direction');
+        return returns;
+    }
+];
 
 ASTProcessor[CharcoalToken.Program] = [
     function (result) {

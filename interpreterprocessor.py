@@ -2,6 +2,45 @@ from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
 from unicodegrammars import UnicodeGrammars
 
+def FindAll(haystack, needle):
+    result = []
+
+    if isinstance(haystack, str):
+        index = haystack.find(needle)
+
+        while True:
+
+            if index != -1:
+                result += [index]
+
+            else:
+                return result
+
+            index = haystack.find(needle, index + 1)
+
+        index = haystack.find(needle)
+
+    else:
+        index = haystack.index(needle)
+
+        while True:
+
+            result += [index]
+
+            try:
+                index = haystack.index(needle, index + 1)
+
+            except:
+                return result
+
+def ListFind(haystack, needle):
+
+    try:
+        return haystack.index(needle)
+
+    except:
+        return -1
+
 InterpreterProcessor = {
     CharcoalToken.Arrow: [
         lambda result: Direction.left,
@@ -165,11 +204,12 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: result[0],
         lambda result: lambda charcoal: (
             charcoal.scope[result[0]] if
-            result[0] in charcoal.scope else 
+            result[0] in charcoal.scope else
             charcoal.hidden[result[0]] if
             result[0] in charcoal.hidden else
             None
         ),
+        lambda result: lambda charcoal: result[0](charcoal),
         lambda result: lambda charcoal: result[0](charcoal),
         lambda result: lambda charcoal: result[0](charcoal),
         lambda result: lambda charcoal: result[0](
@@ -208,15 +248,21 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: charcoal.InputString(),
         lambda result: lambda charcoal: charcoal.InputNumber(),
         lambda result: lambda charcoal: charcoal.Random(),
+        lambda result: lambda charcoal: charcoal.PeekAll(),
         lambda result: lambda charcoal: charcoal.Peek()
     ],
     CharcoalToken.Unary: [
         lambda result: lambda item, charcoal: -item,
         lambda result: lambda item, charcoal: len(item),
-        lambda result: lambda item, charcoal: int(not item),
+        lambda result: lambda item, charcoal: not item,
         lambda result: lambda item, charcoal: charcoal.Cast(item),
         lambda result: lambda item, charcoal: charcoal.Random(item),
-        lambda result: lambda item, charcoal: charcoal.Evaluate(item)
+        lambda result: lambda item, charcoal: charcoal.Evaluate(item),
+        lambda result: lambda item, charcoal: item.pop(),
+        lambda result: lambda item, charcoal: item.lower(),
+        lambda result: lambda item, charcoal: item.upper(),
+        lambda result: lambda item, charcoal: min(item),
+        lambda result: lambda item, charcoal: max(item)
     ],
     CharcoalToken.Binary: [
         lambda result: lambda left, right, charcoal: (
@@ -239,13 +285,37 @@ InterpreterProcessor = {
         lambda result: lambda left, right, charcoal: left == right,
         lambda result: lambda left, right, charcoal: left < right,
         lambda result: lambda left, right, charcoal: left > right,
-        lambda result: lambda left, right, charcoal: charcoal.CycleChop(
-            left, right
+        lambda result: lambda left, right, charcoal: (
+            list(range(left, right + 1))
+            if isinstance(left, int) else
+            list(map(chr, range(ord(left), ord(right) + 1)))
+        ),
+        lambda result: lambda left, right, charcoal: (
+            list(range(left, right))
+            if isinstance(left, int) else
+            list(map(chr, range(ord(left), ord(right))))
+            if isinstance(left, str) and isinstance(right, str) else
+            charcoal.CycleChop(left, right)
         ),
         lambda result: lambda left, right, charcoal: left ** right,
         lambda result: lambda left, right, charcoal: (
             lambda value: "" if value == "\x00" else value
-        )(left[right]) if right in left else None
+        )(left[right]) if (
+            right in left if
+            isinstance(left, dict) else
+            right >= 0 and right < len(left)
+        ) else None,
+        lambda result: lambda left, right, charcoal: (
+            left.append(right) or left
+        ),
+        lambda result: lambda left, right, charcoal: right.join(left),
+        lambda result: lambda left, right, charcoal: left.split(right),
+        lambda result: lambda left, right, charcoal: FindAll(left, right),
+        lambda result: lambda left, right, charcoal: (
+            left.find(right)
+            if isinstance(left, str) else
+            ListFind(left, right)
+        )
     ],
     CharcoalToken.Ternary: [
     ],
@@ -262,6 +332,12 @@ InterpreterProcessor = {
     CharcoalToken.LazyTernary: [
         lambda result: lambda first, second, third, charcoal: charcoal.Ternary(
             first, second, third
+        )
+    ],
+    CharcoalToken.OtherOperator: [
+        lambda result: lambda charcoal: charcoal.PeekDirection(
+            result[1](charcoal),
+            result[2]
         )
     ],
 
@@ -293,8 +369,7 @@ InterpreterProcessor = {
             directions=set(result[1])
         ),
         lambda result: lambda charcoal: charcoal.Multiprint(
-            result[1](charcoal),
-            directions={Direction.right}
+            result[1](charcoal)
         ),
         lambda result: lambda charcoal: charcoal.Polygon(
             result[1](charcoal),
@@ -416,6 +491,12 @@ InterpreterProcessor = {
             result[1](charcoal),
             result[2](charcoal)
         ),
-        lambda result: lambda charcoal: charcoal.Extend(result[1](charcoal))
+        lambda result: lambda charcoal: charcoal.Extend(result[1](charcoal)),
+        lambda result: lambda charcoal: (
+            (lambda value: value.append(result[2](charcoal)) or value)(
+                result[1](charcoal)
+            )
+        )
     ]
 }
+

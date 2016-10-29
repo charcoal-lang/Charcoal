@@ -82,12 +82,14 @@ ASTProcessor = {
         lambda result: result,
         lambda result: result,
         lambda result: result,
+        lambda result: result,
         lambda result: result[0]
     ],
     CharcoalToken.Nilary: [
-        lambda result: "Input String",
-        lambda result: "Input Number",
+        lambda result: "Input string",
+        lambda result: "Input number",
         lambda result: "Random",
+        lambda result: "Peek all",
         lambda result: "Peek"
     ],
     CharcoalToken.Unary: [
@@ -96,7 +98,12 @@ ASTProcessor = {
         lambda result: "Not",
         lambda result: "Cast",
         lambda result: "Random",
-        lambda result: "Evaluate"
+        lambda result: "Evaluate",
+        lambda reuslt: "Pop",
+        lambda result: "To lowercase",
+        lambda result: "To uppercase",
+        lambda result: "Minimum",
+        lambda result: "Maximum"
     ],
     CharcoalToken.Binary: [
         lambda result: "Sum",
@@ -105,11 +112,17 @@ ASTProcessor = {
         lambda result: "Quotient",
         lambda result: "Modulo",
         lambda result: "Equals",
-        lambda result: "Less Than",
-        lambda result: "Greater Than",
-        lambda result: "Cycle and chop",
+        lambda result: "Less than",
+        lambda result: "Greater than",
+        lambda result: "Inclusive range",
+        lambda result: "Mold",
         lambda result: "Exponentiate",
-        lambda result: "At index"
+        lambda result: "At index",
+        lambda result: "Push operator",
+        lambda result: "Join",
+        lambda result: "Split",
+        lambda result: "Find all",
+        lambda result: "Find"
     ],
     CharcoalToken.Ternary: [
     ],
@@ -121,6 +134,9 @@ ASTProcessor = {
     ],
     CharcoalToken.LazyTernary: [
         lambda result: "Ternary"
+    ],
+    CharcoalToken.OtherOperator: [
+        lambda result: "Peek direction" + result[1:]
     ],
 
     CharcoalToken.Program: [
@@ -183,6 +199,7 @@ ASTProcessor = {
         lambda result: ["Trim", result[1], result[2]],
         lambda result: ["Clear"],
         lambda result: ["Extend", result[1], result[2]],
-        lambda result: ["Extend", result[1]]
+        lambda result: ["Extend", result[1]],
+        lambda result: ["Push"] + result[1:]
     ]
 }

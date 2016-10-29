@@ -172,12 +172,12 @@ class Charcoal:
         self.lengths = [0]
         self.right_indices = [0]
         self.scope = Scope()
-        self.hidden = Scope({
+        self.hidden = {
             "θ": "abcdefghijklmnopqrstuvwxyz",
             "η": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "ζ": 10,
             "ε": ""
-        })
+        }
         self.info = info
         self.original_input = original_input
         self.inputs = inputs
@@ -188,6 +188,7 @@ class Charcoal:
         self.timeout_end = self.dump_timeout_end = 0
         self.background_inside = False
         self.canvas_step = canvas_step
+
         if Info.step_canvas in self.info:
             print("\033[2J")
 
@@ -200,6 +201,8 @@ class Charcoal:
         if self.bg_lines:
 
             for i in range(len(self.lines)):
+                top = self.top + i
+                index = self.indices[i]
                 line = self.lines[i]
                 j = -1
 
@@ -217,9 +220,9 @@ class Charcoal:
                             line = (
                                 line[:bg_start] +
                                 self.BackgroundString(
-                                    self.top + i,
-                                    bg_start,
-                                    j
+                                    top,
+                                    index + bg_start,
+                                    index + j
                                 ) +
                                 line[j:]
                             )
@@ -228,7 +231,11 @@ class Charcoal:
                     if bg_start is not None:
                         line = (
                             line[:bg_start] +
-                            self.BackgroundString(self.top + i, bg_start, j)
+                            self.BackgroundString(
+                                top,
+                                index + bg_start,
+                                index + j
+                            )
                         )
 
                 string += (
@@ -347,12 +354,12 @@ class Charcoal:
         self.lengths = [0]
         self.right_indices = [0]
         self.scope = Scope()
-        self.hidden = Scope({
+        self.hidden = {
             "θ": "abcdefghijklmnopqrstuvwxyz",
             "η": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "ζ": 10,
             "ε": ""
-        })
+        }
         self.inputs = []
         self.direction = Direction.right
         self.background = " "
@@ -580,14 +587,22 @@ class Charcoal:
         flags=0
     ):
 
-        if isinstance(string, list):
-            string = "\n".join(map(str, string))
-
         if isinstance(string, int):
             length, string = string, ""
 
         if not directions:
             directions = {self.direction}
+
+        if isinstance(string, list):
+            newline_direction = NewlineDirection[list(directions)[0]]
+
+            for element in string:
+                self.Print(element, directions, multiprint=True)
+                self.Move(newline_direction)
+
+            # TODO
+
+            return
 
         old_x = self.x
         old_y = self.y
@@ -678,7 +693,8 @@ class Charcoal:
         if Info.step_canvas in self.info:
             self.RefreshFastText("Print", self.canvas_step)
 
-    def Multiprint(self, string, directions):
+    def Multiprint(self, string, directions=None):
+
         self.Print(string, directions, multiprint=True)
 
     def Polygon(self, sides, character, fill=True):
@@ -1693,6 +1709,7 @@ class Charcoal:
             if_false(self)
 
     def Cast(self, variable):
+
         if isinstance(variable, list):
             return [self.Cast(item) for item in variable]
 
@@ -1703,6 +1720,7 @@ class Charcoal:
             return str(variable)
 
     def Random(self, variable=1):
+
         if variable == 1 and Info.warn_ambiguities in self.info:
             print("""\
 Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
@@ -1928,7 +1946,7 @@ make sure you explicitly use 0 for no delay if needed""")
     def Peek(self):
         return self.GetAt(self.x, self.y)
 
-    def PeekLine(self, direction=None, length=1):
+    def PeekDirection(self, length=1, direction=None):
 
         if not direction:
             direction = self.direction
@@ -1945,6 +1963,10 @@ make sure you explicitly use 0 for no delay if needed""")
             y += delta_y
 
         return result
+
+    def PeekAll(self):
+        # TODO
+        pass
 
 def PassThrough(result):
     return result

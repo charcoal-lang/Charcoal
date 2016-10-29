@@ -5,8 +5,6 @@ from charcoal import Run
 import unittest
 import sys
 
-# test crop
-
 class CharcoalTest(unittest.TestCase):
     def test_print(self):
         self.assertEqual(Run("abc"), "abc")
@@ -190,6 +188,7 @@ cbabc
 *-#-*
 *#-#*
 *****""")
+        self.assertEqual(Run("Ｆ⁶«Ｍ→_»ＵＢ| "), "_|_|_|_|_|_")
         self.assertEqual(
             Run("Multiprint(:+, 'abc');SetBackground('*')", verbose=True),
             """\
@@ -979,7 +978,7 @@ b   a   z
     def test_divide(self):
         self.assertEqual(Run("÷⁵¦²"), "--")
         self.assertEqual(Run("÷abcabcab¦³"), "ab")
-        self.assertEqual(Run("÷⟦a¹a²b²c³⟧¦³"), "a\n1")
+        self.assertEqual(Run("÷⟦a¹a²b²c³⟧¦³"), "a\n-")
 
     def test_and(self):
         self.assertEqual(Run("∧⁰¦÷¹¦⁰"), "")
@@ -1004,6 +1003,65 @@ b   a   z
 
     def test_peek(self):
         self.assertEqual(Run("aＭ←×Ｋ²"), "aa")
+
+    def test_minimum(self):
+        self.assertEqual(Run("Ｉ⌊⟦¹¦²¦³¦±¹⟧"), "-1")
+
+    def test_maximum(self):
+        self.assertEqual(Run("⌈⟦¹¦²¦³¦±¹⟧"), "---")
+
+    def test_join(self):
+        self.assertEqual(Run("⪫⟦a¦b¦c⟧foo"), "afoobfooc")
+
+    def test_split(self):
+        self.assertEqual(Run("⪪afoobfooc¦foo"), "a\nb\nc")
+
+    def test_lowercase(self):
+        self.assertEqual(Run("↧FOOBAR"), "foobar")
+
+    def test_uppercase(self):
+        self.assertEqual(Run("↥foobar"), "FOOBAR")
+
+    def test_push(self):
+        self.assertEqual(Run("Ａ⟦¹¦²¦³⟧α⊞Ｏα¦⁴"), "-   \n--  \n--- \n----")
+        self.assertEqual(Run("Ａ⟦¹¦²¦³⟧α⊞α¦⁴α"), "-   \n--  \n--- \n----")
+
+    def test_pop(self):
+        self.assertEqual(Run("Ａ⟦¹¦²¦³⟧α⊟α"), "---")
+
+    def test_negate(self):
+        self.assertEqual(Run("±±¹"), "-")
+
+    def test_ranges(self):
+        self.assertEqual(Run("…¹¦¹⁰"), """\
+-        
+--       
+---      
+----     
+-----    
+------   
+-------  
+-------- 
+---------""")
+        self.assertEqual(Run("…a¦e"), "a\nb\nc\nd")
+        self.assertEqual(Run("…·¹¦¹⁰"), """\
+-         
+--        
+---       
+----      
+-----     
+------    
+-------   
+--------  
+--------- 
+----------""")
+        self.assertEqual(Run("…·a¦e"), "a\nb\nc\nd\ne")
+
+    def test_find(self):
+        self.assertEqual(Run("⌕abcd¦c"), "--")
+        self.assertEqual(Run("⌕⟦¹a²b³c⁴d⟧¦³"), "----")
+        self.assertEqual(Run("⌕Ａabcdc¦c"), "--  \n----")
+        self.assertEqual(Run("⌕Ａ⟦a³a¹a²b³c⁴d⟧¦³"), "-      \n-------")
 
     def test_preinitialized(self):
         self.assertEqual(Run("θ"), "abcdefghijklmnopqrstuvwxyz")
@@ -1153,3 +1211,4 @@ def RunTests():
 
 if __name__ == "__main__":
     RunTests()
+

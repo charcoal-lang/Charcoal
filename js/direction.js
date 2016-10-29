@@ -8,11 +8,15 @@ var Direction = {
     upLeft: 5,
     upRight: 6,
     downLeft: 7,
-    downRight: 8
-}
+    downRight: 8,
+
+    MAXIMUM: 8
+};
 
 var Pivot = {
     left: 1,
-    right: 2
-}
+    right: 2,
+
+    MAXIMUM: 2
+};
 

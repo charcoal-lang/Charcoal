@@ -85,6 +85,10 @@ VerboseGrammars = {
         [CharcoalToken.List, CharcoalToken.Separator],
         [CharcoalToken.Dictionary, CharcoalToken.Separator],
         [
+            CharcoalToken.OtherOperator,
+            CharcoalToken.Separator
+        ],
+        [
             CharcoalToken.LazyTernary,
             "(",
             CharcoalToken.Expression,
@@ -138,6 +142,7 @@ VerboseGrammars = {
         ["InputString"],
         ["InputNumber"],
         ["Random"],
+        ["PeekAll"],
         ["Peek"]
     ],
     CharcoalToken.Unary: [
@@ -146,7 +151,12 @@ VerboseGrammars = {
         ["Not"],
         ["Cast"],
         ["Random"],
-        ["Evaluate"]
+        ["Evaluate"],
+        ["Pop"],
+        ["Lowercase"],
+        ["Uppercase"],
+        ["Minimum"],
+        ["Maximum"]
     ],
     CharcoalToken.Binary: [
         ["Add"],
@@ -157,9 +167,16 @@ VerboseGrammars = {
         ["Equals"],
         ["Less"],
         ["Greater"],
+        ["InclusiveRange"],
+        ["Range"],
         ["Mold"],
         ["Exponentiate"],
-        ["AtIndex"]
+        ["AtIndex"],
+        ["PushOperator"],
+        ["Join"],
+        ["Split"],
+        ["FindAll"],
+        ["Find"]
     ],
     CharcoalToken.Ternary: [
     ],
@@ -172,9 +189,16 @@ VerboseGrammars = {
     CharcoalToken.LazyTernary: [
         ["Ternary"]
     ],
+    CharcoalToken.OtherOperator: [
+        ["PeekDirection", CharcoalToken.Expression, CharcoalToken.Arrow]
+    ],
 
     CharcoalToken.Program: [
-        [CharcoalToken.Command, CharcoalToken.Separator, CharcoalToken.Program],
+        [
+            CharcoalToken.Command,
+            CharcoalToken.Separator,
+            CharcoalToken.Program
+        ],
         []
     ],
     CharcoalToken.Body: [
@@ -185,7 +209,14 @@ VerboseGrammars = {
         ["InputString", "(", CharcoalToken.Name, ")"],
         ["InputNumber", "(", CharcoalToken.Name, ")"],
         ["Evaluate", "(", CharcoalToken.Expression, ")"],
-        ["Print", "(", CharcoalToken.Arrow, CharcoalToken.Separator, CharcoalToken.Expression, ")"],
+        [
+            "Print",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.Expression,
+            ")"
+        ],
         ["Print", "(", CharcoalToken.Expression, ")"],
         [
             "Multiprint",
@@ -296,6 +327,14 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             ")"
         ],
-        ["Extend", "(", CharcoalToken.Expression, ")"]
+        ["Extend", "(", CharcoalToken.Expression, ")"],
+        [
+            "Push",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")"
+        ]
     ]
 }
+

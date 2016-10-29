@@ -106,6 +106,7 @@ StringifierProcessor = {
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
+        lambda result: result[0] + result[1],
         lambda result: result[0] + result[2] + result[3] + result[4],
         lambda result: result[0] + result[2] + result[3] + result[4],
         lambda result: result[0] + result[2] + result[3],
@@ -118,6 +119,7 @@ StringifierProcessor = {
         lambda result: "Ｓ",
         lambda result: "Ｎ",
         lambda result: "‽",
+        lambda result: "ＫＡ",
         lambda result: "Ｋ"
     ],
     CharcoalToken.Unary: [
@@ -126,7 +128,12 @@ StringifierProcessor = {
         lambda result: "¬",
         lambda result: "Ｉ",
         lambda result: "‽",
-        lambda result: "Ｖ"
+        lambda result: "Ｖ",
+        lambda result: "⊟",
+        lambda result: "↧",
+        lambda result: "↥",
+        lambda result: "⌊",
+        lambda result: "⌈"
     ],
     CharcoalToken.Binary: [
         lambda result: "⁺",
@@ -137,9 +144,16 @@ StringifierProcessor = {
         lambda result: "⁼",
         lambda result: "‹",
         lambda result: "›",
+        lambda result: "…·",
+        lambda result: "…",
         lambda result: "…",
         lambda result: "Ｘ",
-        lambda result: "§"
+        lambda result: "§",
+        lambda result: "⊞Ｏ",
+        lambda result: "⪫",
+        lambda result: "⪪",
+        lambda result: "⌕Ａ",
+        lambda result: "⌕"
     ],
     CharcoalToken.Ternary: [
     ],
@@ -151,6 +165,9 @@ StringifierProcessor = {
     ],
     CharcoalToken.LazyTernary: [
         lambda result: "⎇"
+    ],
+    CharcoalToken.OtherOperator: [
+        lambda result: "ＫＤ" + result[1] + result[2]
     ],
 
     CharcoalToken.Program: [
@@ -212,6 +229,8 @@ StringifierProcessor = {
         lambda result: "Ｔ" + result[2] + result[3],
         lambda result: "⎚",
         lambda result: "ＵＥ" + result[2] + result[3],
-        lambda result: "ＵＥ" + result[2]
+        lambda result: "ＵＥ" + result[2],
+        lambda result: "⊞" + result[2] + result[3]
     ]
 }
+

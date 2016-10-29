@@ -19,7 +19,7 @@ for greek, lower in zip(
     # h, j, o are free
 
 for double_bracket, bracket in zip("⟦⟧⦃⦄«»", "[]{}()"):
-    # TODO: change ()
+    # not sure about ()
     UnicodeLookup[chr(ord(bracket) + 128)] = double_bracket
 
 for symbol, operator in zip("⁺⁻×÷﹪¬⁼‹›", "+-*/%!=<>"):
@@ -28,17 +28,21 @@ for symbol, operator in zip("⁺⁻×÷﹪¬⁼‹›", "+-*/%!=<>"):
 for arrow, ascii_equivalent in zip(
     "←↑→↓↖↗↘↙↶↷⟲",
     "\x11\x12\x13\x14\x1C\x1D\x1E\x1F\x0E\x0F\x10"
-): # device controls, separators, shift out, shift in, data link escape
+):
     UnicodeLookup[ascii_equivalent] = arrow
 
 for other, ascii_character in zip("¿‖´·¤¦⎚…§⎆⎈⌀", "?;`.o: _$,&'"):
-    # TODO: not sure about ;
+    # not sure about ;
     UnicodeLookup[chr(ord(ascii_character) + 128)] = other
 
-for replacement, replaced in zip("¶⎇‽∧∨“”", "\n\x15\x16\x01\x02\x03\x04"):
-    # negative acknowledge, synchronous idle
-    # start of heading, start of text, end of text, end of transmission
+for replacement, replaced in zip(
+    "¶⎇‽∧∨“”↧↥⌊⌈±⊞⊟",
+    "\n\x15\x16\x01\x02\x03\x04\x17\x18\x19\x1A\x1B\x05\x06"
+):
     UnicodeLookup[replaced] = replacement
+
+for high, low in zip("⪫⪪⌕", "\x01\x02\x1B"):
+    UnicodeLookup[chr(ord(low) + 128)] = high
 
 for eight_bit in UnicodeLookup:
     character = UnicodeLookup[eight_bit]
@@ -60,7 +64,7 @@ def InCodepage(character):
                 character in "⁰¹²³⁴⁵⁶⁷⁸⁹\
 ⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
 ←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖´·¤¦“”⎚¶…§⎇"
+↶↷⟲¿‽‖´·¤¦“”⎚¶…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕"
     )
 
 UnicodeCommands = "\
@@ -69,4 +73,5 @@ UnicodeCommands = "\
 αβγδεζηθικλμνξπρσςτυφχψω\
 ⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
 ←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖·¤¦“”⎚…§⎇"
+↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕"
+

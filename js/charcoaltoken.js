@@ -22,15 +22,16 @@ var CharcoalToken = {
     LazyUnary: 26,
     LazyBinary: 27,
     LazyTernary: 28,
+    OtherOperator: 29,
 
     List: 31,
     ArrowList: 32,
     Dictionary: 33,
 
-    Program: 51,
-    Command: 52,
-    Body: 53,
+    Program: 41,
+    Command: 42,
+    Body: 43,
 
-    MAXIMUM: 53
-}
+    MAXIMUM: 43
+};
 

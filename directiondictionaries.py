@@ -69,31 +69,13 @@ PivotLookup = {
 
 DirectionFromXYSigns = {
     -1: {
-        -1: Direction.down_left,
-        0: Direction.down,
-        1: Direction.down_right
-    },
-    0: {
-        -1: Direction.left,
-        0: Direction.right, # actually any
-        1: Direction.right
-    },
-    1: {
-        -1: Direction.up_left,
-        0: Direction.up,
-        1: Direction.up_right
-    }
-}
-
-DirectionFromXYSigns = {
-    -1: {
         -1: Direction.up_left,
         0: Direction.left,
         1: Direction.down_left
     },
     0: {
         -1: Direction.up,
-        0: Direction.right, # actually any
+        0: Direction.right, # actually any would do
         1: Direction.down
     },
     1: {
