@@ -60,6 +60,12 @@ def Sign(number):
     return 1 if number > 0 else -1 if number < 0 else 0
 
 
+def large_xrange(number):
+    n = 0
+    while n < number:
+        yield n
+
+
 class Modifier(Enum):
     maybe = 1
     maybe_some = 2
@@ -1681,7 +1687,7 @@ class Charcoal:
         variable = expression(self)
 
         if isinstance(variable, int):
-            variable = range(variable)
+            variable = large_xrange(variable)
 
         for item in variable:
             self.scope[loop_variable] = item
@@ -2657,7 +2663,7 @@ non-raw file input and file output."""
 
     if argv.verbose or argv.deverbosify:
         code = re.sub(
-            r"»+$",
+            "»+$",
             "",
             ParseExpression(
                 code,
@@ -2712,6 +2718,18 @@ non-raw file input and file output."""
 
             try:
                 code = old_input("Charcoal> ")
+
+                if argv.verbose:
+                    code = re.sub(
+                        "»+$",
+                        "",
+                        ParseExpression(
+                            code,
+                            grammars=VerboseGrammars,
+                            processor=StringifierProcessor,
+                            verbose=True
+                        )[0]
+                    )
 
                 if argv.astify:
                     print("Program")
@@ -2829,3 +2847,4 @@ non-raw file input and file output."""
                 real_output_length,
                 failures * 100 / real_output_length
             ))
+

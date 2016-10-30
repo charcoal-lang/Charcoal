@@ -79,7 +79,7 @@ StringifierProcessor = {
         lambda result: result[0]
     ],
     CharcoalToken.Expressions: [
-        lambda result: result[0] + result[2],
+        lambda result: result[0] + result[1],
         lambda result: result[0]
     ],
     CharcoalToken.PairExpressions: [

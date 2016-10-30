@@ -1,8 +1,8 @@
 'use strict';
 
-var UnicodeLookup = {}
-var ReverseLookup = {}
-var OrdinalLookup = {}
+var UnicodeLookup = {};
+var ReverseLookup = {};
+var OrdinalLookup = {};
 
 (function () {
     function CharacterPlus128 (character) {
@@ -36,7 +36,7 @@ var OrdinalLookup = {}
     var other = '¿‖´·¤¦⎚…§⎆⎈⌀';
     var asciiCharacter = '?;`.o: _$,&\'';
     for (var i = 0; i < 12; i++)
-        UnicodeLookup[CharacterPlus128(ascii_character[i])] = other[i];
+        UnicodeLookup[CharacterPlus128(asciiCharacter[i])] = other[i];
     var replacement = '¶⎇‽∧∨“”↧↥⌊⌈±⊞⊟';
     var replaced = '\
 \n\x15\x16\x01\x02\x03\x04\x17\x18\x19\x1A\x1B\x05\x06';
@@ -45,7 +45,7 @@ var OrdinalLookup = {}
     var high = '⪫⪪⌕';
     var low = '\x01\x02\x1B';
     for (var i = 0; i < 2; i++)
-        UnicodeLookup(CharacterPlus128(low[i])) = high[i];
+        UnicodeLookup[CharacterPlus128(low[i])] = high[i];
     for (var eightBit in UnicodeLookup) {
         var character = UnicodeLookup[eightBit];
         ReverseLookup[character] = eightBit;

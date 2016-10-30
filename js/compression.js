@@ -20,9 +20,10 @@ var whitespace = '\n ',
         digits +
         asciiUppercase
     ),
-    gap = '"'.charCodeAt(0);
+    gap = '"'.charCodeAt(0),
+    CompressionCodepage = Codepage.slice();
 
-Codepage.splice(codepage.indexOf('"'), 1);
+CompressionCodepage.splice(CompressionCodepage.indexOf('"'), 1);
 // TODO: finish codepage so I can do OrdinalLookup[whatever]
 
 var Compressed = (function () {
@@ -65,13 +66,13 @@ function CompressPermutations (string) {
         stringLength = string.length;
 
     for (var i = 0; i < stringLength; i++) {
-        if (character >= '0' and character <= '9')
+        if (character >= '0' && character <= '9')
             numeric -= .1;
-        else if (character >= 'a' and character <= 'z')
+        else if (character >= 'a' && character <= 'z')
             lowercase -= 0.03846;
-        else if (character >= 'A' and character <= 'Z')
+        else if (character >= 'A' && character <= 'Z')
             uppercase -= 0.03846;
-        else if (character === '\n' or character === ' ')
+        else if (character === '\n' || character === ' ')
             whitespace -= .5;
         else
             symbol -= .03125;
@@ -103,9 +104,10 @@ function CompressPermutations (string) {
         base--;
     }
 
-    return Codepage[index] + Compress(Array.from(string).map(function (character) {
+    return CompressionCodepage[index] + Compress(Array.from(string).map(function (character) {
         return charset.indexOf(character);
     }));
+}
 
 function CompressString (string) {
     return Compress(Array.from(string).map(function (character) {
@@ -125,10 +127,10 @@ function Compress (ordinals) {
         number = number * base + ordinal;
     }
     while (number) {
-        result = Codepage[number % 255] + result;
+        result = CompressionCodepage[number % 255] + result;
         number = (number / 255) | 0;
     }
-    return Codepage[base - 1] + result;
+    return CompressionCodepage[base - 1] + result;
 }
 
 function Decompressed (string) {
@@ -137,8 +139,8 @@ function Decompressed (string) {
     if (string[string.length - 2] !== '”')
         return string;
     if (string[0] === '”')
-        return DecompressPermutations(string.slice(1:-1));
-    else (if string[0] === '“')
+        return DecompressPermutations(string.slice(1, -1));
+    else if (string[0] === '“')
         return DecompressString(string.slice(1, -1));
 }
 
@@ -160,7 +162,7 @@ function DecompressPermutations (string) {
     charset = letters.map(function (character) {
         return charsetFragmentLookup(character);
     }).join('');
-    return Decompress(string.slice(1).map(function (ordinal) {
+    return Decompress(string.slice(1)).map(function (ordinal) {
         return charset[ordinal];
     }).join('');
 }
