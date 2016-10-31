@@ -138,7 +138,8 @@ UnicodeGrammars = {
         ["↥"],
         ["⌊"],
         ["⌈"],
-        ["℅"]
+        ["℅"],
+        ["⮌"]
     ],
     CharcoalToken.Binary: [
         ["⁺"],

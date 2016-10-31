@@ -405,6 +405,16 @@ InterpreterProcessor[CharcoalToken.Unary] = [
     },
     function (result) {
         return function (item, charcoal) { return typeof item === 'string' ? item.charCodeAt(0) : String.fromCharCode(item); }
+    },
+    function (result) {
+        return function (item, charcoal) {
+            return typeof item === 'string' ? (function (string) {
+                var result = '';
+                for (var i = 0; i < string.length; i++)
+                    result += string[i];
+                return result;
+            })(item) : item.reverse();
+        }
     }
 ];
 

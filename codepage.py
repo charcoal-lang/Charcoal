@@ -41,7 +41,7 @@ for replacement, replaced in zip(
 ):
     UnicodeLookup[replaced] = replacement
 
-for high, low in zip("⪫⪪℅◧◨⌕", "\x01\x02\x03\x04\x05\x1B"):
+for high, low in zip("⪫⪪℅◧◨⮌⌕", "\x01\x02\x03\x04\x05\x06\x1B"):
     UnicodeLookup[chr(ord(low) + 128)] = high
 
 for eight_bit in UnicodeLookup:
@@ -64,7 +64,7 @@ def InCodepage(character):
                 character in "⁰¹²³⁴⁵⁶⁷⁸⁹\
 ⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
 ←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖´·¤¦“”⎚¶…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨"
+↶↷⟲¿‽‖´·¤¦“”⎚¶…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨⮌"
     )
 
 UnicodeCommands = "\
@@ -73,5 +73,5 @@ UnicodeCommands = "\
 αβγδεζηθικλμνξπρσςτυφχψω\
 ⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
 ←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨"
+↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨⮌"
 

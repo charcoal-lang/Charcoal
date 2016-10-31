@@ -1071,6 +1071,10 @@ b   a   z
         self.assertEqual(Run("℅⁶⁵"), "A")
         self.assertEqual(Run("Ｉ℅A"), "65")
 
+    def test_reverse(self):
+        self.assertEqual(Run("⮌foobar"), "raboof")
+        self.assertEqual(Run("⮌⟦¹a²b⟧"), "b \n--\na \n- ")
+
     def test_preinitialized(self):
         self.assertEqual(Run("θ"), "abcdefghijklmnopqrstuvwxyz")
         self.assertEqual(Run("η"), "ABCDEFGHIJKLMNOPQRSTUVWXYZ")

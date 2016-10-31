@@ -158,7 +158,8 @@ VerboseGrammars = {
         ["Minimum"],
         ["Maximum"],
         ["Character"],
-        ["Ordinal"]
+        ["Ordinal"],
+        ["Reverse"]
     ],
     CharcoalToken.Binary: [
         ["Add"],

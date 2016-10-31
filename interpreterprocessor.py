@@ -265,7 +265,8 @@ InterpreterProcessor = {
         lambda result: lambda item, charcoal: max(item),
         lambda result: lambda item, charcoal: (
             chr(item) if isinstance(item, int) else ord(item)
-        )
+        ),
+        lambda result: lambda item, charcoal: item[::-1]
     ],
     CharcoalToken.Binary: [
         lambda result: lambda left, right, charcoal: (
