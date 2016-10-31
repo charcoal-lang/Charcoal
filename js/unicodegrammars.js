@@ -148,7 +148,8 @@ UnicodeGrammars[CharcoalToken.Unary] = [
     ['↧'],
     ['↥'],
     ['⌊'],
-    ['⌈']
+    ['⌈'],
+    ['℅']
 ];
 
 UnicodeGrammars[CharcoalToken.Binary] = [
@@ -168,7 +169,9 @@ UnicodeGrammars[CharcoalToken.Binary] = [
     ['⪫'],
     ['⪪'],
     ['⌕Ａ'],
-    ['⌕']
+    ['⌕'],
+    ['◧'],
+    ['◨']
 ];
 
 UnicodeGrammars[CharcoalToken.Ternary] = [

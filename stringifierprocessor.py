@@ -133,7 +133,8 @@ StringifierProcessor = {
         lambda result: "↧",
         lambda result: "↥",
         lambda result: "⌊",
-        lambda result: "⌈"
+        lambda result: "⌈",
+        lambda result: "℅"
     ],
     CharcoalToken.Binary: [
         lambda result: "⁺",
@@ -153,7 +154,9 @@ StringifierProcessor = {
         lambda result: "⪫",
         lambda result: "⪪",
         lambda result: "⌕Ａ",
-        lambda result: "⌕"
+        lambda result: "⌕",
+        lambda result: "◧",
+        lambda result: "◨"
     ],
     CharcoalToken.Ternary: [
     ],

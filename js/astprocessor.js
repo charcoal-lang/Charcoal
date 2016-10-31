@@ -153,7 +153,8 @@ ASTProcessor[CharcoalToken.Unary] = [
     function (result) { return 'To lowercase'; },
     function (result) { return 'To uppercase'; },
     function (result) { return 'Minimum'; },
-    function (result) { return 'Maximum'; }
+    function (result) { return 'Maximum'; },
+    function (result) { return 'Character/Ordinal'; }
 ];
 
 ASTProcessor[CharcoalToken.Binary] = [
@@ -173,7 +174,9 @@ ASTProcessor[CharcoalToken.Binary] = [
     function (result) { return 'Join'; },
     function (result) { return 'Split'; },
     function (result) { return 'Find all'; },
-    function (result) { return 'Find'; }
+    function (result) { return 'Find'; },
+    function (result) { return 'Pad left'; },
+    function (result) { return 'Pad right'; }
 ];
 
 ASTProcessor[CharcoalToken.Ternary] = [

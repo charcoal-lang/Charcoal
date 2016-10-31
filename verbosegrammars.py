@@ -156,7 +156,9 @@ VerboseGrammars = {
         ["Lowercase"],
         ["Uppercase"],
         ["Minimum"],
-        ["Maximum"]
+        ["Maximum"],
+        ["Character"],
+        ["Ordinal"]
     ],
     CharcoalToken.Binary: [
         ["Add"],
@@ -176,7 +178,9 @@ VerboseGrammars = {
         ["Join"],
         ["Split"],
         ["FindAll"],
-        ["Find"]
+        ["Find"],
+        ["PadLeft"],
+        ["PadRight"]
     ],
     CharcoalToken.Ternary: [
     ],

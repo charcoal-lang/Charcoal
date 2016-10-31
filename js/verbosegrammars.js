@@ -167,7 +167,9 @@ UnicodeGrammars[CharcoalToken.Unary] = [
     ['Lowercase'],
     ['Uppercase'],
     ['Minimum'],
-    ['Maximum']
+    ['Maximum'],
+    ['Character'],
+    ['Ordinal']
 ];
 
 UnicodeGrammars[CharcoalToken.Binary] = [
@@ -188,7 +190,9 @@ UnicodeGrammars[CharcoalToken.Binary] = [
     ['Join'],
     ['Split'],
     ['FindAll'],
-    ['Find']
+    ['Find'],
+    ['PadLeft'],
+    ['PadRight']
 ];
 
 UnicodeGrammars[CharcoalToken.Ternary] = [
@@ -335,6 +339,7 @@ UnicodeGrammars[CharcoalToken.Command] = [
         CharcoalToken.Expression,
         ')'
     ],
-    ['Extend', '(', CharcoalToken.Expression, ')']
-]
+    ['Extend', '(', CharcoalToken.Expression, ')'],
+    ['Push', '(', CharcoalToken.Expression, CharcoalToken.Expression, ')']
+];
 

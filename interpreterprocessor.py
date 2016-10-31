@@ -262,7 +262,10 @@ InterpreterProcessor = {
         lambda result: lambda item, charcoal: item.lower(),
         lambda result: lambda item, charcoal: item.upper(),
         lambda result: lambda item, charcoal: min(item),
-        lambda result: lambda item, charcoal: max(item)
+        lambda result: lambda item, charcoal: max(item),
+        lambda result: lambda item, charcoal: (
+            chr(item) if isinstance(item, int) else ord(item)
+        )
     ],
     CharcoalToken.Binary: [
         lambda result: lambda left, right, charcoal: (
@@ -315,6 +318,12 @@ InterpreterProcessor = {
             left.find(right)
             if isinstance(left, str) else
             ListFind(left, right)
+        ),
+        lambda result: lambda left, right, charcoal: (
+            " " * (right - len(left)) + left
+        ),
+        lambda result: lambda left, right, charcoal: (
+            left + " " * (right - len(left))
         )
     ],
     CharcoalToken.Ternary: [

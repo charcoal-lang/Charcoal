@@ -103,7 +103,8 @@ ASTProcessor = {
         lambda result: "To lowercase",
         lambda result: "To uppercase",
         lambda result: "Minimum",
-        lambda result: "Maximum"
+        lambda result: "Maximum",
+        lambda result: "Character/Ordinal"
     ],
     CharcoalToken.Binary: [
         lambda result: "Sum",
@@ -118,11 +119,13 @@ ASTProcessor = {
         lambda result: "Mold",
         lambda result: "Exponentiate",
         lambda result: "At index",
-        lambda result: "Push operator",
+        lambda result: "Push",
         lambda result: "Join",
         lambda result: "Split",
         lambda result: "Find all",
-        lambda result: "Find"
+        lambda result: "Find",
+        lambda result: "Pad left",
+        lambda result: "Pad right"
     ],
     CharcoalToken.Ternary: [
     ],

@@ -402,6 +402,9 @@ InterpreterProcessor[CharcoalToken.Unary] = [
                 return previous > current ? previous : current;
             });
         }
+    },
+    function (result) {
+        return function (item, charcoal) { return typeof item === 'string' ? item.charCodeAt(0) : String.fromCharCode(item); }
     }
 ];
 
@@ -479,6 +482,12 @@ InterpreterProcessor[CharcoalToken.Binary] = [
     },
     function (result) {
         return function (left, right) { return left.indexOf(right); }
+    },
+    function (result) {
+        return function (left, right) { return ' '.repeat(right - left.length) + left; }
+    },
+    function (result) {
+        return function (left, right) { return left + ' '.repeat(right - left.length); }
     }
 ];
 

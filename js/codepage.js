@@ -42,8 +42,8 @@ var OrdinalLookup = {};
 \n\x15\x16\x01\x02\x03\x04\x17\x18\x19\x1A\x1B\x05\x06';
     for (var i = 0; i < 7; i++)
         UnicodeLookup[replaced] = replacement;
-    var high = '⪫⪪⌕';
-    var low = '\x01\x02\x1B';
+    var high = '⪫⪪℅◧◨⌕';
+    var low = '\x01\x02\x03\x04\x05\x1B';
     for (var i = 0; i < 2; i++)
         UnicodeLookup[CharacterPlus128(low[i])] = high[i];
     for (var eightBit in UnicodeLookup) {
@@ -73,7 +73,7 @@ var InCodepage = (function () {
         otherCharcoalCharacters = '⁰¹²³⁴⁵⁶⁷⁸⁹\
 ⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
 ←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕';
+↶↷⟲¿‽‖·¤¦“”⎚¶…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨';
     return function (character) {
         var charcode = character.charCodeAt(0);
         return (
@@ -91,5 +91,5 @@ var UnicodeCommands = '\
 αβγδεζηθικλμνξπρσςτυφχψω\
 ⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
 ←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕';
+↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨';
 

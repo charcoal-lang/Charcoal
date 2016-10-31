@@ -141,7 +141,9 @@ StringifierProcessor[CharcoalToken.Unary] = [
     function (result) { return '↧'; },
     function (result) { return '↥'; },
     function (result) { return '⌊'; },
-    function (result) { return '⌈'; }
+    function (result) { return '⌈'; },
+    function (result) { return '℅'; },
+    function (result) { return '℅'; }
 ];
 
 StringifierProcessor[CharcoalToken.Binary] = [
@@ -162,7 +164,9 @@ StringifierProcessor[CharcoalToken.Binary] = [
     function (result) { return '⪫'; },
     function (result) { return '⪪'; },
     function (result) { return '⌕Ａ'; },
-    function (result) { return '⌕'; }
+    function (result) { return '⌕'; },
+    function (result) { return '◧'; },
+    function (result) { return '◨'; }
 ];
 
 StringifierProcessor[CharcoalToken.Ternary] = [

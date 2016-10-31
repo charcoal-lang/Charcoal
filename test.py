@@ -1063,6 +1063,14 @@ b   a   z
         self.assertEqual(Run("⌕Ａabcdc¦c"), "--  \n----")
         self.assertEqual(Run("⌕Ａ⟦a³a¹a²b³c⁴d⟧¦³"), "-      \n-------")
 
+    def test_pad(self):
+        self.assertEqual(Run("◧foo⁵"), "  foo")
+        self.assertEqual(Run("◨foo⁵"), "foo  ")
+
+    def test_chr_ord(self):
+        self.assertEqual(Run("℅⁶⁵"), "A")
+        self.assertEqual(Run("Ｉ℅A"), "65")
+
     def test_preinitialized(self):
         self.assertEqual(Run("θ"), "abcdefghijklmnopqrstuvwxyz")
         self.assertEqual(Run("η"), "ABCDEFGHIJKLMNOPQRSTUVWXYZ")

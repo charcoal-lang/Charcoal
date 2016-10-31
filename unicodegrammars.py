@@ -137,7 +137,8 @@ UnicodeGrammars = {
         ["↧"],
         ["↥"],
         ["⌊"],
-        ["⌈"]
+        ["⌈"],
+        ["℅"]
     ],
     CharcoalToken.Binary: [
         ["⁺"],
@@ -156,7 +157,9 @@ UnicodeGrammars = {
         ["⪫"],
         ["⪪"],
         ["⌕Ａ"],
-        ["⌕"]
+        ["⌕"],
+        ["◧"],
+        ["◨"]
     ],
     CharcoalToken.Ternary: [
     ],
