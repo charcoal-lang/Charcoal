@@ -104,7 +104,8 @@ ASTProcessor = {
         lambda result: "To uppercase",
         lambda result: "Minimum",
         lambda result: "Maximum",
-        lambda result: "Character/Ordinal"
+        lambda result: "Character/Ordinal",
+        lambda result: "Reverse"
     ],
     CharcoalToken.Binary: [
         lambda result: "Sum",
