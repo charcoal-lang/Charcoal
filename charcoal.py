@@ -950,7 +950,7 @@ class Charcoal:
         if isinstance(direction, list):
 
             for direction_ in direction:
-                self.ReflectCopy(direction_)
+                self.ReflectCopy(direction_, transform)
 
             return
 
