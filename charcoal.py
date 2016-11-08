@@ -180,15 +180,22 @@ class Charcoal:
         self.lengths = [0]
         self.right_indices = [0]
         self.scope = Scope()
-        self.hidden = {
-            "θ": "abcdefghijklmnopqrstuvwxyz",
-            "η": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "ζ": 10,
-            "ε": ""
-        }
         self.info = info
         self.original_input = original_input
         self.inputs = inputs
+        self.original_inputs = inputs[:]
+        self.all_inputs = inputs + [ None ] * (5 - len(inputs))
+        self.hidden = {
+            "θ": self.all_inputs[0],
+            "η": self.all_inputs[1],
+            "ζ": self.all_inputs[2],
+            "ε": self.all_inputs[3],
+            "δ": self.all_inputs[4],
+            "γ": "abcdefghijklmnopqrstuvwxyz",
+            "β": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "α": 10,
+            "ω": ""
+        }
         self.direction = Direction.right
         self.background = " "
         self.bg_lines = []
@@ -362,13 +369,18 @@ class Charcoal:
         self.lengths = [0]
         self.right_indices = [0]
         self.scope = Scope()
+        self.inputs = self.original_inputs[:]
         self.hidden = {
-            "θ": "abcdefghijklmnopqrstuvwxyz",
-            "η": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "ζ": 10,
-            "ε": ""
+            "θ": self.all_inputs[0],
+            "η": self.all_inputs[1],
+            "ζ": self.all_inputs[2],
+            "ε": self.all_inputs[3],
+            "δ": self.all_inputs[4],
+            "γ": "abcdefghijklmnopqrstuvwxyz",
+            "β": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "α": 10,
+            "ω": ""
         }
-        self.inputs = []
         self.direction = Direction.right
         self.background = " "
         self.bg_lines = []

@@ -1076,9 +1076,15 @@ b   a   z
         self.assertEqual(Run("⮌⟦¹a²b⟧"), "b \n--\na \n- ")
 
     def test_preinitialized(self):
-        self.assertEqual(Run("θ"), "abcdefghijklmnopqrstuvwxyz")
-        self.assertEqual(Run("η"), "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-        self.assertEqual(Run("ζ"), "----------")
+        self.assertEqual(Run("θ", "a b c d e"), "a")
+        self.assertEqual(Run("η", "a b c d e"), "b")
+        self.assertEqual(Run("ζ", "a b c d e"), "c")
+        self.assertEqual(Run("ε", "a b c d e"), "d")
+        self.assertEqual(Run("δ", "a b c d e"), "e")
+        self.assertEqual(Run("γ"), "abcdefghijklmnopqrstuvwxyz")
+        self.assertEqual(Run("β"), "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        self.assertEqual(Run("α"), "----------")
+        self.assertEqual(Run("ω"), "")
 
     def test_input(self):
         self.assertEqual(
