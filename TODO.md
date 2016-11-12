@@ -1,2 +1,2 @@
 # To Do
-Add `Push` command to JS
+Add `switch`, `Push`, `Count` and `Peek` commands to JS

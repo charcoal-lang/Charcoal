@@ -13,6 +13,7 @@ class CharcoalToken(Enum):
     Sides = 12
     Expressions = 13
     PairExpressions = 14
+    Cases = 15
 
     Expression = 21
     Nilary = 22

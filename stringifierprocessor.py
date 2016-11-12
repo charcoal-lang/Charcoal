@@ -86,6 +86,10 @@ StringifierProcessor = {
         lambda result: result[0] + result[1] + result[2],
         lambda result: result[0] + result[1]
     ],
+    CharcoalToken.Cases: [
+        lambda result: [result[1], result[3]] + result[4],
+        lambda result: []
+    ],
 
     CharcoalToken.List: [
         lambda result: "⟦" + result[1] + "⟧",
@@ -120,6 +124,8 @@ StringifierProcessor = {
         lambda result: "Ｎ",
         lambda result: "‽",
         lambda result: "ＫＡ",
+        lambda result: "ＫＭ",
+        lambda result: "ＫＶ",
         lambda result: "Ｋ"
     ],
     CharcoalToken.Unary: [
@@ -158,7 +164,8 @@ StringifierProcessor = {
         lambda result: "⌕Ａ",
         lambda result: "⌕",
         lambda result: "◧",
-        lambda result: "◨"
+        lambda result: "◨",
+        lambda result: "№"
     ],
     CharcoalToken.Ternary: [
     ],
@@ -172,7 +179,9 @@ StringifierProcessor = {
         lambda result: "⎇"
     ],
     CharcoalToken.OtherOperator: [
-        lambda result: "ＫＤ" + result[1] + result[2]
+        lambda result: "ＫＤ" + result[1] + result[2],
+        lambda result: "Ｅ" + result[1] + result[2],
+        lambda result: "Ｅ" + result[1] + result[2]
     ],
 
     CharcoalToken.Program: [
@@ -235,7 +244,9 @@ StringifierProcessor = {
         lambda result: "⎚",
         lambda result: "ＵＥ" + result[2] + result[3],
         lambda result: "ＵＥ" + result[2],
-        lambda result: "⊞" + result[2] + result[3]
+        lambda result: "⊞" + result[2] + result[3],
+        lambda result: "≡" + result[2] + result[5] + result[8],
+        lambda result: "≡" + result[2] + result[5]
     ]
 }
 

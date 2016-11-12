@@ -33,6 +33,17 @@ NewlineDirection = {
     Direction.down_right: Direction.down_left
 }
 
+NextDirection = {
+    Direction.left: Direction.up_left,
+    Direction.up: Direction.up_right,
+    Direction.right: Direction.down_right,
+    Direction.down: Direction.down_left,
+    Direction.up_left: Direction.up,
+    Direction.up_right: Direction.right,
+    Direction.down_left: Direction.left,
+    Direction.down_right: Direction.down
+}
+
 DirectionCharacters = {
     Direction.left: "-",
     Direction.up: "|",

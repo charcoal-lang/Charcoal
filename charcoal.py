@@ -3,9 +3,7 @@
 # TODO List:
 # bresenham
 # image to ascii
-# RotateCopy, RotateOverlap and cursor movement for them
-# separate string and int inputs
-# possibly make deverbosify better
+# Finish rotation
 
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
@@ -166,6 +164,17 @@ class Scope:
     def delete(self, key):
         del self[key]
 
+class Cells(list):
+    def __init__(self, charcoal, value, xs, ys):
+        super(Cells, self).__init__(value)
+        self.xs = xs
+        self.ys = ys
+        self.charcoal = charcoal
+
+    def __setitem__(self, i, value):
+        super(Cells, self).__setitem__(i, value)
+        self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
+
 class Charcoal:
     def __init__(
         self,
@@ -184,7 +193,7 @@ class Charcoal:
         self.original_input = original_input
         self.inputs = inputs
         self.original_inputs = inputs[:]
-        self.all_inputs = inputs + [ None ] * (5 - len(inputs))
+        self.all_inputs = inputs + [""] * (5 - len(inputs))
         self.hidden = {
             "θ": self.all_inputs[0],
             "η": self.all_inputs[1],
@@ -392,10 +401,20 @@ class Charcoal:
         y_index = self.y - self.top
         return self.lines[y_index][self.x - self.indices[y_index]]
 
+    def PutAt(self, string, x, y):
+        initial_x = self.x
+        initial_y = self.y
+        self.x = x
+        self.y = y
+        self.Put(string)
+        self.x = initial_x
+        self.y = initial_y
+
     def Put(self, string):
         is_empty = True
 
         for character in string:
+
             if character != "\000":
                 is_empty = False
                 break
@@ -1734,7 +1753,7 @@ class Charcoal:
             return [self.Cast(item) for item in variable]
 
         if isinstance(variable, str):
-            return int(variable)
+            return int(variable or "0")
 
         if isinstance(variable, int):
             return str(variable)
@@ -1937,8 +1956,6 @@ make sure you explicitly use 0 for no delay if needed""")
         for argument in arguments:
             self.scope[self.GetFreeVariable()] = argument
 
-        function(self)
-
         self.scope = self.scope.parent
 
     def Ternary(self, condition, if_true, if_false):
@@ -1973,20 +1990,101 @@ make sure you explicitly use 0 for no delay if needed""")
 
         x = self.x
         y = self.y
-        delta_x += XMovement[direction]
-        delta_y += YMovement[direction]
+        delta_x = XMovement[direction]
+        delta_y = YMovement[direction]
         result = []
+        xs = []
+        ys = []
 
         for i in range(length):
             result += [self.GetAt(x, y)]
+            xs += [x]
+            ys += [y]
             x += delta_x
             y += delta_y
 
-        return result
+        return Cells(self, result, xs, ys)
 
     def PeekAll(self):
-        # TODO
-        pass
+        y = self.top
+        result = []
+        xs = []
+        ys = []
+
+        for i in range(len(self.lines)):
+            line = self.lines[i]
+            x = self.indices[i]
+
+            for character in line:
+
+                if character == "\x00":
+                    x += 1
+                    continue
+
+                result += [character]
+                xs += [x]
+                ys += [y]
+                x += 1
+
+            y += 1
+
+        return Cells(self, result, xs, ys)
+
+    def PeekMoore(self, direction=None):
+
+        if not direction:
+            direction = Direction.up_left
+
+        initial_x = self.x
+        initial_y = self.y
+        result = []
+        xs = []
+        ys = []
+
+        for i in range(8):
+            x = initial_x + XMovement[direction]
+            y = initial_y + YMovement[direction]
+            result += [self.GetAt(x, y)]
+            xs += [x]
+            ys += [y]
+            direction = NextDirection[direction]
+
+        return Cells(self, result, xs, ys)
+
+    def PeekVonNeumann(self, direction=None):
+
+        if not direction:
+            direction = Direction.up
+
+        initial_x = self.x
+        initial_y = self.y
+        result = []
+        xs = []
+        ys = []
+
+        for i in range(4):
+            x = initial_x + XMovement[direction]
+            y = initial_y + YMovement[direction]
+            result += [self.GetAt(x, y)]
+            xs += [x]
+            ys += [y]
+            direction = NewlineDirection[direction]
+
+        return Cells(self, result, xs, ys)
+
+    def Map(self, iterable, function):
+        self.scope = Scope(self.scope)
+        loop_variable = self.GetFreeVariable()
+        result = []
+
+        for item in iterable:
+            self.scope[loop_variable] = item
+            result += [function(self)]
+
+        iterable[:] = result
+        self.scope = self.scope.parent
+
+        return iterable
 
 def PassThrough(result):
     return result
@@ -2035,9 +2133,20 @@ def ParseExpression(
                             index += 1
 
                     else:
+                        depth = 1
 
-                        while code[index] != "*" and code[index + 1] != "/":
-                            index += 1
+                        while depth:
+                            next_chars = code[index:index + 2]
+
+                            while next_chars != "*/":
+
+                                if next_chars == "/*":
+                                    depth += 1
+
+                                index += 1
+                                next_chars = code[index:index + 2]
+
+                            depth -= 1
 
                         index += 2
 

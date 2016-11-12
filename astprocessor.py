@@ -56,6 +56,10 @@ ASTProcessor = {
         lambda result: [result[2][0], [result[0], result[1]]] + result[2][1:],
         lambda result: ["PairExpressions", [result[0], result[1]]]
     ],
+    CharcoalToken.Cases: [
+        lambda result: ["Cases", ["Case", result[0], result[1]]] + result[2][1:],
+        lambda result: ["Cases"]
+    ],
 
     CharcoalToken.List: [
         lambda result: ["List"] + result[1][1:],
@@ -90,7 +94,9 @@ ASTProcessor = {
         lambda result: "Input number",
         lambda result: "Random",
         lambda result: "Peek all",
-        lambda result: "Peek"
+        lambda result: "Peek Moore",
+        lambda result: "Peek Von Neumann",
+        lambda result: "Peek",
     ],
     CharcoalToken.Unary: [
         lambda result: "Negative",
@@ -126,7 +132,8 @@ ASTProcessor = {
         lambda result: "Find all",
         lambda result: "Find",
         lambda result: "Pad left",
-        lambda result: "Pad right"
+        lambda result: "Pad right",
+        lambda result: "Count"
     ],
     CharcoalToken.Ternary: [
     ],
@@ -140,7 +147,8 @@ ASTProcessor = {
         lambda result: "Ternary"
     ],
     CharcoalToken.OtherOperator: [
-        lambda result: "Peek direction" + result[1:]
+        lambda result: ["Peek direction"] + result[1:],
+        lambda result: ["Map"] + result[1:]
     ],
 
     CharcoalToken.Program: [
@@ -204,6 +212,7 @@ ASTProcessor = {
         lambda result: ["Clear"],
         lambda result: ["Extend", result[1], result[2]],
         lambda result: ["Extend", result[1]],
-        lambda result: ["Push"] + result[1:]
+        lambda result: ["Push"] + result[1:],
+        lambda result: ["Switch"] + result[1:]
     ]
 }

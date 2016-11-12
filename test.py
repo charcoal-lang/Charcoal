@@ -344,6 +344,10 @@ if (0) {
 } //else
     Print('ghjk')""", verbose=True), "ghjk")
 
+    def test_switch(self):
+        self.assertEqual(Run("≡§abc⁰⁺¹¦¹ω§abc⁰"), "a")
+        pass
+
     def test_pivot(self):
         self.assertEqual(Run("↶¹asdf"), "   f\n  d \n s  \na   ")
         self.assertEqual(Run("↶²asdf"), "f\nd\ns\na")
@@ -1001,9 +1005,6 @@ b   a   z
         self.assertEqual(Run("Ｉ¹¹¹"), "111")
         self.assertEqual(Run("Ｉ5"), "-----")
 
-    def test_peek(self):
-        self.assertEqual(Run("aＭ←×Ｋ²"), "aa")
-
     def test_minimum(self):
         self.assertEqual(Run("Ｉ⌊⟦¹¦²¦³¦±¹⟧"), "-1")
 
@@ -1074,6 +1075,25 @@ b   a   z
     def test_reverse(self):
         self.assertEqual(Run("⮌foobar"), "raboof")
         self.assertEqual(Run("⮌⟦¹a²b⟧"), "b \n--\na \n- ")
+
+    def test_peek(self):
+        # TODO: test manipulation when list methods implemented
+        self.assertEqual(Run("barＭ←×Ｋ⁵"), "barrrrr")
+        self.assertEqual(Run("barＭ←⪫ＫＤ³←ω"), "barab")
+        self.assertEqual(Run("↓foo×⪫ＫＡω⁵"), """\
+f              
+o              
+o              
+foofoofoofoofoo""")
+        self.assertEqual(Run("baz←Ｍ←×⪫ＫＭω⁵"), "bzbzbzbzbzb")
+        self.assertEqual(Run("quux←Ｍ←×⪫ＫＶω⁵"), "quxuxuxuxuxu")
+
+    def test_count(self):
+        self.assertEqual(Run("№foo¦o"), "--")
+        self.assertEqual(Run("№⟦¹a¹⟧¦¹"), "--")
+
+    def test_map(self):
+        self.assertEqual(Run("Ｅ⟦¹1²⟧Ｉι"), "1\n-\n2")
 
     def test_preinitialized(self):
         self.assertEqual(Run("θ", "a b c d e"), "a")

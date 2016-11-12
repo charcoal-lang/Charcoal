@@ -64,6 +64,17 @@ VerboseGrammars = {
         ],
         [CharcoalToken.Expression, CharcoalToken.Expression]
     ],
+    CharcoalToken.Cases: [
+        [
+            "case",
+            CharcoalToken.Expression,
+            ":",
+            CharcoalToken.Body,
+            CharcoalToken.Separator,
+            CharcoalToken.Cases
+        ],
+        []
+    ],
 
     CharcoalToken.List: [
         ["[", CharcoalToken.Expressions, "]"],
@@ -143,6 +154,8 @@ VerboseGrammars = {
         ["InputNumber"],
         ["Random"],
         ["PeekAll"],
+        ["PeekMoore"],
+        ["PeekVonNeumann"],
         ["Peek"]
     ],
     CharcoalToken.Unary: [
@@ -181,7 +194,8 @@ VerboseGrammars = {
         ["FindAll"],
         ["Find"],
         ["PadLeft"],
-        ["PadRight"]
+        ["PadRight"],
+        ["Count"]
     ],
     CharcoalToken.Ternary: [
     ],
@@ -195,7 +209,9 @@ VerboseGrammars = {
         ["Ternary"]
     ],
     CharcoalToken.OtherOperator: [
-        ["PeekDirection", CharcoalToken.Expression, CharcoalToken.Arrow]
+        ["PeekDirection", CharcoalToken.Expression, CharcoalToken.Arrow],
+        ["Each", CharcoalToken.Expression, CharcoalToken.Expression],
+        ["Map", CharcoalToken.Expression, CharcoalToken.Expression]
     ],
 
     CharcoalToken.Program: [
@@ -339,6 +355,27 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             CharcoalToken.Expression,
             ")"
+        ],
+        [
+            "switch",
+            "(",
+            CharcoalToken.Expression,
+            ")",
+            "{",
+            CharcoalToken.Cases,
+            "default",
+            ":",
+            CharcoalToken.Body,
+            "}"
+        ],
+        [
+            "switch",
+            "(",
+            CharcoalToken.Expression,
+            ")",
+            "{",
+            CharcoalToken.Cases,
+            "}"
         ]
     ]
 }

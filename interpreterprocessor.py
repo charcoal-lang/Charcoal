@@ -185,6 +185,13 @@ InterpreterProcessor = {
             )
         ]
     ],
+    CharcoalToken.Cases: [
+        lambda result: lambda charcoal: [[
+            result[0](charcoal),
+            result[1]
+        ]] + result[2](charcoal),
+        lambda result: lambda charcoal: []
+    ],
 
     CharcoalToken.List: [
         lambda result: lambda charcoal: result[1](charcoal),
@@ -249,6 +256,8 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: charcoal.InputNumber(),
         lambda result: lambda charcoal: charcoal.Random(),
         lambda result: lambda charcoal: charcoal.PeekAll(),
+        lambda result: lambda charcoal: charcoal.PeekMoore(),
+        lambda result: lambda charcoal: charcoal.PeekVonNeumann(),
         lambda result: lambda charcoal: charcoal.Peek()
     ],
     CharcoalToken.Unary: [
@@ -303,11 +312,15 @@ InterpreterProcessor = {
         ),
         lambda result: lambda left, right, charcoal: left ** right,
         lambda result: lambda left, right, charcoal: (
-            lambda value: "" if value == "\x00" else value
-        )(left[right]) if (
-            right in left if
-            isinstance(left, dict) else
-            right >= 0 and right < len(left)
+            (
+                lambda value: "" if value == "\x00" else value
+            )(
+                left[right] if
+                isinstance(left, dict) else
+                left[right % len(left)]
+            )
+        ) if (
+            (not isinstance(left, dict)) or right in left
         ) else None,
         lambda result: lambda left, right, charcoal: (
             left.append(right) or left
@@ -325,7 +338,8 @@ InterpreterProcessor = {
         ),
         lambda result: lambda left, right, charcoal: (
             left + " " * (right - len(left))
-        )
+        ),
+        lambda result: lambda left, right, charcoal: left.count(right)
     ],
     CharcoalToken.Ternary: [
     ],
@@ -346,6 +360,10 @@ InterpreterProcessor = {
     ],
     CharcoalToken.OtherOperator: [
         lambda result: lambda charcoal: charcoal.PeekDirection(
+            result[1](charcoal),
+            result[2]
+        ),
+        lambda result: lambda charcoal: charcoal.Map(
             result[1](charcoal),
             result[2]
         )
@@ -506,7 +524,11 @@ InterpreterProcessor = {
             (lambda value: value.append(result[2](charcoal)) or value)(
                 result[1](charcoal)
             )
-        )
+        ),
+        lambda result: lambda charcoal: dict(result[2](charcoal)).get(
+            result[1](charcoal),
+            result[3]
+        )(charcoal)
     ]
 }
 

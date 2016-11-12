@@ -63,6 +63,10 @@ UnicodeGrammars = {
         ],
         [CharcoalToken.Expression, CharcoalToken.Expression]
     ],
+    CharcoalToken.Cases: [
+        [CharcoalToken.Expression, CharcoalToken.Body, CharcoalToken.Cases],
+        []
+    ],
 
     CharcoalToken.List: [
         ["⟦", CharcoalToken.Expressions, "⟧"],
@@ -124,6 +128,8 @@ UnicodeGrammars = {
         ["Ｎ"],
         ["‽"],
         ["ＫＡ"],
+        ["ＫＭ"],
+        ["ＫＶ"],
         ["Ｋ"]
     ],
     CharcoalToken.Unary: [
@@ -160,7 +166,8 @@ UnicodeGrammars = {
         ["⌕Ａ"],
         ["⌕"],
         ["◧"],
-        ["◨"]
+        ["◨"],
+        ["№"]
     ],
     CharcoalToken.Ternary: [
     ],
@@ -174,7 +181,8 @@ UnicodeGrammars = {
         ["⎇"]
     ],
     CharcoalToken.OtherOperator: [
-        ["ＫＤ", CharcoalToken.Expression, CharcoalToken.Arrow]
+        ["ＫＤ", CharcoalToken.Expression, CharcoalToken.Arrow],
+        ["Ｅ", CharcoalToken.Expression, CharcoalToken.Expression]
     ],
 
     CharcoalToken.Program: [
@@ -268,7 +276,8 @@ UnicodeGrammars = {
         ["⎚"],
         ["ＵＥ", CharcoalToken.Expression, CharcoalToken.Expression],
         ["ＵＥ", CharcoalToken.Expression],
-        ["⊞", CharcoalToken.Expression, CharcoalToken.Expression]
+        ["⊞", CharcoalToken.Expression, CharcoalToken.Expression],
+        ["≡", CharcoalToken.Expression, CharcoalToken.Cases, CharcoalToken.Body]
     ]
 }
 
