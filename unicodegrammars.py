@@ -215,7 +215,7 @@ UnicodeGrammars = {
             CharcoalToken.Expression,
             CharcoalToken.Expression
         ],
-        ["ＢＲ", CharcoalToken.Expression, CharcoalToken.Expression],
+        ["ＵＲ", CharcoalToken.Expression, CharcoalToken.Expression],
         [
             "Ｂ",
             CharcoalToken.Expression,
