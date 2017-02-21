@@ -204,7 +204,7 @@ StringifierProcessor = {
         lambda result: "Ｇ" + result[2] + result[4] + result[5],
         lambda result: "ＧＨ" + result[2] + result[4],
         lambda result: "ＧＨ" + result[2] + result[4] + result[5],
-        lambda result: "ＢＲ" + result[2] + result[3],
+        lambda result: "ＵＲ" + result[2] + result[3],
         lambda result: "Ｂ" + result[2] + result[3] + result[4],
         lambda result: "Ｍ" + result[2],
         lambda result: "Ｍ" + result[2] + result[3],
