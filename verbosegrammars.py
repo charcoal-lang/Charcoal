@@ -313,6 +313,7 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             ")",
             CharcoalToken.Body,
+            "else",
             CharcoalToken.Body
         ],
         ["if", "(", CharcoalToken.Expression, ")", CharcoalToken.Body],
@@ -326,8 +327,7 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             CharcoalToken.Expression,
             ")",
-            CharcoalToken.Body,
-            ")"
+            CharcoalToken.Body
         ],
         [
             "RefreshWhile",

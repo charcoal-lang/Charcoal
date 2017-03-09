@@ -2820,16 +2820,20 @@ non-raw file input and file output."""
         del file_output
 
     if argv.verbose or argv.deverbosify:
-        code = re.sub(
-            "»+$",
-            "",
-            ParseExpression(
-                code,
-                grammars=VerboseGrammars,
-                processor=StringifierProcessor,
-                verbose=True
-            )[0]
-        )
+        code = ParseExpression(
+            code,
+            grammars=VerboseGrammars,
+            processor=StringifierProcessor,
+            verbose=True
+        )[0]
+
+        for replacement in (
+            ("»+$", ""),
+            ("([ -~¶])¦([⁰¹²³⁴⁵⁶⁷⁸⁹])", "\\1\\2"),
+            ("([⁰¹²³⁴⁵⁶⁷⁸⁹])¦([ -~¶])", "\\1\\2"),
+            ("Ｍ([←↑→↓↖↗↘↙]{2})", "\\1")
+        ):
+            code = re.sub(replacement[0], replacement[1], code)
 
         if argv.deverbosify:
             print(code)
@@ -2882,16 +2886,20 @@ non-raw file input and file output."""
                 code = old_input("Charcoal> ")
 
                 if argv.verbose:
-                    code = re.sub(
-                        "»+$",
-                        "",
-                        ParseExpression(
-                            code,
-                            grammars=VerboseGrammars,
-                            processor=StringifierProcessor,
-                            verbose=True
-                        )[0]
-                    )
+                    code = ParseExpression(
+                        code,
+                        grammars=VerboseGrammars,
+                        processor=StringifierProcessor,
+                        verbose=True
+                    )[0]
+
+                    for replacement in (
+                        ("»+$", ""),
+                        ("([ -~¶])¦([⁰¹²³⁴⁵⁶⁷⁸⁹])", "\\1\\2"),
+                        ("([⁰¹²³⁴⁵⁶⁷⁸⁹])¦([ -~¶])", "\\1\\2"),
+                        ("Ｍ([←↑→↓↖↗↘↙]{2})", "\\1")
+                    ):
+                        code = re.sub(replacement[0], replacement[1], code)
 
                 if argv.astify:
                     print("Program")
