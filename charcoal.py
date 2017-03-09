@@ -14,7 +14,7 @@ from verbosegrammars import VerboseGrammars
 from astprocessor import ASTProcessor
 from interpreterprocessor import InterpreterProcessor
 from stringifierprocessor import StringifierProcessor
-from codepage import UnicodeLookup, UnicodeCommands, InCodepage
+from codepage import UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage
 from compression import Decompressed
 from enum import Enum
 import random
@@ -25,6 +25,11 @@ import sys
 import time
 import ast
 
+# from https://gist.github.com/puentesarrin/6567480
+import os.path
+import string
+import sys
+
 if os.name == "nt":
 
     try:
@@ -33,7 +38,7 @@ if os.name == "nt":
 
     except:
         print("""\
-Please install the 'colorama' module ('pip install colorama'\n
+Please install the 'colorama' module ('pip install colorama'\
  or 'pip3 install colorama') \
 for the 'Refresh' command to work properly.""")
 
@@ -2601,6 +2606,32 @@ def RemoveThrottle():
         lambda result: lambda charcoal: charcoal.DumpNoThrottle()
     )
 
+# from https://gist.github.com/puentesarrin/6567480
+
+def print_xxd(data):
+    data = list(map(lambda c: ord(ReverseLookup.get(c, c)), data))
+    counter = 0
+    buf = [1]
+    while buf:
+        buf = data[counter << 4:(counter + 1) << 4]
+        if not buf:
+            break
+        buf2 = ['%02x' % i for i in buf]
+        print('{0}: {1:<39}  {2}'.format(
+            ('%07x' % (counter << 4)),
+            ' '.join(
+                [''.join(buf2[i:i + 2]) for i in range(0, len(buf2), 2)]
+            ),
+            ''.join(
+                [
+                    chr(c) if
+                    chr(c) in string.printable[:-5] else
+                    '.' for c in buf
+                ]
+            )
+        ))
+        counter += 1
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Interpret the Charcoal language."
@@ -2697,6 +2728,10 @@ non-raw file input and file output."""
     parser.add_argument(
         "-t", "--test", action="store_true",
         help="Run unit tests."
+    )
+    parser.add_argument(
+        "-hd", "--hexdump", action="store_true",
+        help="Show the xxd hexdump of the code."
     )
     argv = parser.parse_args()
     info = set()
@@ -2815,6 +2850,9 @@ non-raw file input and file output."""
             re.sub("`", "\`", code)
         ))
 
+    if argv.hexdump:
+        print_xxd(code)
+
     if argv.astify or argv.onlyastify and not argv.repl:
         print("Program")
         PrintTree(Parse(
@@ -2838,6 +2876,7 @@ non-raw file input and file output."""
     if argv.repl:
 
         while True:
+            is_clear = True
 
             try:
                 code = old_input("Charcoal> ")
@@ -2870,9 +2909,16 @@ non-raw file input and file output."""
                     normal_encoding=argv.normalencoding
                 ))
 
+                is_clear = False
+
             except KeyboardInterrupt:
+
+                if is_clear:
+                    break
+
                 global_charcoal.Clear()
                 print("\nCleared canvas")
+                is_clear = True
 
             except EOFError:
                 break
