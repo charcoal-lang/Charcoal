@@ -130,7 +130,7 @@ UnicodeGrammars = {
         ["ＫＡ"],
         ["ＫＭ"],
         ["ＫＶ"],
-        ["Ｋ"]
+        ["ＫＫ"]
     ],
     CharcoalToken.Unary: [
         ["±"],

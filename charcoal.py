@@ -13,7 +13,7 @@ from unicodegrammars import UnicodeGrammars
 from verbosegrammars import VerboseGrammars
 from astprocessor import ASTProcessor
 from interpreterprocessor import InterpreterProcessor
-from stringifierprocessor import StringifierProcessor
+from stringifierprocessor import StringifierProcessor, rCommand
 from codepage import UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage
 from compression import Decompressed
 from enum import Enum
@@ -37,7 +37,8 @@ if os.name == "nt":
         init()
 
     except:
-        print("""\
+        if __name__ == "__main__":
+            print("""\
 Please install the 'colorama' module ('pip install colorama'\
  or 'pip3 install colorama') \
 for the 'Refresh' command to work properly.""")
@@ -1511,42 +1512,117 @@ class Charcoal:
         initial_x = self.x
         initial_y = self.y
 
+        length = len(self.lines)
+
+        left = right = top = bottom = 0
+
+        if XMovement[anchor] == 1:
+            right = max(self.right_indices)
+
+        elif XMovement[anchor] == -1:
+            left = min(self.indices)
+
+        if YMovement[anchor] == 1:
+            bottom  = self.top + len(self.lines)
+
+        elif YMovement[anchor] == -1:
+            top = self.top
+
         if rotations == 2:
 
-
             if anchor == Direction.down_right:
-                right = max(self.right_indices)
-                bottom = self.top + len(self.lines)
                 self.x = right
-                for line, length, right_index in zip(
+                for line, length, index in zip(
                     self.lines[::-1],
                     self.lengths[::-1],
-                    self.right_indices[::-1]
+                    self.indices[::-1]
                 ):
                     self.x -= 1
-                    self.y = bottom + right - right_index
-                    self.PrintLine({Direction.down}, length, line[::-1])
+                    self.y = bottom + right - index - 1
+                    self.PrintLine({Direction.up}, length, line)
+
+            if anchor == Direction.down_left:
+                self.x = left
+                for line, length, index in zip(
+                    self.lines[::-1],
+                    self.lengths[::-1],
+                    self.indices[::-1]
+                ):
+                    self.x -= 1
+                    self.y = bottom + left - index - 1
+                    self.PrintLine({Direction.up}, length, line)
+
+            if anchor == Direction.up_left:
+                self.x = left + length
+                for line, length, index in zip(
+                    self.lines[::-1],
+                    self.lengths[::-1],
+                    self.indices[::-1]
+                ):
+                    self.x -= 1
+                    self.y = top + left - index - 1
+                    self.PrintLine({Direction.up}, length, line)
+
+            if anchor == Direction.up_right:
+                self.x = right + length
+                for line, length, index in zip(
+                    self.lines[::-1],
+                    self.lengths[::-1],
+                    self.indices[::-1]
+                ):
+                    self.x -= 1
+                    self.y = top + right - index - 1
+                    self.PrintLine({Direction.up}, length, line)
 
         elif rotations == 4:
 
             if anchor == Direction.down_right:
-                right = max(self.right_indices)
-                bottom = self.top + len(self.lines)
                 self.y = bottom - 1
-                for line, length, right_index in zip(
+                for line, length, index in zip(
                     self.lines[::-1],
                     self.lengths[::-1],
-                    self.right_indices[::-1]
+                    self.indices[::-1]
                 ):
-                    self.x = right * 2 - right_index
+                    self.x = right * 2 - index - 1
                     self.y += 1
-                    self.PrintLine({Direction.right}, length, line[::-1])
+                    self.PrintLine({Direction.left}, length, line)
+
+            if anchor == Direction.down_left:
+                self.y = bottom - 1
+                for line, length, index in zip(
+                    self.lines[::-1],
+                    self.lengths[::-1],
+                    self.indices[::-1]
+                ):
+                    self.x = left - index - 1
+                    self.y += 1
+                    self.PrintLine({Direction.left}, length, line)
+
+            if anchor == Direction.up_left:
+                self.y = top - length - 1
+                for line, length, index in zip(
+                    self.lines[::-1],
+                    self.lengths[::-1],
+                    self.indices[::-1]
+                ):
+                    self.x = left - index - 1
+                    self.y += 1
+                    self.PrintLine({Direction.left}, length, line)
+
+            if anchor == Direction.up_right:
+                self.y = top - length - 1
+                for line, length, index in zip(
+                    self.lines[::-1],
+                    self.lengths[::-1],
+                    self.indices[::-1]
+                ):
+                    self.x = right * 2 - index - 1
+                    self.y += 1
+                    self.PrintLine({Direction.left}, length, line)
 
         elif rotations == 6:
 
             if anchor == Direction.down_right:
-                right = max(self.right_indices)
-                bottom = self.top + len(self.lines)
                 self.x = right - 1
                 for line, length, index in zip(
                     self.lines[::-1], self.lengths[::-1], self.indices[::-1]
@@ -1555,10 +1631,35 @@ class Charcoal:
                     self.y = bottom - right + index
                     self.PrintLine({Direction.down}, length, line)
 
+            if anchor == Direction.down_left:
+                self.x = left - 1
+                for line, length, index in zip(
+                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
+                ):
+                    self.x += 1
+                    self.y = bottom - left + index
+                    self.PrintLine({Direction.down}, length, line)
+
+            if anchor == Direction.up_left:
+                self.x = left - length - 1
+                for line, length, index in zip(
+                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
+                ):
+                    self.x += 1
+                    self.y = top - left + index
+                    self.PrintLine({Direction.down}, length, line)
+
+            if anchor == Direction.up_right:
+                self.x = right - length - 1
+                for line, length, index in zip(
+                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
+                ):
+                    self.x += 1
+                    self.y = top - right + index
+                    self.PrintLine({Direction.down}, length, line)
+
         if Info.step_canvas in self.info:
             self.RefreshFastText("Rotate copy", self.canvas_step)
-
-        pass
 
     def RotateOverlap(self, rotations, anchor=Direction.down_right):
 
@@ -2730,6 +2831,10 @@ non-raw file input and file output."""
         help="Run unit tests."
     )
     parser.add_argument(
+        "-dc", "--disablecompression", action="store_true",
+        help="Disable compression when deverbosifying."
+    )
+    parser.add_argument(
         "-hd", "--hexdump", action="store_true",
         help="Show the xxd hexdump of the code."
     )
@@ -2819,6 +2924,16 @@ non-raw file input and file output."""
         del raw_file_output
         del file_output
 
+    if argv.disablecompression:
+        StringifierProcessor[CharcoalToken.String][0] = lambda result: [re.sub(
+            "\n",
+            "¶",
+            rCommand.sub(
+                r"´\1",
+                result[0]
+            )
+        )]
+
     if argv.verbose or argv.deverbosify:
         code = ParseExpression(
             code,
@@ -2827,13 +2942,13 @@ non-raw file input and file output."""
             verbose=True
         )[0]
 
-        for replacement in (
+        for regex, replacement in (
             ("»+$", ""),
             ("([ -~¶])¦([⁰¹²³⁴⁵⁶⁷⁸⁹])", "\\1\\2"),
             ("([⁰¹²³⁴⁵⁶⁷⁸⁹])¦([ -~¶])", "\\1\\2"),
             ("Ｍ([←↑→↓↖↗↘↙]{2})", "\\1")
         ):
-            code = re.sub(replacement[0], replacement[1], code)
+            code = re.sub(regex, replacement, code)
 
         if argv.deverbosify:
             print(code)
@@ -2893,13 +3008,13 @@ non-raw file input and file output."""
                         verbose=True
                     )[0]
 
-                    for replacement in (
+                    for regex, replacement in (
                         ("»+$", ""),
                         ("([ -~¶])¦([⁰¹²³⁴⁵⁶⁷⁸⁹])", "\\1\\2"),
                         ("([⁰¹²³⁴⁵⁶⁷⁸⁹])¦([ -~¶])", "\\1\\2"),
                         ("Ｍ([←↑→↓↖↗↘↙]{2})", "\\1")
                     ):
-                        code = re.sub(replacement[0], replacement[1], code)
+                        code = re.sub(regex, replacement, code)
 
                 if argv.astify:
                     print("Program")

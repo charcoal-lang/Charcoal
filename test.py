@@ -138,7 +138,7 @@ a
 13213""")
 
     def test_rectangle(self):
-        self.assertEqual(Run("ＢＲ⁵¦⁵"), """\
+        self.assertEqual(Run("ＵＲ⁵¦⁵"), """\
 +---+
 |   |
 |   |
@@ -366,6 +366,10 @@ if (0) {
         self.assertEqual(Run("´⎛´⎞‖Ｔ↑"), "⎝⎠")
         self.assertEqual(Run("---‖Ｔ↖"), "|\n|\n|")
 
+    def test_rotate_transform(self):
+        self.assertEqual(Run("|¶-¶/¶\¶v¶^¶<¶>⟲Ｔ²"), "-|\/v^<>")
+        # TODO: should v^<> be rotated
+
     def test_reflect_mirror(self):
         self.assertEqual(Run("(({{[[<<‖Ｍ→"), "(({{[[<<>>]]}}))")
         self.assertEqual(Run("(({{¶  [[<<‖Ｍ→"), "(({{    }}))\n  [[<<>>]]  ")
@@ -388,6 +392,51 @@ de
    da
 abceb
 de  c""")
+        self.assertEqual(Run("abc↙Ｍ←de⟲Ｃ²↙"), """\
+ce   
+bdabc
+a  de""")
+        self.assertEqual(Run("abc↙Ｍ←de⟲Ｃ⁴↙"), """\
+   abc
+    de
+ed    
+cba   """)
+        self.assertEqual(Run("abc↙Ｍ←de⟲Ｃ⁶↙"), """\
+abc
+ de
+ a 
+db 
+ec """)
+        self.assertEqual(Run("abc↖Ｍ←de⟲Ｃ²↖"), """\
+ec 
+db 
+ a 
+ de
+abc""")
+        self.assertEqual(Run("abc↖Ｍ←de⟲Ｃ⁴↖"), """\
+cba   
+ed    
+    de
+   abc""")
+        self.assertEqual(Run("abc↖Ｍ←de⟲Ｃ⁶↖"), """\
+a  de
+bdabc
+ce   """)
+        self.assertEqual(Run("de¶abc⟲Ｃ²↗"), """\
+de  c
+abceb
+   da""")
+        self.assertEqual(Run("de¶abc⟲Ｃ⁴↗"), """\
+   cba
+    ed
+de    
+abc   """)
+        self.assertEqual(Run("de¶abc⟲Ｃ⁶↗"), """\
+ ad
+ be
+ c 
+de 
+abc""")
         self.assertEqual(
             Run("Print('abc\\nde');RotateCopy(2)", verbose=True),
             """\
@@ -411,6 +460,54 @@ de
    da
 abceb
 de  c"""
+        )
+        self.assertEqual(
+            Run(
+                """
+Print('abc');
+Move(:DownLeft);
+Move(:Left);
+Print('de');
+RotateCopy(2, :DownLeft)""",
+                verbose=True
+            ),
+             """\
+ce   
+bdabc
+a  de"""
+        )
+        self.assertEqual(
+            Run(
+                """
+Print('abc');
+Move(:DownLeft);
+Move(:Left);
+Print('de');
+RotateCopy(4, :DownLeft)""",
+                verbose=True
+            ),
+            """\
+   abc
+    de
+ed    
+cba   """
+        )
+        self.assertEqual(
+            Run(
+                """
+Print('abc');
+Move(:DownLeft);
+Move(:Left);
+Print('de');
+RotateCopy(6, :DownLeft)""",
+                verbose=True
+            ),
+            """\
+abc
+ de
+ a 
+db 
+ec """
         )
 
     def test_reflect_copy(self):
@@ -1078,7 +1175,7 @@ b   a   z
 
     def test_peek(self):
         # TODO: test manipulation when list methods implemented
-        self.assertEqual(Run("barＭ←×Ｋ⁵"), "barrrrr")
+        self.assertEqual(Run("barＭ←×ＫＫ⁵"), "barrrrr")
         self.assertEqual(Run("barＭ←⪫ＫＤ³←ω"), "barab")
         self.assertEqual(Run("↓foo×⪫ＫＡω⁵"), """\
 f              
