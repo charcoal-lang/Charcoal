@@ -13,8 +13,9 @@ from unicodegrammars import UnicodeGrammars
 from verbosegrammars import VerboseGrammars
 from astprocessor import ASTProcessor
 from interpreterprocessor import InterpreterProcessor
-from stringifierprocessor import StringifierProcessor, rCommand
+from stringifierprocessor import StringifierProcessor
 from codepage import UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage
+from codepage import sOperator
 from compression import Decompressed
 from enum import Enum
 import random
@@ -2200,7 +2201,6 @@ SuperscriptToNormal = {
     "⁵": 5, "⁶": 6, "⁷": 7, "⁸": 8, "⁹": 9
 }
 
-
 def ParseExpression(
     code,
     index=0,
@@ -2944,9 +2944,9 @@ non-raw file input and file output."""
 
         for regex, replacement in (
             ("»+$", ""),
-            ("([ -~¶])¦([⁰¹²³⁴⁵⁶⁷⁸⁹])", "\\1\\2"),
-            ("([⁰¹²³⁴⁵⁶⁷⁸⁹])¦([ -~¶])", "\\1\\2"),
-            ("Ｍ([←↑→↓↖↗↘↙]{2})", "\\1")
+            ("([ -~´¶])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
+            ("([⁰¹²³⁴-⁹])¦([ -~´¶])", "\\1\\2"),
+            ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1\\2")
         ):
             code = re.sub(regex, replacement, code)
 
@@ -3010,9 +3010,9 @@ non-raw file input and file output."""
 
                     for regex, replacement in (
                         ("»+$", ""),
-                        ("([ -~¶])¦([⁰¹²³⁴⁵⁶⁷⁸⁹])", "\\1\\2"),
-                        ("([⁰¹²³⁴⁵⁶⁷⁸⁹])¦([ -~¶])", "\\1\\2"),
-                        ("Ｍ([←↑→↓↖↗↘↙]{2})", "\\1")
+                        ("([ -~´¶])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
+                        ("([⁰¹²³⁴-⁹])¦([ -~´¶])", "\\1\\2"), 
+                        ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1\\2")
                     ):
                         code = re.sub(regex, replacement, code)
 

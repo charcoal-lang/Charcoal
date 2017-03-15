@@ -1,3 +1,5 @@
+import re
+
 UnicodeLookup = {}
 ReverseLookup = {}
 OrdinalLookup = {}
@@ -75,3 +77,13 @@ UnicodeCommands = "\
 ←↑→↓↖↗↘↙\
 ↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨⮌≡№"
 
+UnicodeCommandRegex = "\
+Ａ-Ｚ⁰¹²³⁴-⁹αβγδεζηθικλμνξπρσςτυφχψω\
+⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›←-↓↖-↙\
+↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨⮌≡№"
+
+sCommand = "[%s]" % UnicodeCommandRegex
+sOperator = "[ＳＮ‽¬Ｉ‽Ｖ⊟↧↥⌊⌈℅⮌⁺⁻×÷﹪⁼‹›…Ｘ§⪫⪪⌕◧◨№⎇Ｅ]|Ｋ.|∧∨|±Ｌ|⊞Ｏ|⌕Ａ"
+
+rCommand = re.compile("(%s)" % sCommand)
+rOperator = re.compile("(%s)" % sOperator)

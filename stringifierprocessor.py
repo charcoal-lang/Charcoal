@@ -1,10 +1,8 @@
 from charcoaltoken import CharcoalToken
-from codepage import UnicodeCommands
 from unicodegrammars import UnicodeGrammars
 from compression import Compressed
+from codepage import rCommand
 import re
-
-rCommand = re.compile("([%s])" % UnicodeCommands)
 
 SuperscriptToNormal = "⁰¹²³⁴⁵⁶⁷⁸⁹"
 
