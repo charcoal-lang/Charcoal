@@ -165,6 +165,7 @@ VerboseGrammars = {
         ["Cast"],
         ["Random"],
         ["Evaluate"],
+        ["eval"],
         ["Pop"],
         ["Lowercase"],
         ["Uppercase"],
@@ -172,12 +173,17 @@ VerboseGrammars = {
         ["Maximum"],
         ["Character"],
         ["Ordinal"],
+        ["chr"],
+        ["ord"],
         ["Reverse"]
     ],
     CharcoalToken.Binary: [
         ["Add"],
+        ["Plus"],
         ["Subtract"],
+        ["Minus"],
         ["Multiply"],
+        ["Times"],
         ["Divide"],
         ["Modulo"],
         ["Equals"],
@@ -186,7 +192,10 @@ VerboseGrammars = {
         ["InclusiveRange"],
         ["Range"],
         ["Mold"],
+        ["CycleChop"],
         ["Exponentiate"],
+        ["Exponent"],
+        ["Power"],
         ["AtIndex"],
         ["PushOperator"],
         ["Join"],
@@ -203,7 +212,9 @@ VerboseGrammars = {
     ],
     CharcoalToken.LazyBinary: [
         ["And"],
-        ["Or"]
+        ["Or"],
+        ["and"],
+        ["or"]
     ],
     CharcoalToken.LazyTernary: [
         ["Ternary"]
@@ -230,6 +241,7 @@ VerboseGrammars = {
         ["InputString", "(", CharcoalToken.Name, ")"],
         ["InputNumber", "(", CharcoalToken.Name, ")"],
         ["Evaluate", "(", CharcoalToken.Expression, ")"],
+        ["eval", "(", CharcoalToken.Expression, ")"],
         [
             "Print",
             "(",
@@ -339,6 +351,7 @@ VerboseGrammars = {
         ],
         ["Refresh", "(", CharcoalToken.Expression, ")"],
         ["Refresh", "(", ")"],
+        ["ToggleTrim", "(", ")"],
         ["Trim", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         ["Clear", "(", ")"],
         [

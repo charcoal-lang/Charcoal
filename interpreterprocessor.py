@@ -510,6 +510,7 @@ InterpreterProcessor = {
         ),
         lambda result: lambda charcoal: charcoal.Refresh(result[1](charcoal)),
         lambda result: lambda charcoal: charcoal.Refresh(),
+        lambda result: lambda charcoal: charcoal.ToggleTrim(),
         lambda result: lambda charcoal: charcoal.Crop(
             result[1](charcoal),
             result[2](charcoal)
@@ -521,9 +522,7 @@ InterpreterProcessor = {
         ),
         lambda result: lambda charcoal: charcoal.Extend(result[1](charcoal)),
         lambda result: lambda charcoal: (
-            (lambda value: value.append(result[2](charcoal)) or value)(
-                result[1](charcoal)
-            )
+            result[1](charcoal).append(result[2](charcoal))
         ),
         lambda result: lambda charcoal: dict(result[2](charcoal)).get(
             result[1](charcoal),

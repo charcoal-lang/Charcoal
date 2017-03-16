@@ -272,6 +272,7 @@ UnicodeGrammars = {
         ],
         ["Ｈ", CharcoalToken.Expression],
         ["Ｈ"],
+        ["ＵＴ"],
         ["Ｔ", CharcoalToken.Expression, CharcoalToken.Expression],
         ["⎚"],
         ["ＵＥ", CharcoalToken.Expression, CharcoalToken.Expression],

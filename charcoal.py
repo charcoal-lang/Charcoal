@@ -218,6 +218,7 @@ class Charcoal:
         self.bg_line_number = self.bg_line_length = 0
         self.timeout_end = self.dump_timeout_end = 0
         self.background_inside = False
+        self.trim = False
         self.canvas_step = canvas_step
 
         if Info.step_canvas in self.info:
@@ -276,11 +277,11 @@ class Charcoal:
                         self.indices[i]
                     ) +
                     line +
-                    self.BackgroundString(
+                    ("" if self.trim else self.BackgroundString(
                         self.top + i,
                         self.right_indices[i],
                         right
-                    ) +
+                    )) +
                     "\n"
                 )
 
@@ -306,7 +307,9 @@ class Charcoal:
                     string += (
                         self.background * (index - left) +
                         line +
-                        self.background * (right - right_index) +
+                        ("" if self.trim else (
+                            self.background * (right - right_index)
+                        )) +
                         "\n"
                     )
 
@@ -403,6 +406,7 @@ class Charcoal:
         self.bg_line_number = self.bg_line_length = 0
         self.timeout_end = self.dump_timeout_end = 0
         self.background_inside = False
+        self.trim = False
 
     def Get(self):
         y_index = self.y - self.top
@@ -1992,6 +1996,9 @@ make sure you explicitly use 0 for no delay if needed""")
             self.scope[loop_variable] = condition(self)
 
         self.scope = self.scope.parent
+
+    def ToggleTrim(self):
+        self.trim = not self.trim
 
     def Evaluate(self, code, is_command=False):
         if is_command:

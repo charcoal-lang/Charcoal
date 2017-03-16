@@ -83,7 +83,7 @@ UnicodeCommandRegex = "\
 ↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨⮌≡№"
 
 sCommand = "[%s]" % UnicodeCommandRegex
-sOperator = "[ＳＮ‽¬Ｉ‽Ｖ⊟↧↥⌊⌈℅⮌⁺⁻×÷﹪⁼‹›…Ｘ§⪫⪪⌕◧◨№⎇Ｅ]|Ｋ.|∧∨|±Ｌ|⊞Ｏ|⌕Ａ"
+sOperator = "[ＳＮ‽¬Ｉ‽Ｖ⊟↧↥⌊⌈℅⮌⁺⁻×÷﹪⁼‹›…Ｘ§⪫⪪⌕◧◨№⎇Ｅ∧∨]|Ｋ.|±Ｌ|⊞Ｏ|⌕Ａ"
 
 rCommand = re.compile("(%s)" % sCommand)
 rOperator = re.compile("(%s)" % sOperator)

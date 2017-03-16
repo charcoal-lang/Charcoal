@@ -1120,6 +1120,9 @@ b   a   z
     def test_uppercase(self):
         self.assertEqual(Run("↥foobar"), "FOOBAR")
 
+    def test_power(self):
+        self.assertEqual(Run("Ｘ²¦³"), "--------")
+
     def test_push(self):
         self.assertEqual(Run("Ａ⟦¹¦²¦³⟧α⊞Ｏα¦⁴"), "-   \n--  \n--- \n----")
         self.assertEqual(Run("Ａ⟦¹¦²¦³⟧α⊞α¦⁴α"), "-   \n--  \n--- \n----")
@@ -1172,6 +1175,13 @@ b   a   z
     def test_reverse(self):
         self.assertEqual(Run("⮌foobar"), "raboof")
         self.assertEqual(Run("⮌⟦¹a²b⟧"), "b \n--\na \n- ")
+
+    def test_toggle_trim(self):
+        self.assertEqual(Run("↓foo×⪫ＫＡω⁵ＵＴ"), """\
+f
+o
+o
+foofoofoofoofoo""")
 
     def test_peek(self):
         # TODO: test manipulation when list methods implemented

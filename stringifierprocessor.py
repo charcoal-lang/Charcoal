@@ -133,6 +133,7 @@ StringifierProcessor = {
         lambda result: "Ｉ",
         lambda result: "‽",
         lambda result: "Ｖ",
+        lambda result: "Ｖ",
         lambda result: "⊟",
         lambda result: "↧",
         lambda result: "↥",
@@ -140,11 +141,16 @@ StringifierProcessor = {
         lambda result: "⌈",
         lambda result: "℅",
         lambda result: "℅",
+        lambda result: "℅",
+        lambda result: "℅",
         lambda result: "⮌"
     ],
     CharcoalToken.Binary: [
         lambda result: "⁺",
+        lambda result: "⁺",
         lambda result: "⁻",
+        lambda result: "⁻",
+        lambda result: "×",
         lambda result: "×",
         lambda result: "÷",
         lambda result: "﹪",
@@ -154,6 +160,9 @@ StringifierProcessor = {
         lambda result: "…·",
         lambda result: "…",
         lambda result: "…",
+        lambda result: "…",
+        lambda result: "Ｘ",
+        lambda result: "Ｘ",
         lambda result: "Ｘ",
         lambda result: "§",
         lambda result: "⊞Ｏ",
@@ -170,6 +179,8 @@ StringifierProcessor = {
     CharcoalToken.LazyUnary: [
     ],
     CharcoalToken.LazyBinary: [
+        lambda result: "∧",
+        lambda result: "∨",
         lambda result: "∧",
         lambda result: "∨"
     ],
@@ -193,6 +204,7 @@ StringifierProcessor = {
     CharcoalToken.Command: [
         lambda result: "Ｓ" + result[2],
         lambda result: "Ｎ" + result[2],
+        lambda result: "Ｖ" + result[2],
         lambda result: "Ｖ" + result[2],
         lambda result: result[2] + result[4],
         lambda result: result[2],
@@ -238,6 +250,7 @@ StringifierProcessor = {
         lambda result: "ＨＷ" + result[2] + result[4] + result[5],
         lambda result: "Ｈ" + result[2],
         lambda result: "Ｈ",
+        lambda result: "ＵＴ",
         lambda result: "Ｔ" + result[2] + result[3],
         lambda result: "⎚",
         lambda result: "ＵＥ" + result[2] + result[3],
