@@ -16,7 +16,7 @@ from interpreterprocessor import InterpreterProcessor
 from stringifierprocessor import StringifierProcessor
 from codepage import UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage
 from codepage import sOperator
-from compression import Decompressed
+from compression import Decompressed, Compressed
 from enum import Enum
 import random
 import re
@@ -207,11 +207,13 @@ class Charcoal:
             "ζ": self.all_inputs[2],
             "ε": self.all_inputs[3],
             "δ": self.all_inputs[4],
-            "γ": "abcdefghijklmnopqrstuvwxyz",
-            "β": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "α": "",
-            "ω": 10,
-            "ψ": 1000
+            "γ": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+            "β": "abcdefghijklmnopqrstuvwxyz",
+            "α": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "ω": "",
+            "ψ": 10,
+            "χ": 1000
         }
         self.direction = Direction.right
         self.background = " "
@@ -397,11 +399,13 @@ class Charcoal:
             "ζ": self.all_inputs[2],
             "ε": self.all_inputs[3],
             "δ": self.all_inputs[4],
-            "γ": "abcdefghijklmnopqrstuvwxyz",
-            "β": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "α": "",
-            "ω": 10,
-            "ψ": 1000
+            "γ": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+            "β": "abcdefghijklmnopqrstuvwxyz",
+            "α": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "ω": "",
+            "ψ": 10,
+            "χ": 1000
         }
         self.direction = Direction.right
         self.background = " "
@@ -2975,17 +2979,27 @@ non-raw file input and file output."""
 
         for regex, replacement in (
             ("»+$", ""),
-            ("¹⁰⁰⁰", "ψ"),
-            ("¹⁰", "ω"),
-            ("””", "α"),
+            ("¹⁰⁰⁰", "χ"),
+            ("¹⁰", "ψ"),
+            ("””", "ω"),
+            ("(^|[^´].|[^ -~´¶]) !\"#$%&'\(\)\*\+,-\./0123456789:;<=>?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
+abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
+            ("([^´].|[^ -~´¶]|^)abcdefghijklmnopqrstuvwxyz([^´]|$)", "\\1β\\2"),
+            ("([^´].|[^ -~´¶]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)", "\\1α\\2"),
+            (Compressed(" !\"#$%&'\(\)\*\+,-\./0123456789:;<=>?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
+abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
+            (Compressed("abcdefghijklmnopqrstuvwxyz"), "β"),
+            (Compressed("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "α"),
             ("([^⁰¹²³⁴-⁹ -~´¶])¦([^⁰¹²³⁴-⁹ -~´¶])", "\\1\\2"),
             ("([^⁰¹²³⁴-⁹])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
             ("([⁰¹²³⁴-⁹])¦([^⁰¹²³⁴-⁹])", "\\1\\2"),
-            ("([^´].|^.)¦([ -~´¶])", "\\1\\2"),
+            ("([^´].|[^ -~´¶])¦([ -~´¶])", "\\1\\2"),
             ("([ -~´¶])¦([^´])", "\\1\\2"),
             ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1"),
             ("(?:Ｍ[←-↓↖-↙])+$", ""),
-            ("[←-↓↖-↙]+$", "")
+            ("[←-↓↖-↙]+$", ""),
         ):
             code = re.sub(regex, replacement, code)
 
@@ -3050,9 +3064,9 @@ non-raw file input and file output."""
 
                     for regex, replacement in (
                         ("»+$", ""),
-                        ("¹⁰⁰⁰", "ψ"),
-                        ("¹⁰", "ω"),
-                        ("””", "α"),
+                        ("¹⁰⁰⁰", "χ"),
+                        ("¹⁰", "ψ"),
+                        ("””", "ω"),
                         ("([^⁰¹²³⁴-⁹ -~´¶])¦([^⁰¹²³⁴-⁹ -~´¶])", "\\1\\2"),
                         ("([^⁰¹²³⁴-⁹])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
                         ("([⁰¹²³⁴-⁹])¦([^⁰¹²³⁴-⁹])", "\\1\\2"),

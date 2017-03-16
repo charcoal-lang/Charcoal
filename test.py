@@ -1208,10 +1208,14 @@ foofoofoofoofoo""")
         self.assertEqual(Run("ζ", "a b c d e"), "c")
         self.assertEqual(Run("ε", "a b c d e"), "d")
         self.assertEqual(Run("δ", "a b c d e"), "e")
-        self.assertEqual(Run("γ"), "abcdefghijklmnopqrstuvwxyz")
-        self.assertEqual(Run("β"), "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-        self.assertEqual(Run("α"), "----------")
+        self.assertEqual(Run("γ"), " !\"#$%&'()*+,-./0123456789:;<=>?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~")
+        self.assertEqual(Run("β"), "abcdefghijklmnopqrstuvwxyz")
+        self.assertEqual(Run("α"), "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         self.assertEqual(Run("ω"), "")
+        self.assertEqual(Run("ψ"), "----------")
+        self.assertEqual(Run("χ"), "-"*1000)
 
     def test_input(self):
         self.assertEqual(
