@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # TODO List:
 # bresenham
@@ -2815,7 +2815,7 @@ non-raw file input and file output."""
     )
     parser.add_argument(
         "-s", "--stepcanvas", action="store_true",
-        help="Run unit tests."
+        help="Pause canvas every time it is changed."
     )
     parser.add_argument(
         "-nt", "--nothrottle", action="store_true",
