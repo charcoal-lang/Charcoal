@@ -217,6 +217,12 @@ UnicodeGrammars = {
         ],
         ["ＵＲ", CharcoalToken.Expression, CharcoalToken.Expression],
         [
+            "ＵＯ",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression
+        ],
+        [
             "Ｂ",
             CharcoalToken.Expression,
             CharcoalToken.Expression,

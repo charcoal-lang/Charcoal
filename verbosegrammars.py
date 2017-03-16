@@ -300,6 +300,14 @@ VerboseGrammars = {
         ],
         ["Rectangle", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         [
+            "Oblong",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
             "Box",
             "(",
             CharcoalToken.Expression,

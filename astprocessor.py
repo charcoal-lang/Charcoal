@@ -172,6 +172,7 @@ ASTProcessor = {
         lambda result: ["Hollow Polygon"] + result[1:],
         lambda result: ["Hollow Polygon"] + result[1:],
         lambda result: ["Rectangle"] + result[1:],
+        lambda result: ["Oblong"] + result[1:],
         lambda result: ["Box"] + result[1:],
         lambda result: ["Move"] + result,
         lambda result: ["Move"] + result[1:],

@@ -428,6 +428,11 @@ InterpreterProcessor = {
             result[1](charcoal),
             result[2](charcoal)
         ),
+        lambda result: lambda charcoal: charcoal.Oblong(
+            result[1](charcoal),
+            result[2](charcoal),
+            result[3](charcoal)
+        ),
         lambda result: lambda charcoal: charcoal.Rectangle(
             result[1](charcoal),
             result[2](charcoal),

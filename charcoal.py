@@ -209,8 +209,9 @@ class Charcoal:
             "δ": self.all_inputs[4],
             "γ": "abcdefghijklmnopqrstuvwxyz",
             "β": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "α": 10,
-            "ω": ""
+            "α": "",
+            "ω": 10,
+            "ψ": 1000
         }
         self.direction = Direction.right
         self.background = " "
@@ -398,8 +399,9 @@ class Charcoal:
             "δ": self.all_inputs[4],
             "γ": "abcdefghijklmnopqrstuvwxyz",
             "β": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "α": 10,
-            "ω": ""
+            "α": "",
+            "ω": 10,
+            "ψ": 1000
         }
         self.direction = Direction.right
         self.background = " "
@@ -858,6 +860,14 @@ class Charcoal:
 
         if Info.step_canvas in self.info:
             self.RefreshFastText("Polygon fill", self.canvas_step)
+
+    def Oblong(self, width, height, fill):
+        self.Polygon([
+            [Direction.right, width],
+            [Direction.down, height],
+            [Direction.left, width],
+            [Direction.up, height]
+        ], fill)
 
     def Rectangle(self, width, height, character=None, flags=None):
         if not character:
@@ -2965,6 +2975,9 @@ non-raw file input and file output."""
 
         for regex, replacement in (
             ("»+$", ""),
+            ("¹⁰⁰⁰", "ψ"),
+            ("¹⁰", "ω"),
+            ("””", "α"),
             ("([^⁰¹²³⁴-⁹ -~´¶])¦([^⁰¹²³⁴-⁹ -~´¶])", "\\1\\2"),
             ("([^⁰¹²³⁴-⁹])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
             ("([⁰¹²³⁴-⁹])¦([^⁰¹²³⁴-⁹])", "\\1\\2"),
@@ -3037,9 +3050,17 @@ non-raw file input and file output."""
 
                     for regex, replacement in (
                         ("»+$", ""),
-                        ("([ -~´¶])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
-                        ("([⁰¹²³⁴-⁹])¦([ -~´¶])", "\\1\\2"), 
-                        ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1")
+                        ("¹⁰⁰⁰", "ψ"),
+                        ("¹⁰", "ω"),
+                        ("””", "α"),
+                        ("([^⁰¹²³⁴-⁹ -~´¶])¦([^⁰¹²³⁴-⁹ -~´¶])", "\\1\\2"),
+                        ("([^⁰¹²³⁴-⁹])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
+                        ("([⁰¹²³⁴-⁹])¦([^⁰¹²³⁴-⁹])", "\\1\\2"),
+                        ("([^´].|^.)¦([ -~´¶])", "\\1\\2"),
+                        ("([ -~´¶])¦([^´])", "\\1\\2"),
+                        ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1"),
+                        ("(?:Ｍ[←-↓↖-↙])+$", ""),
+                        ("[←-↓↖-↙]+$", "")
                     ):
                         code = re.sub(regex, replacement, code)
 
