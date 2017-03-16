@@ -2958,7 +2958,7 @@ non-raw file input and file output."""
             ("»+$", ""),
             ("([ -~´¶])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
             ("([⁰¹²³⁴-⁹])¦([ -~´¶])", "\\1\\2"),
-            ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1\\2")
+            ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1")
         ):
             code = re.sub(regex, replacement, code)
 
@@ -3026,7 +3026,7 @@ non-raw file input and file output."""
                         ("»+$", ""),
                         ("([ -~´¶])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
                         ("([⁰¹²³⁴-⁹])¦([ -~´¶])", "\\1\\2"), 
-                        ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1\\2")
+                        ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1")
                     ):
                         code = re.sub(regex, replacement, code)
 
