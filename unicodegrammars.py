@@ -254,6 +254,7 @@ UnicodeGrammars = {
             CharcoalToken.Body
         ],
         ["¿", CharcoalToken.Expression, CharcoalToken.Body],
+        ["Ａ§", CharcoalToken.Expression, CharcoalToken.Expression, CharcoalToken.Expression],
         ["Ａ", CharcoalToken.Expression, CharcoalToken.Name],
         ["¤", CharcoalToken.Expression],
         ["ＵＢ", CharcoalToken.Expression],
@@ -278,7 +279,8 @@ UnicodeGrammars = {
         ["ＵＥ", CharcoalToken.Expression, CharcoalToken.Expression],
         ["ＵＥ", CharcoalToken.Expression],
         ["⊞", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["≡", CharcoalToken.Expression, CharcoalToken.Cases, CharcoalToken.Body]
+        ["≡", CharcoalToken.Expression, CharcoalToken.Cases, CharcoalToken.Body],
+        ["ＵＭ", CharcoalToken.Expression, CharcoalToken.Expression]
     ]
 }
 

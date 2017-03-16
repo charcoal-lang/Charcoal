@@ -18,10 +18,13 @@ def FindAll(haystack, needle):
 
             index = haystack.find(needle, index + 1)
 
-        index = haystack.find(needle)
-
     else:
-        index = haystack.index(needle)
+
+        try:
+            index = haystack.index(needle)
+
+        except:
+            return []
 
         while True:
 
@@ -490,8 +493,13 @@ InterpreterProcessor = {
             lambda result: lambda charcoal: None
         ),
         lambda result: lambda charcoal: charcoal.Assign(
-            result[2],
-            result[1](charcoal)
+            result[1](charcoal),
+            result[2](charcoal),
+            result[3](charcoal)
+        ),
+        lambda result: lambda charcoal: charcoal.Assign(
+            result[1](charcoal),
+            result[2]
         ),
         lambda result: lambda charcoal: charcoal.Fill(result[1](charcoal)),
         lambda result: lambda charcoal: charcoal.SetBackground(
@@ -527,7 +535,11 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: dict(result[2](charcoal)).get(
             result[1](charcoal),
             result[3]
-        )(charcoal)
+        )(charcoal),
+        lambda result: lambda charcoal: charcoal.Map(
+            result[1](charcoal),
+            result[2]
+        )
     ]
 }
 

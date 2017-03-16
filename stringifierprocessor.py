@@ -188,9 +188,9 @@ StringifierProcessor = {
         lambda result: "⎇"
     ],
     CharcoalToken.OtherOperator: [
-        lambda result: "ＫＤ" + result[1] + result[2],
-        lambda result: "Ｅ" + result[1] + result[2],
-        lambda result: "Ｅ" + result[1] + result[2]
+        lambda result: "ＫＤ" + result[2] + result[3],
+        lambda result: "Ｅ" + result[2] + result[3],
+        lambda result: "Ｅ" + result[2] + result[3]
     ],
 
     CharcoalToken.Program: [
@@ -242,12 +242,13 @@ StringifierProcessor = {
         lambda result: "Ｗ" + result[2] + result[4],
         lambda result: "¿" + result[2] + result[4] + result[5],
         lambda result: "¿" + result[2] + result[4],
+        lambda result: "Ａ§" + result[2] + result[3] + result[4],
         lambda result: "Ａ" + result[2] + result[3],
         lambda result: "¤" + result[2],
         lambda result: "ＵＢ" + result[2],
         lambda result: "Ｄ",
-        lambda result: "ＨＦ" + result[2] + result[4] + result[5],
-        lambda result: "ＨＷ" + result[2] + result[4] + result[5],
+        lambda result: "ＨＦ" + result[2] + result[3] + result[5],
+        lambda result: "ＨＷ" + result[2] + result[3] + result[5],
         lambda result: "Ｈ" + result[2],
         lambda result: "Ｈ",
         lambda result: "ＵＴ",
@@ -257,7 +258,8 @@ StringifierProcessor = {
         lambda result: "ＵＥ" + result[2],
         lambda result: "⊞" + result[2] + result[3],
         lambda result: "≡" + result[2] + result[5] + result[8],
-        lambda result: "≡" + result[2] + result[5]
+        lambda result: "≡" + result[2] + result[5],
+        lambda result: "ＵＭ" + result[2] + result[3]
     ]
 }
 

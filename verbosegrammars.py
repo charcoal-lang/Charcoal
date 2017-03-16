@@ -220,9 +220,27 @@ VerboseGrammars = {
         ["Ternary"]
     ],
     CharcoalToken.OtherOperator: [
-        ["PeekDirection", CharcoalToken.Expression, CharcoalToken.Arrow],
-        ["Each", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["Map", CharcoalToken.Expression, CharcoalToken.Expression]
+        [
+            "PeekDirection",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Arrow,
+            ")"
+        ],
+        [
+            "Each",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "Map",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")"
+        ]
     ],
 
     CharcoalToken.Program: [
@@ -329,6 +347,14 @@ VerboseGrammars = {
             CharcoalToken.Body
         ],
         ["if", "(", CharcoalToken.Expression, ")", CharcoalToken.Body],
+        [
+            "AssignAtIndex",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")"
+        ],
         ["Assign", "(", CharcoalToken.Expression, CharcoalToken.Name, ")"],
         ["Fill", "(", CharcoalToken.Expression, ")"],
         ["SetBackground", "(", CharcoalToken.Expression, ")"],
@@ -389,6 +415,13 @@ VerboseGrammars = {
             "{",
             CharcoalToken.Cases,
             "}"
+        ],
+        [
+            "MapCommand",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")"
         ]
     ]
 }

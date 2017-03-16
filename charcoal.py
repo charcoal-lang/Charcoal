@@ -3,7 +3,7 @@
 # TODO List:
 # bresenham
 # image to ascii
-# Finish rotation
+# figure out bug with tendo clear screen
 
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
@@ -31,21 +31,8 @@ import os.path
 import string
 import sys
 
-has_color = True
-
 if os.name == "nt":
-
-    try:
-        import tendo.ansiterm
-
-    except:
-        has_color = False
-
-        if __name__ == "__main__":
-            print("""\
-Please install the 'tendo' module ('pip install tendo'\
- or 'pip3 install tendo') \
-for the 'Refresh' command and REPL prompt to work properly.""")
+    import ansiterm
 
 else:
     import readline # for arrow/Ctrl+A/Ctrl+E support
@@ -185,6 +172,14 @@ class Cells(list):
 
     def __setitem__(self, i, value):
         super(Cells, self).__setitem__(i, value)
+
+        if isinstance(i, slice):
+            start = i.start or 0 
+            stop = len(self) if i.stop is None else i.stop
+
+            for i in range(start, stop):
+                self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
+
         self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
 
 class Charcoal:
@@ -224,6 +219,7 @@ class Charcoal:
         self.timeout_end = self.dump_timeout_end = 0
         self.background_inside = False
         self.trim = False
+        self.print_at_end = True
         self.canvas_step = canvas_step
 
         if Info.step_canvas in self.info:
@@ -412,6 +408,7 @@ class Charcoal:
         self.timeout_end = self.dump_timeout_end = 0
         self.background_inside = False
         self.trim = False
+        self.print_at_end = True
 
     def Get(self):
         y_index = self.y - self.top
@@ -1886,7 +1883,10 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
         elif isinstance(variable, list) or isinstance(variable, str):
             return random.choice(variable)
 
-    def Assign(self, key, value):
+    def Assign(self, value, key, value2=None):
+        if value2:
+            value[key] = value2
+            return
         self.scope[key] = value
 
     def InputString(self, key=""):
@@ -1941,6 +1941,7 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
         print(self)
 
     def Refresh(self, timeout=0):
+        self.print_at_end = False
         if not isinstance(timeout, int):
             print(
                 "RuntimeError: Refresh expected int, found %s" %
@@ -1970,6 +1971,7 @@ make sure you explicitly use 0 for no delay if needed""")
         self.timeout_end = time.clock() + timeout / 1000
 
     def RefreshFor(self, timeout, variable, body):
+        self.print_at_end = False
         print("\033[2J")
         timeout /= 1000
         self.scope = Scope(self.scope)
@@ -1988,6 +1990,7 @@ make sure you explicitly use 0 for no delay if needed""")
         self.scope = self.scope.parent
 
     def RefreshWhile(self, timeout, condition, body):
+        self.print_at_end = False
         print("\033[2J")
         timeout /= 1000
         self.scope = Scope(self.scope)
@@ -2194,10 +2197,13 @@ make sure you explicitly use 0 for no delay if needed""")
     def Map(self, iterable, function):
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
+        self.scope[loop_variable] = 1
+        index_variable = self.GetFreeVariable()
         result = []
 
-        for item in iterable:
-            self.scope[loop_variable] = item
+        for i in range(len(iterable)):
+            self.scope[loop_variable] = iterable[i]
+            self.scope[index_variable] = i
             result += [function(self)]
 
         iterable[:] = result
@@ -2357,7 +2363,10 @@ def ParseExpression(
 
                         character = code[index]
 
-                        if character in "abgdezhciklmnxprstufko":
+                        if (
+                            character in "abgdezhciklmnxprstufko" and not
+                            code[index + 1] in "abcdefghijklmnopqrstuvwxyz"
+                        ):
                             tokens += processor[token][0]([character])
                             index += 1
 
@@ -2956,9 +2965,14 @@ non-raw file input and file output."""
 
         for regex, replacement in (
             ("»+$", ""),
-            ("([ -~´¶])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
-            ("([⁰¹²³⁴-⁹])¦([ -~´¶])", "\\1\\2"),
-            ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1")
+            ("([^⁰¹²³⁴-⁹ -~´¶])¦([^⁰¹²³⁴-⁹ -~´¶])", "\\1\\2"),
+            ("([^⁰¹²³⁴-⁹])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
+            ("([⁰¹²³⁴-⁹])¦([^⁰¹²³⁴-⁹])", "\\1\\2"),
+            ("([^´].|^.)¦([ -~´¶])", "\\1\\2"),
+            ("([ -~´¶])¦([^´])", "\\1\\2"),
+            ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1"),
+            ("(?:Ｍ[←-↓↖-↙])+$", ""),
+            ("[←-↓↖-↙]+$", "")
         ):
             code = re.sub(regex, replacement, code)
 
@@ -3006,8 +3020,7 @@ non-raw file input and file output."""
 
     if argv.repl:
         is_clear = True
-        print(has_color)
-        prompt = "\033[1;37mCharcoal> \033[0m" if has_color else "Charcoal> "
+        prompt = "\033[1;37mCharcoal> \033[0m"
 
         while True:
 
@@ -3069,7 +3082,7 @@ non-raw file input and file output."""
             normal_encoding=argv.normalencoding
         )
 
-        if not argv.stepcanvas:
+        if not argv.stepcanvas and global_charcoal.print_at_end:
             print(result)
 
     else:

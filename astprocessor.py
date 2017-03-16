@@ -80,7 +80,7 @@ ASTProcessor = {
         lambda result: result[0],
         lambda result: result[0],
         lambda result: result[0],
-        lambda result: result,
+        lambda result: result[0],
         lambda result: result,
         lambda result: result,
         lambda result: result,
@@ -200,6 +200,7 @@ ASTProcessor = {
         lambda result: ["While"] + result[1:],
         lambda result: ["If"] + result[1:],
         lambda result: ["If"] + result[1:],
+        lambda result: ["Assign at index"] + result[1:],
         lambda result: ["Assign"] + result[1:],
         lambda result: ["Fill"] + result[1:],
         lambda result: ["SetBackground", result[1]],
@@ -213,6 +214,8 @@ ASTProcessor = {
         lambda result: ["Extend", result[1], result[2]],
         lambda result: ["Extend", result[1]],
         lambda result: ["Push"] + result[1:],
-        lambda result: ["Switch"] + result[1:]
+        lambda result: ["Switch"] + result[1:],
+        lambda result: ["Switch"] + result[1:],
+        lambda result: ["Map"] + result[1:]
     ]
 }
