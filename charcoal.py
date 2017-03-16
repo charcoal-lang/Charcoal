@@ -31,19 +31,24 @@ import os.path
 import string
 import sys
 
+has_color = True
+
 if os.name == "nt":
 
     try:
-        from colorama import init
-        init()
+        import tendo.ansiterm
 
     except:
+        has_color = False
+
         if __name__ == "__main__":
             print("""\
-Please install the 'colorama' module ('pip install colorama'\
- or 'pip3 install colorama') \
-for the 'Refresh' command to work properly.""")
+Please install the 'tendo' module ('pip install tendo'\
+ or 'pip3 install tendo') \
+for the 'Refresh' command and REPL prompt to work properly.""")
 
+else:
+    import readline # for arrow/Ctrl+A/Ctrl+E support
 
 def CleanExecute(function, *args):
     try:
@@ -3000,12 +3005,14 @@ non-raw file input and file output."""
     )
 
     if argv.repl:
+        is_clear = True
+        print(has_color)
+        prompt = "\033[1;37mCharcoal> \033[0m" if has_color else "Charcoal> "
 
         while True:
-            is_clear = True
 
             try:
-                code = old_input("Charcoal> ")
+                code = old_input(prompt)
 
                 if argv.verbose:
                     code = ParseExpression(
