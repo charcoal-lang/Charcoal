@@ -3,7 +3,6 @@
 # TODO List:
 # bresenham
 # image to ascii
-# figure out bug with tendo clear screen
 
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
@@ -25,14 +24,22 @@ import os
 import sys
 import time
 import ast
+import builtins
 
-# from https://gist.github.com/puentesarrin/6567480
-import os.path
-import string
-import sys
+imports = {}
+python_function_is_command = {}
+
+if hasattr(builtins, "eval"):
+    del builtins.eval
+
+imports = {}
+python_function_added = {}
+
+if hasattr(__builtins__, "eval"):
+    del __builtins__.eval
 
 if os.name == "nt":
-    import ansiterm
+    import ansiterm # for colors/screen clear
 
 else:
     import readline # for arrow/Ctrl+A/Ctrl+E support
@@ -1515,7 +1522,21 @@ class Charcoal:
     def RotateTransform(self, rotations):
         self.Rotate(rotations, True)
 
-    def RotateCopy(self, rotations, anchor=Direction.down_right):
+    def RotatePrism(self, rotations, anchor=Direction.down_right, number=False):
+        self.RotateCopy(rotations, anchor, True, number)
+
+    def RotateCopy(
+        self,
+        rotations,
+        anchor=Direction.down_right,
+        transform=False,
+        number=False
+    ):
+        _lines, lengths, indices = (
+            self.lines[::-1],
+            self.lengths[::-1],
+            self.indices[::-1]
+        )
 
         if isinstance(rotations, list):
 
@@ -1529,6 +1550,25 @@ class Charcoal:
 
             if Info.is_repl not in self.info:
                 sys.exit(1)
+
+        if number and rotations > 10:
+
+            new_rotations = set()
+
+            while rotations:
+                new_rotations |= {rotations % 10}
+                rotations //= 10
+
+                if rotations % 2:
+                    print("RuntimeError: Cannot rotate an odd number of times")
+
+                    if Info.is_repl not in self.info:
+                        sys.exit(1)
+
+            rotations = new_rotations
+
+        else:
+            rotations = {rotations}
 
         initial_x = self.x
         initial_y = self.y
@@ -1549,152 +1589,119 @@ class Charcoal:
         elif YMovement[anchor] == -1:
             top = self.top
 
-        if rotations == 2:
+        if 2 in rotations:
+            lines = [
+                "".join(
+                    RotateLeft.get(character, character)
+                    for character in line
+                )
+                for line in _lines
+            ] if transform else _lines
 
             if anchor == Direction.down_right:
                 self.x = right
-                for line, length, index in zip(
-                    self.lines[::-1],
-                    self.lengths[::-1],
-                    self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
                     self.y = bottom + right - index - 1
                     self.PrintLine({Direction.up}, length, line)
 
             if anchor == Direction.down_left:
                 self.x = left
-                for line, length, index in zip(
-                    self.lines[::-1],
-                    self.lengths[::-1],
-                    self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
                     self.y = bottom + left - index - 1
                     self.PrintLine({Direction.up}, length, line)
 
             if anchor == Direction.up_left:
                 self.x = left + length
-                for line, length, index in zip(
-                    self.lines[::-1],
-                    self.lengths[::-1],
-                    self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
                     self.y = top + left - index - 1
                     self.PrintLine({Direction.up}, length, line)
 
             if anchor == Direction.up_right:
                 self.x = right + length
-                for line, length, index in zip(
-                    self.lines[::-1],
-                    self.lengths[::-1],
-                    self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
                     self.y = top + right - index - 1
                     self.PrintLine({Direction.up}, length, line)
 
-        elif rotations == 4:
+        if 4 in rotations:
+            lines = [
+                "".join(
+                    RotateDown.get(character, character)
+                    for character in line
+                )
+                for line in _lines
+            ] if transform else _lines
 
             if anchor == Direction.down_right:
                 self.y = bottom - 1
-                for line, length, index in zip(
-                    self.lines[::-1],
-                    self.lengths[::-1],
-                    self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x = right * 2 - index - 1
                     self.y += 1
                     self.PrintLine({Direction.left}, length, line)
 
             if anchor == Direction.down_left:
                 self.y = bottom - 1
-                for line, length, index in zip(
-                    self.lines[::-1],
-                    self.lengths[::-1],
-                    self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x = left - index - 1
                     self.y += 1
                     self.PrintLine({Direction.left}, length, line)
 
             if anchor == Direction.up_left:
                 self.y = top - length - 1
-                for line, length, index in zip(
-                    self.lines[::-1],
-                    self.lengths[::-1],
-                    self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x = left - index - 1
                     self.y += 1
                     self.PrintLine({Direction.left}, length, line)
 
             if anchor == Direction.up_right:
                 self.y = top - length - 1
-                for line, length, index in zip(
-                    self.lines[::-1],
-                    self.lengths[::-1],
-                    self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x = right * 2 - index - 1
                     self.y += 1
                     self.PrintLine({Direction.left}, length, line)
 
-        elif rotations == 6:
+        if 6 in rotations:
+            lines = [
+                "".join(
+                    RotateRight.get(character, character)
+                    for character in line
+                )
+                for line in _lines
+            ] if transform else _lines
 
             if anchor == Direction.down_right:
                 self.x = right - 1
-                for line, length, index in zip(
-                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
                     self.y = bottom - right + index
                     self.PrintLine({Direction.down}, length, line)
 
             if anchor == Direction.down_left:
                 self.x = left - 1
-                for line, length, index in zip(
-                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
                     self.y = bottom - left + index
                     self.PrintLine({Direction.down}, length, line)
 
             if anchor == Direction.up_left:
                 self.x = left - length - 1
-                for line, length, index in zip(
-                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
                     self.y = top - left + index
                     self.PrintLine({Direction.down}, length, line)
 
             if anchor == Direction.up_right:
                 self.x = right - length - 1
-                for line, length, index in zip(
-                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
-                ):
+                for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
                     self.y = top - right + index
                     self.PrintLine({Direction.down}, length, line)
 
         if Info.step_canvas in self.info:
             self.RefreshFastText("Rotate copy", self.canvas_step)
-
-    def RotateOverlap(self, rotations, anchor=Direction.down_right):
-
-        if isinstance(rotations, list):
-
-            for rotation in rotations:
-                self.RotateOverlap(rotation, anchor)
-
-            return
-
-        # TODO
-
-        if Info.step_canvas in self.info:
-            self.RefreshFastText("Rotate overlap", self.canvas_step)
 
     def Rotate(self, rotations, transform=False):
         rotations %= 8
@@ -2086,6 +2093,82 @@ make sure you explicitly use 0 for no delay if needed""")
             self.indices = indices
             self.right_indices = right_indices
 
+    def AddPythonFunction(name):
+
+        if name in python_function_added:
+            return
+
+        python_function_added[name] = True
+
+        if name == "exec" or name == "__builtins__.exec":
+            return
+
+        function = None
+        _name = name
+
+        if "." in name:
+            module, name = re.split("\.(?=[^.]+)", name)
+
+            if not module in imports:
+                imports[module] = __import__(module)
+
+            function = imports[module][name]
+
+        else:
+            loc, glob = locals(), globals()
+
+            if module in loc:
+                function = loc[name]
+
+            elif module in glob:
+                function = glob[name]
+
+            elif hasattr(__builtins__, module):
+                function = getattr(builtins, module)
+
+        nargs = len(signature(function).parameters)
+        is_command = re.search("(?i)return|disassemble|find|compute", name)
+
+        if is_command:
+            UnicodeGrammars[CharcoalToken.Command] += [
+                ["ＵＰ" + _name] +
+                [CharcoalToken.Expression] * nargs
+            ]
+            VerboseGrammars[CharcoalToken.Command] += [
+                ["python_" + _name, "("] +
+                [CharcoalToken.Expression] * nargs +
+                [")"]
+            ]
+            ASTProcessor[CharcoalToken.Command] += [
+                (lambda s: lambda result: s)("Python function: '%s'" % name)
+            ]
+            StringifierProcessor[CharcoalToken.Command] += [
+                lambda result: "ＵＰ" + _name + result[2:-1]
+            ]
+            InterpreterProcessor[CharcoalToken.Command] += [
+                lambda result: lambda charcoal: function(*list(map(
+                    lambda o: o(charcoal) if callable(o) else o,
+                    result
+                )))
+            ]
+
+        else:
+            UnicodeGrammars[CharcoalToken.OtherOperator] += [
+                ["ＵＰ" + _name] +
+                [CharcoalToken.Expression] * nargs
+            ]
+            VerboseGrammars[CharcoalToken.OtherOperator] += [
+                ["python_" + _name, "("] +
+                [CharcoalToken.Expression] * nargs +
+                [")"]
+            ]
+            ASTProcessor[CharcoalToken.OtherOperator] += [
+                (lambda s: lambda result: s)("Python function: '%s'" % name)
+            ]
+            StringifierProcessor[CharcoalToken.Operator] += [
+                lambda result: "ＵＰ" + _name + result[2:-1]
+            ]
+
     def RunFunction(self, function, arguments):
         self.scope = Scope(self.scope)
 
@@ -2263,7 +2346,7 @@ def ParseExpression(
 
                     if next_chars == "//":
 
-                        while code[index] not in "\r\n":
+                        while index < len(code) and code[index] not in "\r\n":
                             index += 1
 
                         if code[index - 1:index + 1] == "\r\n":
@@ -2287,6 +2370,9 @@ def ParseExpression(
                             depth -= 1
 
                         index += 2
+
+                    while index < len(code) and code[index] in "\r\n\t ":
+                        index += 1
 
                     next_chars = code[index:index + 2]
 
@@ -2550,12 +2636,13 @@ def ParseExpression(
                 )
 
         if success:
-            return (processor[grammar][lexeme_index](tokens), index)
+            result = (processor[grammar][lexeme_index](tokens), index)
+
+            return result
 
         lexeme_index += 1
 
     return False
-
 
 def Parse(
     code,
@@ -2596,6 +2683,9 @@ def Parse(
         else:
             print("RuntimeError: Could not parse")
             sys.exit(1)
+
+    for python_function in re.findall("ＵＰ[ -~]+", code):
+        AddPythonFunction(python_function)
 
     code += "»" * code.count("«")
     result = ParseExpression(
@@ -2677,6 +2767,7 @@ def Run(
     normal_encoding=False,
     verbose=False
 ):
+
     inputs = ProcessInput(inputs)
 
     if not charcoal:
@@ -2742,6 +2833,104 @@ def RemoveThrottle():
         lambda result: lambda charcoal: charcoal.DumpNoThrottle()
     )
 
+def AddPythonFunction(name):
+
+    if (
+        name in python_function_is_command or
+        name == "exec" or
+        name == "__builtins__.exec" or
+        name == "builtins.exec"
+    ):
+        return
+
+    function = None
+    name = name[2:]
+    _name = name
+
+    if "." in name:
+        module, name = re.split("\.(?=[^.]+)", name)
+
+        if not module in imports:
+            imports[module] = __import__(module)
+
+        function = imports[module][name]
+
+    if not function:
+        loc, glob = locals(), globals()
+
+        if not "." in name:
+
+            if name in loc:
+                function = loc[name]
+
+            elif name in glob:
+                function = glob[name]
+
+            elif hasattr(builtins, name):
+                function = getattr(builtins, name)
+
+        else:
+            variable, *parts = name.split(".")
+
+            if variable in loc:
+                function = loc[variable]
+
+            elif variable in glob:
+                function = glob[variable]
+
+            elif hasattr(builtins, variable):
+                function = getattr(builtins, variable)
+
+            for part in parts:
+                function = function[part]
+
+    is_operator = re.search(
+        "(?i)return|disassemble|find|compute",
+        function.__doc__
+    )
+
+    python_function_is_command[name] = not is_operator
+
+    if is_operator:
+        UnicodeGrammars[CharcoalToken.OtherOperator] += [
+            ["ＵＰ" + _name] +
+            [CharcoalToken.List]
+        ]
+        VerboseGrammars[CharcoalToken.OtherOperator] += [
+            ["PythonFunction", "(", _name, ")", "("] +
+            [CharcoalToken.List] +
+            [")"]
+        ]
+        ASTProcessor[CharcoalToken.OtherOperator] += [
+            lambda result: "Python function: \"%s\"" % name
+        ]
+        StringifierProcessor[CharcoalToken.OtherOperator] += [
+            lambda result: "ＵＰ" + _name + result[2:-1]
+        ]
+        InterpreterProcessor[CharcoalToken.OtherOperator] += [
+            lambda result: lambda charcoal: function(*result[1](charcoal))
+        ]
+
+    else:
+        UnicodeGrammars[CharcoalToken.Command] += [
+            ["ＵＰ" + _name] +
+            [CharcoalToken.List]
+        ]
+        VerboseGrammars[CharcoalToken.Command] += [
+            ["PythonFunction", "(", _name, ")", "("] +
+            [CharcoalToken.List] +
+            [")"]
+        ]
+        ASTProcessor[CharcoalToken.Command] += [
+            lambda result: "Python function: \"%s\"" % name
+        ]
+        StringifierProcessor[CharcoalToken.Command] += [
+            lambda result: "ＵＰ" + _name + result[2:-1]
+        ]
+        InterpreterProcessor[CharcoalToken.Command] += [
+            lambda result: lambda charcoal: function(*result[1](charcoal))
+        ]
+
 # from https://gist.github.com/puentesarrin/6567480
 
 def print_xxd(data):
@@ -2752,17 +2941,17 @@ def print_xxd(data):
         buf = data[counter << 4:(counter + 1) << 4]
         if not buf:
             break
-        buf2 = ['%02x' % i for i in buf]
-        print('{0}: {1:<39}  {2}'.format(
-            ('%07x' % (counter << 4)),
-            ' '.join(
-                [''.join(buf2[i:i + 2]) for i in range(0, len(buf2), 2)]
+        buf2 = ["%02x" % i for i in buf]
+        print("{0}: {1:<39}  {2}".format(
+            ("%07x" % (counter << 4)),
+            " ".join(
+                ["".join(buf2[i:i + 2]) for i in range(0, len(buf2), 2)]
             ),
-            ''.join(
+            "".join(
                 [
                     chr(c) if
-                    chr(c) in string.printable[:-5] else
-                    '.' for c in buf
+                    chr(c) in __import__("string").printable[:-5] else
+                    "." for c in buf
                 ]
             )
         ))
@@ -2982,12 +3171,12 @@ non-raw file input and file output."""
             ("¹⁰⁰⁰", "χ"),
             ("¹⁰", "ψ"),
             ("””", "ω"),
-            ("(^|[^´].|[^ -~´¶]) !\"#$%&'\(\)\*\+,-\./0123456789:;<=>?@\
+            ("(^|[^´].|[^ -~´¶]) !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
 abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
             ("([^´].|[^ -~´¶]|^)abcdefghijklmnopqrstuvwxyz([^´]|$)", "\\1β\\2"),
             ("([^´].|[^ -~´¶]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)", "\\1α\\2"),
-            (Compressed(" !\"#$%&'\(\)\*\+,-\./0123456789:;<=>?@\
+            (Compressed(" !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
 abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
             (Compressed("abcdefghijklmnopqrstuvwxyz"), "β"),
@@ -2999,7 +3188,7 @@ abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
             ("([ -~´¶])¦([^´])", "\\1\\2"),
             ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1"),
             ("(?:Ｍ[←-↓↖-↙])+$", ""),
-            ("[←-↓↖-↙]+$", ""),
+            ("[←-↓↖-↙]+$", "")
         ):
             code = re.sub(regex, replacement, code)
 
@@ -3067,10 +3256,22 @@ abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
                         ("¹⁰⁰⁰", "χ"),
                         ("¹⁰", "ψ"),
                         ("””", "ω"),
+                        ("(^|[^´].|[^ -~´¶]) !\"#\$%&'\(\)\*\+,-\./0123456789\
+:;<=>\?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
+abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
+                        ("([^´].|[^ -~´¶]|^)abcdefghijklmnopqrstuvwxyz([^´]|$\
+", "\\1β\\2"),
+                        ("([^´].|[^ -~´¶]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)\
+", "\\1α\\2"),
+                        (Compressed(" !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
+abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
+                        (Compressed("abcdefghijklmnopqrstuvwxyz"), "β"),
+                        (Compressed("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "α"),
                         ("([^⁰¹²³⁴-⁹ -~´¶])¦([^⁰¹²³⁴-⁹ -~´¶])", "\\1\\2"),
                         ("([^⁰¹²³⁴-⁹])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
                         ("([⁰¹²³⁴-⁹])¦([^⁰¹²³⁴-⁹])", "\\1\\2"),
-                        ("([^´].|^.)¦([ -~´¶])", "\\1\\2"),
+                        ("([^´].|[^ -~´¶])¦([ -~´¶])", "\\1\\2"),
                         ("([ -~´¶])¦([^´])", "\\1\\2"),
                         ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1"),
                         ("(?:Ｍ[←-↓↖-↙])+$", ""),

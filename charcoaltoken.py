@@ -32,4 +32,3 @@ class CharcoalToken(Enum):
     Program = 41
     Command = 42
     Body = 43
-

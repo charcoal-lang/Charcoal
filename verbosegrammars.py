@@ -240,6 +240,13 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             CharcoalToken.Expression,
             ")"
+        ],
+        [
+            "PythonFunction",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.List,
+            ")"
         ]
     ],
 
@@ -256,6 +263,13 @@ VerboseGrammars = {
         [CharcoalToken.Command]
     ],
     CharcoalToken.Command: [
+        [
+            "PythonFunction",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.List,
+            ")"
+        ],
         ["InputString", "(", CharcoalToken.Name, ")"],
         ["InputNumber", "(", CharcoalToken.Name, ")"],
         ["Evaluate", "(", CharcoalToken.Expression, ")"],
@@ -323,21 +337,47 @@ VerboseGrammars = {
         ["PivotRight", "(", ")"],
         ["Jump", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         ["RotateTransform", "(", CharcoalToken.Expression, ")"],
-        ["ReflectTransform", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectTransform", "(", CharcoalToken.Arrow, ")"],
+        [
+            "RotatePrism",
+            "(",
+            CharcoalToken.Arrow, 
+            CharcoalToken.Separator,
+            CharcoalToken.List,
+            ")"
+        ],
+        [
+            "RotatePrism",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        ["RotatePrism", "(", CharcoalToken.List, ")"],
+        ["RotatePrism", "(", CharcoalToken.Expression, ")"],
         ["ReflectMirror", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectMirror", "(", CharcoalToken.Arrow, ")"],
         [
             "RotateCopy",
             "(",
-            CharcoalToken.Expression,
             CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.List,
             ")"
         ],
+        [
+            "RotateCopy",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        ["RotateCopy", "(", CharcoalToken.List, ")"],
         ["RotateCopy", "(", CharcoalToken.Expression, ")"],
         ["ReflectCopy", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectCopy", "(", CharcoalToken.Arrow, ")"],
-        ["RotateOverlap", "(", CharcoalToken.Expression, ")"],
         ["ReflectOverlap", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectOverlap", "(", CharcoalToken.Arrow, ")"],
         ["Rotate", "(", CharcoalToken.Expression, ")"],

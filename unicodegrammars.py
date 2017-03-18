@@ -1,4 +1,6 @@
 from charcoaltoken import CharcoalToken
+from inspect import signature
+import re
 
 UnicodeGrammars = {
     CharcoalToken.Arrow: [
@@ -237,15 +239,23 @@ UnicodeGrammars = {
         ["↷"],
         ["Ｊ", CharcoalToken.Expression, CharcoalToken.Expression],
         ["⟲Ｔ", CharcoalToken.Expression],
-        ["‖Ｔ", CharcoalToken.ArrowList],
         ["‖Ｔ", CharcoalToken.Arrow],
+        ["⟲Ｐ", CharcoalToken.Arrow, CharcoalToken.Number, CharcoalToken.Separator],
+        ["⟲Ｐ", CharcoalToken.Arrow, CharcoalToken.List],
+        ["⟲Ｐ", CharcoalToken.Arrow, CharcoalToken.Expression],
+        ["⟲Ｐ", CharcoalToken.Number, CharcoalToken.Separator],
+        ["⟲Ｐ", CharcoalToken.List],
+        ["⟲Ｐ", CharcoalToken.Expression],
         ["‖Ｍ", CharcoalToken.ArrowList],
         ["‖Ｍ", CharcoalToken.Arrow],
-        ["⟲Ｃ", CharcoalToken.Expression, CharcoalToken.Arrow],
+        ["⟲Ｃ", CharcoalToken.Arrow, CharcoalToken.Number, CharcoalToken.Separator],
+        ["⟲Ｃ", CharcoalToken.Arrow, CharcoalToken.List],
+        ["⟲Ｃ", CharcoalToken.Arrow, CharcoalToken.Expression],
+        ["⟲Ｃ", CharcoalToken.Number, CharcoalToken.Separator],
+        ["⟲Ｃ", CharcoalToken.List],
         ["⟲Ｃ", CharcoalToken.Expression],
         ["‖Ｃ", CharcoalToken.ArrowList],
         ["‖Ｃ", CharcoalToken.Arrow],
-        ["⟲Ｏ", CharcoalToken.Expression],
         ["‖Ｏ", CharcoalToken.ArrowList],
         ["‖Ｏ", CharcoalToken.Arrow],
         ["⟲", CharcoalToken.Expression],

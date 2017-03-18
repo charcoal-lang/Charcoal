@@ -462,21 +462,49 @@ InterpreterProcessor = {
             result[1](charcoal)
         ),
         lambda result: lambda charcoal: charcoal.ReflectTransform(result[1]),
-        lambda result: lambda charcoal: charcoal.ReflectTransform(result[1]),
+        lambda result: lambda charcoal: charcoal.RotatePrism(
+            result[2],
+            result[1],
+            number=True
+        ),
+        lambda result: lambda charcoal: charcoal.RotatePrism(
+            result[2](charcoal),
+            result[1]
+        ),
+        lambda result: lambda charcoal: charcoal.RotatePrism(
+            result[2](charcoal),
+            result[1]
+        ),
+        lambda result: lambda charcoal: charcoal.RotatePrism(result[1], number=True),
+        lambda result: lambda charcoal: charcoal.RotatePrism(result[1](charcoal)),
+        lambda result: lambda charcoal: charcoal.RotatePrism(result[1](charcoal)),
         lambda result: lambda charcoal: charcoal.ReflectMirror(result[1]),
         lambda result: lambda charcoal: charcoal.ReflectMirror(result[1]),
         lambda result: lambda charcoal: charcoal.RotateCopy(
-            result[1](charcoal),
-            result[2]
+            result[2],
+            result[1],
+            number=True
+        ),
+        lambda result: lambda charcoal: charcoal.RotateCopy(
+            result[2](charcoal),
+            result[1]
+        ),
+        lambda result: lambda charcoal: charcoal.RotateCopy(
+            result[2](charcoal),
+            result[1]
+        ),
+        lambda result: lambda charcoal: charcoal.RotateCopy(
+            result[1],
+            number=True
+        ),
+        lambda result: lambda charcoal: charcoal.RotateCopy(
+            result[1](charcoal)
         ),
         lambda result: lambda charcoal: charcoal.RotateCopy(
             result[1](charcoal)
         ),
         lambda result: lambda charcoal: charcoal.ReflectCopy(result[1]),
         lambda result: lambda charcoal: charcoal.ReflectCopy(result[1]),
-        lambda result: lambda charcoal: charcoal.RotateOverlap(
-            result[1](charcoal)
-        ),
         lambda result: lambda charcoal: charcoal.ReflectOverlap(result[1]),
         lambda result: lambda charcoal: charcoal.ReflectOverlap(result[1]),
         lambda result: lambda charcoal: charcoal.Rotate(result[1](charcoal)),

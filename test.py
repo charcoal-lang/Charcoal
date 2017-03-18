@@ -370,6 +370,19 @@ if (0) {
         self.assertEqual(Run("|¶-¶/¶\¶v¶^¶<¶>⟲Ｔ²"), "-|\/v^<>")
         # TODO: should v^<> be rotated
 
+    def test_rotate_prism(self):
+        self.assertEqual(Run("|----⟲Ｐ²⁴⁶"), """\
+     -    
+     |    
+     |    
+     |    
+|----|    
+    |----|
+    |     
+    |     
+    |     
+    -     """)
+
     def test_reflect_mirror(self):
         self.assertEqual(Run("(({{[[<<‖Ｍ→"), "(({{[[<<>>]]}}))")
         self.assertEqual(Run("(({{¶  [[<<‖Ｍ→"), "(({{    }}))\n  [[<<>>]]  ")
@@ -392,46 +405,46 @@ de
    da
 abceb
 de  c""")
-        self.assertEqual(Run("abc↙Ｍ←de⟲Ｃ²↙"), """\
+        self.assertEqual(Run("abc↙Ｍ←de⟲Ｃ↙²"), """\
 ce   
 bdabc
 a  de""")
-        self.assertEqual(Run("abc↙Ｍ←de⟲Ｃ⁴↙"), """\
+        self.assertEqual(Run("abc↙Ｍ←de⟲Ｃ↙⁴"), """\
    abc
     de
 ed    
 cba   """)
-        self.assertEqual(Run("abc↙Ｍ←de⟲Ｃ⁶↙"), """\
+        self.assertEqual(Run("abc↙Ｍ←de⟲Ｃ↙⁶"), """\
 abc
  de
  a 
 db 
 ec """)
-        self.assertEqual(Run("abc↖Ｍ←de⟲Ｃ²↖"), """\
+        self.assertEqual(Run("abc↖Ｍ←de⟲Ｃ↖²"), """\
 ec 
 db 
  a 
  de
 abc""")
-        self.assertEqual(Run("abc↖Ｍ←de⟲Ｃ⁴↖"), """\
+        self.assertEqual(Run("abc↖Ｍ←de⟲Ｃ↖⁴"), """\
 cba   
 ed    
     de
    abc""")
-        self.assertEqual(Run("abc↖Ｍ←de⟲Ｃ⁶↖"), """\
+        self.assertEqual(Run("abc↖Ｍ←de⟲Ｃ↖⁶"), """\
 a  de
 bdabc
 ce   """)
-        self.assertEqual(Run("de¶abc⟲Ｃ²↗"), """\
+        self.assertEqual(Run("de¶abc⟲Ｃ↗²"), """\
 de  c
 abceb
    da""")
-        self.assertEqual(Run("de¶abc⟲Ｃ⁴↗"), """\
+        self.assertEqual(Run("de¶abc⟲Ｃ↗⁴"), """\
    cba
     ed
 de    
 abc   """)
-        self.assertEqual(Run("de¶abc⟲Ｃ⁶↗"), """\
+        self.assertEqual(Run("de¶abc⟲Ｃ↗⁶"), """\
  ad
  be
  c 
@@ -468,7 +481,7 @@ Print('abc');
 Move(:DownLeft);
 Move(:Left);
 Print('de');
-RotateCopy(2, :DownLeft)""",
+RotateCopy(:DownLeft, 2)""",
                 verbose=True
             ),
              """\
@@ -483,7 +496,7 @@ Print('abc');
 Move(:DownLeft);
 Move(:Left);
 Print('de');
-RotateCopy(4, :DownLeft)""",
+RotateCopy(:DownLeft, 4)""",
                 verbose=True
             ),
             """\
@@ -499,7 +512,7 @@ Print('abc');
 Move(:DownLeft);
 Move(:Left);
 Print('de');
-RotateCopy(6, :DownLeft)""",
+RotateCopy(:DownLeft, 6)""",
                 verbose=True
             ),
             """\
@@ -746,9 +759,6 @@ ghi
    i  
    h  
    gda""")
-
-    def test_rotate_overlap(self):
-        pass
 
     def test_reflect_overlap(self):
         self.assertEqual(Run("abc¶def¶ghi‖Ｏ←"), "cbabc\nfedef\nihghi")
@@ -1201,6 +1211,9 @@ foofoofoofoofoo""")
 
     def test_map(self):
         self.assertEqual(Run("Ｅ⟦¹1²⟧Ｉι"), "1\n-\n2")
+
+    def test_python(self):
+        self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")
 
     def test_preinitialized(self):
         self.assertEqual(Run("θ", "a b c d e"), "a")
