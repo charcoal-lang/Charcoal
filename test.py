@@ -1204,6 +1204,10 @@ o
 foofoofoofoofoo""")
         self.assertEqual(Run("baz←Ｍ←×⪫ＫＭω⁵"), "bzbzbzbzbzb")
         self.assertEqual(Run("quux←Ｍ←×⪫ＫＶω⁵"), "quxuxuxuxuxu")
+        self.assertEqual(Run(
+            "quux``4`M``4`*``j`K`V`w`5",
+            grave=True
+        ), "quxuxuxuxuxu")
 
     def test_count(self):
         self.assertEqual(Run("№foo¦o"), "--")
@@ -1258,6 +1262,12 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\
 
     def test_escape(self):
         self.assertEqual(Run("Ｇ+⁵a´¶´‖"), """\
+a¶‖a¶
+a¶‖a¶
+a¶‖a¶
+a¶‖a¶
+a¶‖a¶""")
+        self.assertEqual(Run("`G+`5a`` `\n`` `;", grave=True), """\
 a¶‖a¶
 a¶‖a¶
 a¶‖a¶

@@ -51,7 +51,7 @@ for eight_bit in UnicodeLookup:
     ReverseLookup[character] = eight_bit
     OrdinalLookup[character] = ord(eight_bit)
 
-for ascii_character in range(32, 128):
+for ascii_character in range(33, 128):
     character = chr(ascii_character)
     ReverseLookup[character] = character
     OrdinalLookup[character] = ascii_character

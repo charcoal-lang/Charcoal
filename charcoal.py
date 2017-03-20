@@ -2127,7 +2127,11 @@ make sure you explicitly use 0 for no delay if needed""")
                 function = getattr(builtins, module)
 
         nargs = len(signature(function).parameters)
-        is_command = re.search("(?i)return|disassemble|find|compute", name)
+        is_command = re.search(
+            "(?i)return|disassemble|find|compute|make|create|new\
+build|convert|read|\*\*",
+            name
+        )
 
         if is_command:
             UnicodeGrammars[CharcoalToken.Command] += [
@@ -2651,7 +2655,8 @@ def Parse(
     processor=ASTProcessor,
     whitespace=False,
     normal_encoding=False,
-    verbose=False
+    verbose=False,
+    grave=False
 ):
     if normal_encoding:
         code = "".join([
@@ -2683,6 +2688,38 @@ def Parse(
         else:
             print("RuntimeError: Could not parse")
             sys.exit(1)
+
+    elif grave:
+        code = re.sub("``([\s\S])|`([\s\S])", lambda match: (
+            {
+                "`": "`",
+                " ": "´",
+                "4": "←",
+                "8": "↑",
+                "6": "→",
+                "2": "↓",
+                "7": "↖",
+                "9": "↗",
+                "3": "↘",
+                "1": "↙",
+                "#": "№",
+                "<": "↶",
+                ">": "↷",
+                "r": "⟲",
+                "j": "⪫",
+                "s": "⪪",
+                "c": "℅",
+                "o": "℅",
+                "f": "⌕",
+                "[": "◧",
+                "]": "◨",
+                "=": "≡",
+                "": "⮌"
+            }[match.group(1)]
+            if match.group(1) else
+            UnicodeLookup[chr(ord(match.group(2)) + 128)]
+            if match.group(2) != "\n" else "¶"
+        ), code)
 
     for python_function in re.findall("ＵＰ[ -~]+", code):
         AddPythonFunction(python_function)
@@ -2765,7 +2802,8 @@ def Run(
     grammars=UnicodeGrammars,
     whitespace=False,
     normal_encoding=False,
-    verbose=False
+    verbose=False,
+    grave=False
 ):
 
     inputs = ProcessInput(inputs)
@@ -2783,7 +2821,8 @@ def Run(
         grammars=grammars,
         processor=InterpreterProcessor,
         normal_encoding=normal_encoding,
-        verbose=verbose
+        verbose=verbose,
+        grave=grave
     )(charcoal)
 
     if grammar == CharcoalToken.Program:
@@ -3047,6 +3086,14 @@ non-raw file input and file output."""
         help="Use verbose mode."
     )
     parser.add_argument(
+        "-dg", "--degrave", action="store_true",
+        help="Turn grave mode code into normal code."
+    )
+    parser.add_argument(
+        "-grave", "--grave", action="store_true",
+        help="Use grave mode."
+    )
+    parser.add_argument(
         "-sl", "--showlength", action="store_true",
         help="Show the length of the code."
     )
@@ -3193,6 +3240,42 @@ abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
             code = re.sub(regex, replacement, code)
 
         if argv.deverbosify:
+            print(code)
+
+    if argv.grave or argv.degrave:
+
+        code = re.sub("``([\s\S])|`([\s\S])", lambda match: (
+            {
+                "`": "`",
+                " ": "´",
+                "4": "←",
+                "8": "↑",
+                "6": "→",
+                "2": "↓",
+                "7": "↖",
+                "9": "↗",
+                "3": "↘",
+                "1": "↙",
+                "#": "№",
+                "<": "↶",
+                ">": "↷",
+                "r": "⟲",
+                "j": "⪫",
+                "s": "⪪",
+                "c": "℅",
+                "o": "℅",
+                "f": "⌕",
+                "[": "◧",
+                "]": "◨",
+                "=": "≡",
+                "": "⮌"
+            }[match.group(1)]
+            if match.group(1) else
+            UnicodeLookup[chr(ord(match.group(2)) + 128)]
+            if match.group(2) != "\n" else "¶"
+        ), code)
+
+        if argv.degrave:
             print(code)
 
     if argv.showlength:
