@@ -337,6 +337,7 @@ VerboseGrammars = {
         ["PivotRight", "(", ")"],
         ["Jump", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         ["RotateTransform", "(", CharcoalToken.Expression, ")"],
+        ["RotateTransform", "(", ")"],
         ["ReflectTransform", "(", CharcoalToken.Arrow, ")"],
         [
             "RotatePrism",
@@ -354,8 +355,15 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             ")"
         ],
+        [
+            "RotatePrism",
+            "(",
+            CharcoalToken.Arrow,
+            ")"
+        ],
         ["RotatePrism", "(", CharcoalToken.List, ")"],
         ["RotatePrism", "(", CharcoalToken.Expression, ")"],
+        ["RotatePrism", "(", ")"],
         ["ReflectMirror", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectMirror", "(", CharcoalToken.Arrow, ")"],
         [
@@ -374,13 +382,21 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             ")"
         ],
+        [
+            "RotateCopy",
+            "(",
+            CharcoalToken.Arrow,
+            ")"
+        ],
         ["RotateCopy", "(", CharcoalToken.List, ")"],
         ["RotateCopy", "(", CharcoalToken.Expression, ")"],
+        ["RotateCopy", "(", ")"],
         ["ReflectCopy", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectCopy", "(", CharcoalToken.Arrow, ")"],
         ["ReflectOverlap", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectOverlap", "(", CharcoalToken.Arrow, ")"],
         ["Rotate", "(", CharcoalToken.Expression, ")"],
+        ["Rotate", "(", ")"],
         ["Reflect", "(", CharcoalToken.Arrow, ")"],
         ["Copy", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         ["for", "(", CharcoalToken.Expression, ")", CharcoalToken.Body],

@@ -55,6 +55,14 @@ def CleanExecute(function, *args):
 def Cleanify(function):
     return lambda *args: CleanExecute(function, *args)
 
+_open = open
+
+def Open(*args, **nargs):
+    nargs["encoding"] = "utf-8"
+    return _open(*args, **nargs)
+
+open = Open
+
 old_input = input
 input = Cleanify(old_input)
 sleep = Cleanify(time.sleep)
@@ -1519,15 +1527,15 @@ class Charcoal:
         if Info.step_canvas in self.info:
             self.RefreshFastText("Reflect", self.canvas_step)
 
-    def RotateTransform(self, rotations):
+    def RotateTransform(self, rotations=2):
         self.Rotate(rotations, True)
 
-    def RotatePrism(self, rotations, anchor=Direction.down_right, number=False):
+    def RotatePrism(self, rotations=2, anchor=Direction.down_right, number=False):
         self.RotateCopy(rotations, anchor, True, number)
 
     def RotateCopy(
         self,
-        rotations,
+        rotations=2,
         anchor=Direction.down_right,
         transform=False,
         number=False
@@ -1703,7 +1711,7 @@ class Charcoal:
         if Info.step_canvas in self.info:
             self.RefreshFastText("Rotate copy", self.canvas_step)
 
-    def Rotate(self, rotations, transform=False):
+    def Rotate(self, rotations=2, transform=False):
         rotations %= 8
 
         if not rotations:
@@ -3112,7 +3120,15 @@ non-raw file input and file output."""
     argv = parser.parse_args()
     info = set()
 
-    argv.repl = argv.repl or len(sys.argv) == 1
+    argv.repl = argv.repl or all(list(map(
+        lambda x: x in [
+            "-g",
+            "-grave",
+            "--v",
+            "--verbose"
+        ],
+        sys.argv[1:]
+    )))
 
     if argv.test:
         from test import CharcoalTests, RunTests
@@ -3361,6 +3377,39 @@ abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
                         ("[←-↓↖-↙]+$", "")
                     ):
                         code = re.sub(regex, replacement, code)
+
+                if argv.grave:
+
+                        code = re.sub("``([\s\S])|`([\s\S])", lambda match: (
+                            {
+                                "`": "`",
+                                " ": "´",
+                                "4": "←",
+                                "8": "↑",
+                                "6": "→",
+                                "2": "↓",
+                                "7": "↖",
+                                "9": "↗",
+                                "3": "↘",
+                                "1": "↙",
+                                "#": "№",
+                                "<": "↶",
+                                ">": "↷",
+                                "r": "⟲",
+                                "j": "⪫",
+                                "s": "⪪",
+                                "c": "℅",
+                                "o": "℅",
+                                "f": "⌕",
+                                "[": "◧",
+                                "]": "◨",
+                                "=": "≡",
+                                "": "⮌"
+                            }[match.group(1)]
+                            if match.group(1) else
+                            UnicodeLookup[chr(ord(match.group(2)) + 128)]
+                            if match.group(2) != "\n" else "¶"
+                        ), code)
 
                 if argv.astify:
                     print("Program")
