@@ -12,6 +12,7 @@ the CLI, and various classes used by the Charcoal class.
 # image to ascii
 # ReflectOverlapTransform
 # and RotateOverlapTransform
+# Should rectangle and friends work for negative arguments?
 
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
@@ -26,26 +27,17 @@ from codepage import UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage
 from codepage import sOperator
 from compression import Decompressed, Compressed
 from enum import Enum
+from ast import literal_eval
+from time import sleep, clock
 import random
 import re
 import argparse
 import os
 import sys
-import time
-import ast
 import builtins
 
 imports = {}
 python_function_is_command = {}
-
-if hasattr(builtins, "eval"):
-    del builtins.eval
-
-if hasattr(__builtins__, "eval"):
-    del __builtins__.eval
-
-imports = {}
-python_function_added = {}
 
 if os.name == "nt":
     import ansiterm # for colors/screen clear
@@ -119,7 +111,7 @@ open = Open
 
 old_input = input
 input = Cleanify(old_input)
-sleep = Cleanify(time.sleep)
+sleep = Cleanify(sleep)
 
 
 def Sign(number):
@@ -1065,6 +1057,9 @@ the top left corner, going clockwise without overlap.
 be used for the sides and + for the corners.
 
         """
+
+        if not width or not height:
+            return
 
         if not character:
             initial_x = self.x
@@ -2335,9 +2330,9 @@ else set the variable key to value.
         Dump contents of canvas with a minimum interval of 10ms.
 
         """
-        sleep(max(0, self.dump_timeout_end - time.clock()))
+        sleep(max(0, self.dump_timeout_end - clock()))
         print(self)
-        self.dump_timeout_end = time.clock() + .01
+        self.dump_timeout_end = clock() + .01
 
     def DumpNoThrottle(self):
         """
@@ -2371,9 +2366,9 @@ add a timeout of timeout ms before which the screen cannot be refreshed again.
 Warning: Possible ambiguity, \
 make sure you explicitly use 0 for no delay if needed""")
 
-        sleep(max(0, self.timeout_end - time.clock()))
+        sleep(max(0, self.timeout_end - clock()))
         print("\033[0;0H" + str(self))
-        self.timeout_end = time.clock() + timeout / 1000
+        self.timeout_end = clock() + timeout / 1000
 
     def RefreshFast(self, timeout=0):
         """
@@ -2385,9 +2380,9 @@ add a timeout of timeout ms before which the screen cannot be refreshed again.
         Used in RefreshFor and RefreshWhile.
 
         """
-        sleep(max(0, self.timeout_end - time.clock()))
+        sleep(max(0, self.timeout_end - clock()))
         print("\033[0;0H" + str(self))
-        self.timeout_end = time.clock() + timeout / 1000
+        self.timeout_end = clock() + timeout / 1000
 
     def RefreshFastText(self, text, timeout=0):
         """
@@ -2400,9 +2395,9 @@ add a timeout of timeout ms before which the screen cannot be refreshed again.
         Used for debugging purposes.
 
         """
-        sleep(max(0, self.timeout_end - time.clock()))
+        sleep(max(0, self.timeout_end - clock()))
         print("\033[0;0H\033[2K" + text + "\n" + str(self))
-        self.timeout_end = time.clock() + timeout / 1000
+        self.timeout_end = clock() + timeout / 1000
 
     def RefreshFor(self, timeout, variable, body):
         """
@@ -2424,7 +2419,7 @@ Add a timeout of timeout ms before which the screen cannot be refreshed again.
             variable = range(variable)
 
         for item in variable:
-            self.timeout_end = time.clock() + timeout
+            self.timeout_end = clock() + timeout
             self.scope[loop_variable] = item
             body(self)
             self.RefreshFast()
@@ -2448,7 +2443,7 @@ Add a timeout of timeout ms before which the screen cannot be refreshed again.
         self.scope[loop_variable] = condition(self)
 
         while self.scope[loop_variable]:
-            self.timeout_end = time.clock() + timeout
+            self.timeout_end = clock() + timeout
             body(self)
             self.RefreshFast()
             self.scope[loop_variable] = condition(self)
@@ -2902,7 +2897,7 @@ starting from the token given as grammar.
                             success = False
                             break
 
-                        tokens += processor[token][0]([ast.literal_eval(
+                        tokens += processor[token][0]([literal_eval(
                             code[old_index:index]
                         )])
 
@@ -3289,7 +3284,7 @@ def ProcessInput(inputs):
     new_inputs = inputs
 
     try:
-        new_inputs = list(map(str, ast.literal_eval(inputs)))
+        new_inputs = list(map(str, literal_eval(inputs)))
 
         if not isinstance(new_inputs, list):
             raise Exception()
@@ -3453,12 +3448,7 @@ and processors.
 
     """
 
-    if (
-        name in python_function_is_command or
-        name == "exec" or
-        name == "builtins.exec" or
-        name == "__builtins__.exec"
-    ):
+    if name in python_function_is_command:
         return
 
     function = None
@@ -3770,7 +3760,7 @@ non-raw file input and file output."""
             raw_file_input = file.read()
 
         try:
-            file_input = list(map(str, ast.literal_eval(raw_file_input)))
+            file_input = list(map(str, literal_eval(raw_file_input)))
 
             if not isinstance(file_input, list):
                 raise Exception()
@@ -3793,7 +3783,7 @@ non-raw file input and file output."""
             raw_file_output = file.read()
 
         try:
-            file_output = list(map(str, ast.literal_eval(raw_file_output)))
+            file_output = list(map(str, literal_eval(raw_file_output)))
 
             if not isinstance(file_ouptut, list):
                 raise Exception()
@@ -3831,8 +3821,8 @@ non-raw file input and file output."""
 
         for regex, replacement in (
             ("»+$", ""),
-            ("¹⁰⁰⁰", "χ"),
-            ("¹⁰", "ψ"),
+            ("(?:[^⁰¹²³⁴-⁹]|^)¹⁰⁰⁰(?:[^⁰¹²³⁴-⁹]|$)", "χ"),
+            ("(?:[^⁰¹²³⁴-⁹]|^)¹⁰(?:[^⁰¹²³⁴-⁹]|$)", "ψ"),
             ("””", "ω"),
             ("(^|[^´].|[^ -~´¶]) !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
