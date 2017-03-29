@@ -1,5 +1,11 @@
 #!/usr/bin/python3
 # VIM: let b:airline_whitespace_disabled=1
+"""
+Charcoal's test module.
+
+Contains unit tests, and runs them when invoked.
+
+"""
 
 from charcoal import Run
 import unittest
@@ -82,18 +88,30 @@ Print('abc');Move(:Left);Move(:Left);Move(:Left);Print('abc')""",
         )
 
     def test_jump(self):
-        self.assertEqual(Run("aＪ³¦³a"), """\
+        self.assertEqual(Run("aＭ³¦³a"), """\
 a    
      
      
     a""")
+        self.assertEqual(Run("abＪ³¦³a"), """\
+ab  
+    
+    
+   a""")
         self.assertEqual(
-            Run("Print(\"a\");Jump(3, 3);Print(\"a\");", verbose=True),
+            Run("Print(\"a\");Move(3, 3);Print(\"a\");", verbose=True),
             """\
 a    
      
      
     a""")
+        self.assertEqual(
+            Run("Print(\"ab\");JumpTo(3, 3);Print(\"a\");", verbose=True),
+            """\
+ab  
+    
+    
+   a""")
 
     def test_eval(self):
         self.assertEqual(Run("ＶＳ", "abc←←Ｍ←abc"), "abc")
@@ -1231,8 +1249,9 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\
         self.assertEqual(Run("β"), "abcdefghijklmnopqrstuvwxyz")
         self.assertEqual(Run("α"), "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         self.assertEqual(Run("ω"), "")
-        self.assertEqual(Run("ψ"), "----------")
-        self.assertEqual(Run("χ"), "-"*1000)
+        self.assertEqual(Run("ψ"), "") # null byte
+        self.assertEqual(Run("χ"), "----------")
+        self.assertEqual(Run("φ"), "-"*1000)
 
     def test_input(self):
         self.assertEqual(
@@ -1383,4 +1402,3 @@ def RunTests():
 
 if __name__ == "__main__":
     RunTests()
-

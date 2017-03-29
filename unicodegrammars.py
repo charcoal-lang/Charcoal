@@ -188,12 +188,12 @@ UnicodeGrammars = {
     ],
 
     CharcoalToken.Program: [
-        [CharcoalToken.Command, CharcoalToken.Program],
+        [CharcoalToken.Command, CharcoalToken.Separator, CharcoalToken.Program],
         []
     ],
     CharcoalToken.Body: [
         ["«", CharcoalToken.Program, "»"],
-        [CharcoalToken.Command]
+        [CharcoalToken.Command, CharcoalToken.Separator]
     ],
     CharcoalToken.Command: [
         ["Ｓ", CharcoalToken.Name],
@@ -233,6 +233,7 @@ UnicodeGrammars = {
         [CharcoalToken.Arrow],
         ["Ｍ", CharcoalToken.Arrow],
         ["Ｍ", CharcoalToken.Expression, CharcoalToken.Arrow],
+        ["Ｍ", CharcoalToken.Expression, CharcoalToken.Expression],
         ["↶", CharcoalToken.Expression],
         ["↶"],
         ["↷", CharcoalToken.Expression],

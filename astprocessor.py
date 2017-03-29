@@ -152,7 +152,7 @@ ASTProcessor = {
     ],
 
     CharcoalToken.Program: [
-        lambda result:  [result[1][0], result[0]] + result[1][1:],
+        lambda result:  [result[2][0], result[0]] + result[2][1:],
         lambda result: ["Program"]
     ],
     CharcoalToken.Body: [
@@ -177,11 +177,12 @@ ASTProcessor = {
         lambda result: ["Move"] + result,
         lambda result: ["Move"] + result[1:],
         lambda result: ["Move"] + result[1:],
+        lambda result: ["Jump"] + result[1:],
         lambda result: ["Pivot Left", result[1]],
         lambda result: ["Pivot Left"],
         lambda result: ["Pivot Right", result[1]],
         lambda result: ["Pivot Right"],
-        lambda result: ["Jump"] + result[1:],
+        lambda result: ["Jump to"] + result[1:],
         lambda result: ["Rotate transform"] + result[1:],
         lambda result: ["Rotate transform"],
         lambda result: ["Reflect transform"] + result[1:],

@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
+"""
+Charcoal's main module.
+
+Contains definitions for the Charcoal canvas object, \
+the CLI, and various classes used by the Charcoal class.
+
+"""
 
 # TODO List:
 # bresenham
 # image to ascii
+# ReflectOverlapTransform
+# and RotateOverlapTransform
 
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
@@ -32,11 +41,11 @@ python_function_is_command = {}
 if hasattr(builtins, "eval"):
     del builtins.eval
 
-imports = {}
-python_function_added = {}
-
 if hasattr(__builtins__, "eval"):
     del __builtins__.eval
+
+imports = {}
+python_function_added = {}
 
 if os.name == "nt":
     import ansiterm # for colors/screen clear
@@ -44,22 +53,67 @@ if os.name == "nt":
 else:
     import readline # for arrow/Ctrl+A/Ctrl+E support
 
-def CleanExecute(function, *args):
+try:
+    # if python > 3.6 or back-compat module exists
+    import typing
+
+    def has_return_hint(function):
+        """
+        has_return_hint(function)
+
+        Returns whether function has a return type hint.
+
+        """
+        return "return" in typing.get_type_hints(function)
+
+except:
+
+    def has_return_hint(function):
+        """
+        has_return_hint(function)
+
+        Returns false since this Python installation has no typing module.
+
+        """
+        return false
+
+def CleanExecute(function, *args, **kwargs):
+    """
+    CleanExecute(function, *args, **kwargs) -> Any
+
+    Executes the given function with the given arguments, \
+exiting if an error occurs.
+
+    """
+
     try:
-        return function(*args)
+        return function(*args, **kwargs)
 
     except (KeyboardInterrupt, EOFError):
         sys.exit()
 
 
 def Cleanify(function):
-    return lambda *args: CleanExecute(function, *args)
+    """
+    Cleanify(function) -> Function
+
+    Returns the function changed to that it exits without a stack trace \
+if an error occurs.
+
+    """
+    return lambda *args, **kwargs: CleanExecute(function, *args, **kwargs)
 
 _open = open
 
-def Open(*args, **nargs):
-    nargs["encoding"] = "utf-8"
-    return _open(*args, **nargs)
+def Open(*args, **kwargs):
+    """
+    Open(*args, **kwargs)
+
+    Returns a file object opened with UTF-8 encoding.
+
+    """
+    kwargs["encoding"] = "utf-8"
+    return _open(*args, **kwargs)
 
 open = Open
 
@@ -69,10 +123,24 @@ sleep = Cleanify(time.sleep)
 
 
 def Sign(number):
+    """
+    Sign(number)
+
+    Return the mathematical sign of the given number.
+
+    """
     return 1 if number > 0 else -1 if number < 0 else 0
 
 
-def large_xrange(number):
+def large_range(number):
+    """
+    large_range(number)
+
+    Yields numbers from 0 to the given number.
+
+    Works for numbers that do not fit in a long integer.
+
+    """
     n = 0
 
     while n < number:
@@ -94,6 +162,7 @@ class Info(Enum):
 
 
 class Coordinates:
+
     def __init__(self):
         self.top = 0
         self.coordinates = [[]]
@@ -114,6 +183,7 @@ class Coordinates:
 
 
 class Scope:
+
     def __init__(self, parent={}):
         self.parent = parent
         self.lookup = {}
@@ -179,6 +249,7 @@ class Scope:
         del self[key]
 
 class Cells(list):
+
     def __init__(self, charcoal, value, xs, ys):
         super(Cells, self).__init__(value)
         self.xs = xs
@@ -198,6 +269,7 @@ class Cells(list):
         self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
 
 class Charcoal:
+
     def __init__(
         self,
         inputs=[],
@@ -205,6 +277,12 @@ class Charcoal:
         canvas_step=500,
         original_input=""
     ):
+        """
+        Charcoal(inputs=[], info=set(), canvas_step=500, original_input="") -> Charcoal
+
+        Creates a Charcoal canvas, an object on which all canvas drawing methods exist.
+
+        """
         self.x = self.y = self.top = 0
         self.lines = [""]
         self.indices = [0]
@@ -227,8 +305,9 @@ class Charcoal:
             "β": "abcdefghijklmnopqrstuvwxyz",
             "α": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "ω": "",
-            "ψ": 10,
-            "χ": 1000
+            "ψ": "\000",
+            "χ": 10,
+            "φ": 1000
         }
         self.direction = Direction.right
         self.background = " "
@@ -244,6 +323,7 @@ class Charcoal:
             print("\033[2J")
 
     def __str__(self):
+        """Returns the current state of the canvas."""
         left = min(self.indices)
         right = max(self.right_indices)
         string = ""
@@ -335,6 +415,13 @@ class Charcoal:
             return string[:-1]
 
     def BackgroundString(self, y, start, end):
+        """
+        BackgroundString(y, start, end) -> str
+
+        Returns the background for row at the specified y-coordinate,
+        from the x-coordinates start to end.
+
+        """
         bg_line = self.bg_lines[y % self.bg_line_number]
         index = start % self.bg_line_length
         bg_line = bg_line[index:] + bg_line[:index]
@@ -342,6 +429,12 @@ class Charcoal:
         return (bg_line * (length // self.bg_line_length + 1))[:length]
 
     def Lines(self):
+        """
+        Lines() -> list[str]
+
+        Returns the canvas padded to the leftmost and rightmost columns.
+
+        """
         left = min(self.indices)
         right = max(self.right_indices)
 
@@ -359,9 +452,21 @@ class Charcoal:
         ]
 
     def AddInputs(self, inputs):
+        """
+        AddInputs(inputs)
+
+        Adds given inputs to the inputs of the canvas.
+
+        """
         self.inputs += inputs
 
     def Trim(self):
+        """
+        Trim()
+
+        Deletes empty cells on all four sides of the canvas.
+
+        """
         to_delete = 0
 
         while re.match("^\000*$", self.lines[to_delete]):
@@ -401,6 +506,12 @@ class Charcoal:
             self.lines[i] = line
 
     def Clear(self):
+        """
+        Clear()
+
+        Resets Charcoal object to initial state.
+
+        """
         self.x = self.y = self.top = 0
         self.lines = [""]
         self.indices = [0]
@@ -408,20 +519,6 @@ class Charcoal:
         self.right_indices = [0]
         self.scope = Scope()
         self.inputs = self.original_inputs[:]
-        self.hidden = {
-            "θ": self.all_inputs[0],
-            "η": self.all_inputs[1],
-            "ζ": self.all_inputs[2],
-            "ε": self.all_inputs[3],
-            "δ": self.all_inputs[4],
-            "γ": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
-            "β": "abcdefghijklmnopqrstuvwxyz",
-            "α": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "ω": "",
-            "ψ": 10,
-            "χ": 1000
-        }
         self.direction = Direction.right
         self.background = " "
         self.bg_lines = []
@@ -432,10 +529,22 @@ class Charcoal:
         self.print_at_end = True
 
     def Get(self):
+        """
+        Get() -> str
+
+        Returns value of cell under cursor.
+
+        """
         y_index = self.y - self.top
         return self.lines[y_index][self.x - self.indices[y_index]]
 
     def PutAt(self, string, x, y):
+        """
+        PutAt(string, x, y)
+
+        Put string at position x, y.
+
+        """
         initial_x = self.x
         initial_y = self.y
         self.x = x
@@ -445,16 +554,12 @@ class Charcoal:
         self.y = initial_y
 
     def Put(self, string):
-        is_empty = True
+        """
+        Put()
 
-        for character in string:
+        Put string at cursor position.
 
-            if character != "\000":
-                is_empty = False
-                break
-
-        if is_empty:
-            return
+        """
 
         y_index = self.y - self.top
         x_index = self.indices[y_index]
@@ -497,6 +602,12 @@ class Charcoal:
         self.right_indices[y_index] = (self.indices[y_index] + length)
 
     def FillLines(self):
+        """
+        FillLines()
+
+        Adds empty lines up to the y-index of the cursor.
+
+        """
         if self.y > self.top + len(self.lines) - 1:
             number = self.y - self.top - len(self.lines) + 1
             x_number = self.x - self.indices[-1]
@@ -547,6 +658,13 @@ class Charcoal:
             self.top = self.y
 
     def SetBackground(self, string):
+        """
+        SetBackground(string)
+
+        Sets the background of the canvas,
+        tiling with the top left at (0, 0).
+
+        """
 
         if len(string) > 1:
             lines = string.split("\n")
@@ -586,6 +704,30 @@ class Charcoal:
         move_at_end=True,
         multichar_fill=False
     ):
+        """
+        PrintLine(directions, length, string="", multiprint=False, \
+coordinates=False, move_at_end=True, multichar_fill=False)
+
+        Prints the given string, repeated to the given length, \
+in the specified directions away from the cursor.
+
+        If the string is falsy, a character will be selected from \
+\\/|-.
+
+        If multiprint is true, the cursor will return to \
+its original position.
+
+        If coordinates is true, the coordinates of each character \
+will be returned. If it is truthy, it will be assumed to be a \
+Coordinates object and used as such.
+
+        If move_at_end is false, the cursor will stay on \
+the last character instead of moving to the cell after it.
+
+        If multichar_fill is true, horizontal lines will also \
+be added to the list of coordinates.
+
+        """
         old_x = self.x
         old_y = self.y
         string_is_empty = not string
@@ -656,9 +798,20 @@ class Charcoal:
         string,
         directions=None,
         length=0,
-        multiprint=False,
-        flags=0
+        multiprint=False
     ):
+        """
+        Print(string, directions=None, length=0, multiprint=False)
+
+        Prints a string, in the specified direcions from the cursor, \
+repeated to the specified length if it is given.
+
+        If string is in fact a number, print a line of the given length \
+with a character automatically selected from -|/\\.
+
+        If multiprint is true, the cursor will not be moved.
+
+        """
 
         if isinstance(string, int):
             length, string = string, ""
@@ -673,14 +826,12 @@ class Charcoal:
                 self.Print(element, directions, multiprint=True)
                 self.Move(newline_direction)
 
-            # TODO
-
             return
 
         old_x = self.x
         old_y = self.y
 
-        if not flags and length and "\n" not in string:
+        if length and "\n" not in string:
             self.PrintLine(directions, length, string, multiprint=multiprint)
             return
 
@@ -733,11 +884,6 @@ class Charcoal:
 
                     for character in line:
 
-                        if character == "\000":
-                            self.x += delta_x
-                            self.y += delta_y
-                            continue
-
                         self.FillLines()
                         self.Put(character)
                         self.x += delta_x
@@ -748,11 +894,6 @@ class Charcoal:
                     self.Move(newline_direction)
 
                 for character in lines[-1]:
-
-                    if character == "\000":
-                        self.x += delta_x
-                        self.y += delta_y
-                        continue
 
                     self.FillLines()
                     self.Put(character)
@@ -767,10 +908,26 @@ class Charcoal:
             self.RefreshFastText("Print", self.canvas_step)
 
     def Multiprint(self, string, directions=None):
+        """
+        Multiprint(string, directions)
 
+        Prints a string in the specified directions, \
+moving the cursor back to its original position \
+after it is finished.
+
+        """
         self.Print(string, directions, multiprint=True)
 
     def Polygon(self, sides, character, fill=True):
+        """
+        Polygon(sides, character, fill=True)
+
+        Draws a polygon with sides in the specified direction \
+and length, filling with the specified character if \
+the two endpoints of the line are can be joined with \
+a horizontal, vertical or diagonal line.
+
+        """
         multichar_fill = len(character) > 1
 
         if multichar_fill:
@@ -805,7 +962,6 @@ class Charcoal:
             not fill or
             delta_x and delta_y and delta_x * sign_x != delta_y * sign_y
         ):
-            # Can't be/shouldn't be autofilled
             return
 
         final_x = self.x
@@ -881,6 +1037,15 @@ class Charcoal:
             self.RefreshFastText("Polygon fill", self.canvas_step)
 
     def Oblong(self, width, height, fill):
+        """
+        Oblong(width, height, fill)
+
+        Draws a rectangle with the specified dimensions, \
+filled with the specified string.
+
+        The top left of the rectangle is at the cursor.
+
+        """
         self.Polygon([
             [Direction.right, width],
             [Direction.down, height],
@@ -888,7 +1053,19 @@ class Charcoal:
             [Direction.up, height]
         ], fill)
 
-    def Rectangle(self, width, height, character=None, flags=None):
+    def Rectangle(self, width, height, character=None):
+        """
+        Rectangle(width, height, character=None)
+
+        Draws a rectangle with the specified dimensions, \
+with the border composed of the string, starting at \
+the top left corner, going clockwise without overlap.
+
+        If the border character is not given, - and | will \
+be used for the sides and + for the corners.
+
+        """
+
         if not character:
             initial_x = self.x
             initial_y = self.y
@@ -935,6 +1112,13 @@ class Charcoal:
             )
 
     def Fill(self, string):
+        """
+        Fill(string)
+
+        Fills the empty area under the cursor \
+with the specified string, repeating it if needed.
+
+        """
 
         if self.Get() != "\000":
             return
@@ -1000,25 +1184,75 @@ class Charcoal:
         self.y = initial_y
 
     def Move(self, direction, length=1):
-        self.x += XMovement[direction] * length
-        self.y += YMovement[direction] * length
+        """
+        Move(direction, length=1)
+
+        Moves cursor the specified number of cells \
+in the specified direction.
+
+        """
+
+        if isinstance(direction, int):
+            self.x += direction
+            self.y += length
+
+        else:
+            self.x += XMovement[direction] * length
+            self.y += YMovement[direction] * length
 
     def Pivot(self, pivot, number=2):
+        """
+        Pivot(pivot, number=2)
+
+        Pivots the cursor the specified number of rotations \
+clockwise or counterclockwise depending on pivot.
+
+        """
 
         for i in range(number):
             self.direction = PivotLookup[pivot][self.direction]
 
     def Jump(self, x, y):
-        self.x += x
-        self.y += y
+        """
+        Jump(x, y)
+
+        Moves cursor to the specified coordinates.
+
+        """
+        self.x = x
+        self.y = y
 
     def ReflectTransform(self, direction):
+        """
+        ReflectTransform(direction)
+
+        Reflect canvas in specified direction, reflecting characters \
+whenever possible.
+
+        """
         self.Reflect(direction, True)
 
     def ReflectMirror(self, direction):
+        """
+        ReflectMirror(direction)
+
+        Reflect canvas in specified direction, reflecting characters \
+whenever possible, and leaving the original intact.
+
+        """
         self.ReflectCopy(direction, True)
 
     def ReflectCopy(self, direction, transform=False):
+        """
+        ReflectCopy(direction, transform=False)
+
+        Reflect canvas in specified direction, reflecting characters \
+whenever possible, and leaving the original intact. The closest \
+characters to the axis are next to the axis.
+
+        If transform is true, reflect characters in the copy.
+
+        """
 
         if isinstance(direction, list):
 
@@ -1292,6 +1526,17 @@ class Charcoal:
             self.RefreshFastText("Reflect copy", self.canvas_step)
 
     def ReflectOverlap(self, direction):
+        """
+        ReflectOverlap(direction)
+
+        Reflect canvas in specified direction, reflecting characters \
+whenever possible, and leaving the original intact. The closest \
+characters to the axis are on the axis.
+
+        If transform is true, reflect characters in the copy, \
+but not if it overwrites the original.
+
+        """
 
         if isinstance(direction, list):
 
@@ -1460,6 +1705,14 @@ class Charcoal:
             self.RefreshFastText("Reflect overlap", self.canvas_step)
 
     def Reflect(self, direction, transform=False):
+        """
+        Reflect(direction, transform=False)
+
+        Reflect canvas in specified direction.
+
+        If transform is true, reflect characters if possible.
+
+        """
         if direction == Direction.left or direction == Direction.right:
             self.indices, self.right_indices = [
                 1 - right_index
@@ -1528,9 +1781,29 @@ class Charcoal:
             self.RefreshFastText("Reflect", self.canvas_step)
 
     def RotateTransform(self, rotations=2):
+        """
+        RotateTransform(rotations=2)
+
+        Rotates canvas 45 degrees the specified number of times.
+
+        If transform is true, rotate characters if possible.
+
+        """
         self.Rotate(rotations, True)
 
     def RotatePrism(self, rotations=2, anchor=Direction.down_right, number=False):
+        """
+        RotatePrism(rotations=2)
+
+        Rotates canvas 45 degrees the specified number of times, \
+with the specified anchor point as the rotation axis.
+
+        If number is true, \
+make a copy for each of the digits in rotations.
+
+        Rotate characters if possible.
+
+        """
         self.RotateCopy(rotations, anchor, True, number)
 
     def RotateCopy(
@@ -1540,6 +1813,19 @@ class Charcoal:
         transform=False,
         number=False
     ):
+        """
+        RotateCopy(rotations=2, anchor=Direction.down_right, transform=False, \
+number=False)
+
+        Rotates canvas 45 degrees the specified number of times, \
+with the specified anchor point as the rotation axis.
+
+        If number is true, \
+make a copy for each of the digits in rotations.
+
+        If transform is true, rotate characters if possible.
+
+        """
         _lines, lengths, indices = (
             self.lines[::-1],
             self.lengths[::-1],
@@ -1712,6 +1998,14 @@ class Charcoal:
             self.RefreshFastText("Rotate copy", self.canvas_step)
 
     def Rotate(self, rotations=2, transform=False):
+        """
+        Rotate(rotations=2, transform=False)
+
+        Rotates canvas 45 degrees the specified number of times.
+
+        If transform is true, rotate characters if possible.
+
+        """
         rotations %= 8
 
         if not rotations:
@@ -1822,6 +2116,12 @@ class Charcoal:
             self.RefreshFastText("Rotate", self.canvas_step)
 
     def Copy(self, delta_x, delta_y):
+        """
+        Copy(delta_x, delta_y)
+
+        Copies canvas right delta_x cells and down delta_y cells.
+
+        """
         initial_x = self.x
         initial_y = self.y
 
@@ -1839,6 +2139,12 @@ class Charcoal:
             self.RefreshFastText("Copy", self.canvas_step)
 
     def GetFreeVariable(self):
+        """
+        GetFreeVariable()
+
+        Gets the next free variable in ικλμνξπρςστυφχψωαβγδεζηθ.
+
+        """
 
         for character in "ικλμνξπρςστυφχψωαβγδεζηθ":
 
@@ -1846,6 +2152,13 @@ class Charcoal:
                 return character
 
     def For(self, expression, body):
+        """
+        For(expression, body)
+
+        Executes body for each element in expression, or range(expression) \
+if expression is a number.
+
+        """
 
         if not expression:
 
@@ -1862,7 +2175,7 @@ class Charcoal:
         variable = expression(self)
 
         if isinstance(variable, int):
-            variable = large_xrange(variable)
+            variable = large_range(variable)
 
         for item in variable:
             self.scope[loop_variable] = item
@@ -1871,6 +2184,12 @@ class Charcoal:
         self.scope = self.scope.parent
 
     def While(self, condition, body):
+        """
+        While(condition, body)
+
+        Executes body while condition evaluates to truthy.
+
+        """
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
         self.scope[loop_variable] = condition(self)
@@ -1882,6 +2201,13 @@ class Charcoal:
         self.scope = self.scope.parent
 
     def If(self, condition, if_true, if_false):
+        """
+        If(condition, if_true, if_false)
+
+        Executes if_true if condition evaluates to truthy, \
+otherwise executes if false.
+
+        """
 
         if condition(self):
             if_true(self)
@@ -1890,6 +2216,15 @@ class Charcoal:
             if_false(self)
 
     def Cast(self, variable):
+        """
+        Cast(variable)
+
+        Returns a variable cast into a string if it was a number, \
+or into a number if it was a string.
+
+        Vectorizes.
+
+        """
 
         if isinstance(variable, list):
             return [self.Cast(item) for item in variable]
@@ -1901,6 +2236,13 @@ class Charcoal:
             return str(variable)
 
     def Random(self, variable=1):
+        """
+        Random(variable=1)
+
+        Returns a random number between 0 and variable \
+if variable is a number, else returns a random item in variable.
+
+        """
 
         if variable == 1 and Info.warn_ambiguities in self.info:
             print("""\
@@ -1913,12 +2255,29 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
             return random.choice(variable)
 
     def Assign(self, value, key, value2=None):
-        if value2:
+        """
+        Assign(value, key, value2=None)
+
+        If value2 is not None, set value[key] to value2, \
+else set the variable key to value.
+
+        """
+
+        if value2 is not None:
             value[key] = value2
             return
+
         self.scope[key] = value
 
-    def InputString(self, key=""):
+    def InputString(self, key=None):
+        """
+        InputString(key="")
+
+        Gets next input as string.
+
+        If key is truthy, set the variable key to the input.
+
+        """
         result = ""
 
         if len(self.inputs):
@@ -1935,6 +2294,14 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
             return result
 
     def InputNumber(self, key=""):
+        """
+        InputNumber(key="")
+
+        Gets next input as number.
+
+        If key is truthy, set the variable key to the input.
+
+        """
         result = 0
 
         if len(self.inputs):
@@ -1962,14 +2329,33 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
             return result
 
     def Dump(self):
+        """
+        Dump()
+
+        Dump contents of canvas with a minimum interval of 10ms.
+
+        """
         sleep(max(0, self.dump_timeout_end - time.clock()))
         print(self)
         self.dump_timeout_end = time.clock() + .01
 
     def DumpNoThrottle(self):
+        """
+        DumpNoThrottle()
+
+        Dump contents of canvas with no interval.
+
+        """
         print(self)
 
     def Refresh(self, timeout=0):
+        """
+        Refresh(timeout=0)
+
+        Refresh the screen with contents of canvas. If timeout is not 0, \
+add a timeout of timeout ms before which the screen cannot be refreshed again.
+
+        """
         self.print_at_end = False
         if not isinstance(timeout, int):
             print(
@@ -1990,16 +2376,43 @@ make sure you explicitly use 0 for no delay if needed""")
         self.timeout_end = time.clock() + timeout / 1000
 
     def RefreshFast(self, timeout=0):
+        """
+        RefreshFast(timeout=0)
+
+        Refresh the screen with contents of canvas. If timeout is not 0, \
+add a timeout of timeout ms before which the screen cannot be refreshed again.
+
+        Used in RefreshFor and RefreshWhile.
+
+        """
         sleep(max(0, self.timeout_end - time.clock()))
         print("\033[0;0H" + str(self))
         self.timeout_end = time.clock() + timeout / 1000
 
     def RefreshFastText(self, text, timeout=0):
+        """
+        RefreshFastText(text, timeout=0)
+
+        Refresh the screen with text, a newline, \
+and the contents of the canvas. If timeout is not 0, \
+add a timeout of timeout ms before which the screen cannot be refreshed again.
+
+        Used for debugging purposes.
+
+        """
         sleep(max(0, self.timeout_end - time.clock()))
         print("\033[0;0H\033[2K" + text + "\n" + str(self))
         self.timeout_end = time.clock() + timeout / 1000
 
     def RefreshFor(self, timeout, variable, body):
+        """
+        RefreshFor(timeout, variable, body)
+
+        Execute body and refresh the screen with contents of canvas \
+for each element in variable, or range(variable) if it is a number. \
+Add a timeout of timeout ms before which the screen cannot be refreshed again.
+
+        """
         self.print_at_end = False
         print("\033[2J")
         timeout /= 1000
@@ -2019,6 +2432,14 @@ make sure you explicitly use 0 for no delay if needed""")
         self.scope = self.scope.parent
 
     def RefreshWhile(self, timeout, condition, body):
+        """
+        RefreshFor(timeout, variable, body)
+
+        Execute body and refresh the screen with contents of canvas \
+while condition evaluates to truthy. \
+Add a timeout of timeout ms before which the screen cannot be refreshed again.
+
+        """
         self.print_at_end = False
         print("\033[2J")
         timeout /= 1000
@@ -2035,9 +2456,24 @@ make sure you explicitly use 0 for no delay if needed""")
         self.scope = self.scope.parent
 
     def ToggleTrim(self):
+        """
+        Trim()
+
+        Turns trim on or off, which will determine \
+whether the output wil be right-padded.
+
+        """
         self.trim = not self.trim
 
     def Evaluate(self, code, is_command=False):
+        """
+        Evaluate(code, is_command=False)
+
+        Evaluate code as Charcoal code.
+
+        If is_command is false, return the result.
+
+        """
         if is_command:
             Run(code, charcoal=self)
             return
@@ -2045,6 +2481,18 @@ make sure you explicitly use 0 for no delay if needed""")
         return Run(code, grammar=CharcoalToken.Expression)
 
     def CycleChop(self, iterable, length):
+        """
+        CycleChop(iterable, length)
+
+        Repeat iterable until it is longer than length, \
+then take the first length values.
+
+        If iterable is a number, iterable and length will be switched.
+
+        If length is a list or string, length will be set to the length of \
+the list or string.
+
+        """
         if isinstance(iterable, int):
             iterable, length = length, iterable
 
@@ -2054,6 +2502,12 @@ make sure you explicitly use 0 for no delay if needed""")
         return (iterable * (length // len(iterable) + 1))[:length]
 
     def Crop(self, width, height):
+        """
+        Crop(width, height)
+
+        Crop the canvas to width columns and height rows.
+
+        """
         top_crop = max(0, self.y - self.top)
         bottom_crop = min(len(self.lines), top_crop + height)
         self.lines = self.lines[top_crop:bottom_crop]
@@ -2072,6 +2526,13 @@ make sure you explicitly use 0 for no delay if needed""")
             self.right_indices[i] += right_crop - length
 
     def Extend(self, horizontal=0, vertical=0):
+        """
+        Extend(horizontal=0, vertical=0)
+
+        Insert horizontal columns between columns, \
+and vertical rows between rows.
+
+        """
         horizontal += 1
         vertical += 1
 
@@ -2101,87 +2562,13 @@ make sure you explicitly use 0 for no delay if needed""")
             self.indices = indices
             self.right_indices = right_indices
 
-    def AddPythonFunction(name):
-
-        if name in python_function_added:
-            return
-
-        python_function_added[name] = True
-
-        if name == "exec" or name == "__builtins__.exec":
-            return
-
-        function = None
-        _name = name
-
-        if "." in name:
-            module, name = re.split("\.(?=[^.]+)", name)
-
-            if not module in imports:
-                imports[module] = __import__(module)
-
-            function = imports[module][name]
-
-        else:
-            loc, glob = locals(), globals()
-
-            if module in loc:
-                function = loc[name]
-
-            elif module in glob:
-                function = glob[name]
-
-            elif hasattr(__builtins__, module):
-                function = getattr(builtins, module)
-
-        nargs = len(signature(function).parameters)
-        is_command = re.search(
-            "(?i)return|disassemble|find|compute|make|create|new\
-build|convert|read|\*\*",
-            name
-        )
-
-        if is_command:
-            UnicodeGrammars[CharcoalToken.Command] += [
-                ["ＵＰ" + _name] +
-                [CharcoalToken.Expression] * nargs
-            ]
-            VerboseGrammars[CharcoalToken.Command] += [
-                ["python_" + _name, "("] +
-                [CharcoalToken.Expression] * nargs +
-                [")"]
-            ]
-            ASTProcessor[CharcoalToken.Command] += [
-                (lambda s: lambda result: s)("Python function: '%s'" % name)
-            ]
-            StringifierProcessor[CharcoalToken.Command] += [
-                lambda result: "ＵＰ" + _name + result[2:-1]
-            ]
-            InterpreterProcessor[CharcoalToken.Command] += [
-                lambda result: lambda charcoal: function(*list(map(
-                    lambda o: o(charcoal) if callable(o) else o,
-                    result
-                )))
-            ]
-
-        else:
-            UnicodeGrammars[CharcoalToken.OtherOperator] += [
-                ["ＵＰ" + _name] +
-                [CharcoalToken.Expression] * nargs
-            ]
-            VerboseGrammars[CharcoalToken.OtherOperator] += [
-                ["python_" + _name, "("] +
-                [CharcoalToken.Expression] * nargs +
-                [")"]
-            ]
-            ASTProcessor[CharcoalToken.OtherOperator] += [
-                (lambda s: lambda result: s)("Python function: '%s'" % name)
-            ]
-            StringifierProcessor[CharcoalToken.Operator] += [
-                lambda result: "ＵＰ" + _name + result[2:-1]
-            ]
-
     def RunFunction(self, function, arguments):
+        """
+        RunFunction(function, arguments)
+
+        # TODO: what was this even for
+
+        """
         self.scope = Scope(self.scope)
 
         for argument in arguments:
@@ -2190,6 +2577,12 @@ build|convert|read|\*\*",
         self.scope = self.scope.parent
 
     def Ternary(self, condition, if_true, if_false):
+        """
+        Ternary(condition, if_true, if_false)
+
+        Returns if_true if condition evaluates to truthy else if_false.
+
+        """
 
         if condition(self):
             return if_true(self)
@@ -2198,6 +2591,12 @@ build|convert|read|\*\*",
             return if_false(self)
 
     def GetAt(self, x, y):
+        """
+        GetAt(x, y)
+
+        Returns the character at the specified coordinates on the canvas.
+
+        """
         y_index = y - self.top
 
         if y_index < 0 or y_index >= len(self.lines):
@@ -2212,9 +2611,22 @@ build|convert|read|\*\*",
         return line[x_index]
 
     def Peek(self):
+        """
+        Peek()
+
+        Returns the character under the cursor on the canvas.
+
+        """
         return self.GetAt(self.x, self.y)
 
     def PeekDirection(self, length=1, direction=None):
+        """
+        PeekDirection(length=1, direction=None)
+
+        Returns the characters in a line \
+in the specified direction from the cursor.
+
+        """
 
         if not direction:
             direction = self.direction
@@ -2237,6 +2649,12 @@ build|convert|read|\*\*",
         return Cells(self, result, xs, ys)
 
     def PeekAll(self):
+        """
+        PeekDirection(length=1, direction=None)
+
+        Returns all the characters on the canvas.
+
+        """
         y = self.top
         result = []
         xs = []
@@ -2262,6 +2680,12 @@ build|convert|read|\*\*",
         return Cells(self, result, xs, ys)
 
     def PeekMoore(self, direction=None):
+        """
+        PeekDirection(length=1, direction=None)
+
+        Returns all the characters in a Moore neighborhood around the canvas.
+
+        """
 
         if not direction:
             direction = Direction.up_left
@@ -2283,6 +2707,12 @@ build|convert|read|\*\*",
         return Cells(self, result, xs, ys)
 
     def PeekVonNeumann(self, direction=None):
+        """
+        PeekDirection(length=1, direction=None)
+
+        Returns all the characters in a Moore neighborhood around the canvas.
+
+        """
 
         if not direction:
             direction = Direction.up
@@ -2303,7 +2733,17 @@ build|convert|read|\*\*",
 
         return Cells(self, result, xs, ys)
 
-    def Map(self, iterable, function):
+    def Map(self, iterable, function, is_command=False):
+        """
+        Map(iterable, function)
+
+        Returns an iterable with the results of applying \
+function to each element of the iterable.
+
+        If is_command is false, it mutates the original \
+iterable, else it returns the iterable.
+
+        """
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
         self.scope[loop_variable] = 1
@@ -2315,12 +2755,19 @@ build|convert|read|\*\*",
             self.scope[index_variable] = i
             result += [function(self)]
 
-        iterable[:] = result
-        self.scope = self.scope.parent
+        if not is_command:
+            iterable[:] = result
 
+        self.scope = self.scope.parent
         return iterable
 
 def PassThrough(result):
+    """
+    PassThrough(result) -> Any
+
+    Returns its argument.
+
+    """
     return result
 
 SuperscriptToNormal = {
@@ -2336,6 +2783,22 @@ def ParseExpression(
     processor=ASTProcessor,
     verbose=False
 ):
+    """
+    ParseExpression(code, index=0, grammar=CharcoalToken.Program, \
+grammars=UnicodeGrammars, processor=ASTProcessor, verbose=False) -> Any
+
+    Parse the given code starting from the given index, \
+starting from the token given as grammar.
+
+    The grammars are taken from grammars.
+
+    The processor turns the tokens into the return value.
+
+    If verbose is true, parses using VerboseGrammars and verbose literals.
+
+    Returns the processed expression.
+
+    """
     original_index = index
     lexeme_index = 0
 
@@ -2398,7 +2861,7 @@ def ParseExpression(
 
                         if (
                             index == len(code) or
-                            (quote != "\"" and quote != "'")
+                            (quote != '"' and quote != "'")
                         ):
                             success = False
                             break
@@ -2407,9 +2870,9 @@ def ParseExpression(
                         index += 1
                         character = code[index]
 
-                        if quote == "\"":
+                        if quote == '"':
 
-                            while character != "\"":
+                            while character != '"':
                                 index += 1
 
                                 if character == "\\":
@@ -2666,6 +3129,29 @@ def Parse(
     verbose=False,
     grave=False
 ):
+    """
+    ParseExpression(code, grammar=CharcoalToken.Program, \
+grammars=UnicodeGrammars, processor=ASTProcessor, whitespace=False, \
+normal_encoding=False, verbose=False, grave=False) -> Any
+
+    Parse the given Charcoal code, starting from the token given as grammar.
+
+    The grammars are taken from grammars.
+
+    The processor turns the tokens into the return value.
+
+    If whitespace is true, removes all whitespace that is not preceded by ´.
+
+    If normal_encoding is true, runs using Charcoal's codepage.
+
+    If verbose is true, parses using VerboseGrammars and verbose literals.
+
+    If grave is true, converts all characters preceded by ´ or ´´ with the \
+symbols they represent.
+
+    Returns the processed program.
+
+    """
     if normal_encoding:
         code = "".join([
             UnicodeLookup[character] if
@@ -2747,6 +3233,15 @@ def Parse(
 
 
 def PrintTree(tree, padding=""):
+    """
+    PrintTree(tree, padding="")
+
+    Print tree with the given padding on the left.
+
+    Trees are of the form [name, children] where children is a list and \
+name is not.
+
+    """
     padding = re.sub(r"└$", r" ", re.sub(r"├$", r"│", padding))
     new_padding = padding + "├"
 
@@ -2783,6 +3278,14 @@ def PrintTree(tree, padding=""):
 
 
 def ProcessInput(inputs):
+    """
+    ProcessInput(inputs) -> list
+
+    Tries to split given input.
+
+    Returns processed input.
+
+    """
     new_inputs = inputs
 
     try:
@@ -2813,7 +3316,30 @@ def Run(
     verbose=False,
     grave=False
 ):
+    """
+    Run(code, inputs="", charcoal=None, grammar=CharcoalToken.Program, \
+grammars=UnicodeGrammars, whitespace=False, normal_encoding=False, \
+verbose=False, grave=False) -> Any
 
+    Runs given Charcoal code with given inputs as a string.
+
+    If charcoal is falsy, a new Charcoal object is used instead if charcoal.
+
+    Starts parsing from the given grammar, using the given list of grammars.
+
+    If whitespace is true, removes all whitespace that is not preceded by ´.
+
+    If normal_encoding is true, runs using Charcoal's codepage.
+
+    If verbose is true, parses using VerboseGrammars and verbose literals.
+
+    If grave is true, converts all characters preceded by ´ or ´´ with the \
+symbols they represent.
+
+    Returns the state of the canvas as a string if grammar is Program, \
+else the result of parsing.
+
+    """
     inputs = ProcessInput(inputs)
 
     if not charcoal:
@@ -2847,8 +3373,32 @@ def GetProgram(
     grammars=UnicodeGrammars,
     whitespace=False,
     normal_encoding=False,
-    verbose=False
+    verbose=False,
+    grave=False
 ):
+    """
+    GetProgram(code, inputs="", charcoal=None, grammar=CharcoalToken.Program, \
+grammars=UnicodeGrammars, whitespace=False, normal_encoding=False, \
+verbose=False, grave=False) -> Any
+
+    Runs given Charcoal code with given inputs as a string.
+
+    If charcoal is falsy, a new Charcoal object is used instead if charcoal.
+
+    Starts parsing from the given grammar, using the given list of grammars.
+
+    If whitespace is true, removes all whitespace that is not preceded by ´.
+
+    If normal_encoding is true, runs using Charcoal's codepage.
+
+    If verbose is true, parses using VerboseGrammars and verbose literals.
+
+    If grave is true, converts all characters preceded by ´ or ´´ with the \
+symbols they represent.
+
+    Returns the Charcoal program as a function.
+
+    """
     result = Parse(
         code,
         whitespace=whitespace,
@@ -2856,37 +3406,58 @@ def GetProgram(
         grammars=grammars,
         processor=InterpreterProcessor,
         normal_encoding=normal_encoding,
-        verbose=verbose
+        verbose=verbose,
+        grave=grave
     )
 
     return result
 
 
 def AddAmbiguityWarnings():
+    """
+    AddAmbiguityWarnings()
+
+    Adds ambiguity warnings which are shown whenever the AST is printed.
+
+    """
     ASTProcessor[CharcoalToken.Monadic][4] = (
         lambda result: "Random [Warning: May be ambiguous]"
     )
-    ASTProcessor[CharcoalToken.Command][-2] = lambda result: [
+    ASTProcessor[CharcoalToken.Command][59] = lambda result: [
         "Refresh [Warning: May be ambiguous]",
         result[1]
     ]
-    ASTProcessor[CharcoalToken.Command][-1] = lambda result: [
+    ASTProcessor[CharcoalToken.Command][60] = lambda result: [
         "Refresh [Warning: May be ambiguous]"
     ]
 
 
 def RemoveThrottle():
+    """
+    RemoveThrottle()
+
+    Removes throttle for Dump.
+
+    """
+
     InterpreterProcessor[-5] = (
         lambda result: lambda charcoal: charcoal.DumpNoThrottle()
     )
 
 def AddPythonFunction(name):
+    """
+    AddPythonFunction(name)
+
+    Adds the Python function with the given name to all grammars \
+and processors.
+
+    """
 
     if (
         name in python_function_is_command or
         name == "exec" or
-        name == "__builtins__.exec" or
-        name == "builtins.exec"
+        name == "builtins.exec" or
+        name == "__builtins__.exec"
     ):
         return
 
@@ -2940,47 +3511,76 @@ def AddPythonFunction(name):
 
     if is_operator:
         UnicodeGrammars[CharcoalToken.OtherOperator] += [
-            ["ＵＰ" + _name] +
-            [CharcoalToken.List]
+            [
+                "ＵＰ" + _name,
+                CharcoalToken.Separator,
+                CharcoalToken.List
+            ]
         ]
         VerboseGrammars[CharcoalToken.OtherOperator] += [
-            ["PythonFunction", "(", _name, ")", "("] +
-            [CharcoalToken.List] +
-            [")"]
+            [
+                "PythonFunction",
+                "(",
+                _name,
+                CharcoalToken.Separator,
+                CharcoalToken.List,
+                ")"
+            ]
         ]
         ASTProcessor[CharcoalToken.OtherOperator] += [
-            lambda result: "Python function: \"%s\"" % name
+            lambda result: [
+                "Python function: \"%s\"" % name,
+                result[2]
+            ]
         ]
         StringifierProcessor[CharcoalToken.OtherOperator] += [
-            lambda result: "ＵＰ" + _name + result[2:-1]
+            lambda result: "ＵＰ" + "".join(result[2:-1])
         ]
         InterpreterProcessor[CharcoalToken.OtherOperator] += [
-            lambda result: lambda charcoal: function(*result[1](charcoal))
+            lambda result: lambda charcoal: function(*result[2](charcoal))
         ]
 
     else:
         UnicodeGrammars[CharcoalToken.Command] += [
-            ["ＵＰ" + _name] +
-            [CharcoalToken.List]
+            [
+                "ＵＰ" + _name,
+                CharcoalToken.Separator,
+                CharcoalToken.List
+            ]
         ]
         VerboseGrammars[CharcoalToken.Command] += [
-            ["PythonFunction", "(", _name, ")", "("] +
-            [CharcoalToken.List] +
-            [")"]
+            [
+                "PythonFunction",
+                "(",
+                _name,
+                CharcoalToken.Separator,
+                CharcoalToken.List,
+                ")"
+            ]
         ]
         ASTProcessor[CharcoalToken.Command] += [
-            lambda result: "Python function: \"%s\"" % name
+            lambda result: [
+                "Python function: \"%s\"" % name,
+                result[2]
+            ]
         ]
         StringifierProcessor[CharcoalToken.Command] += [
-            lambda result: "ＵＰ" + _name + result[2:-1]
+            lambda result: "ＵＰ" + "".join(result[2:-1])
         ]
         InterpreterProcessor[CharcoalToken.Command] += [
-            lambda result: lambda charcoal: function(*result[1](charcoal))
+            lambda result: lambda charcoal: function(*result[2](charcoal))
         ]
 
 # from https://gist.github.com/puentesarrin/6567480
 
 def print_xxd(data):
+    """
+    print_xxd(data)
+
+    Prints the xxd-style hexdump using Charcoal's codepage, \
+given data in UTF-8.
+
+    """
     data = list(map(lambda c: ord(ReverseLookup.get(c, c)), data))
     counter = 0
     buf = [1]
@@ -3098,7 +3698,7 @@ non-raw file input and file output."""
         help="Turn grave mode code into normal code."
     )
     parser.add_argument(
-        "-grave", "--grave", action="store_true",
+        "-g", "--grave", action="store_true",
         help="Use grave mode."
     )
     parser.add_argument(
@@ -3534,4 +4134,3 @@ abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
                 real_output_length,
                 failures * 100 / real_output_length
             ))
-

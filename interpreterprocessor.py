@@ -375,7 +375,7 @@ InterpreterProcessor = {
     CharcoalToken.Program: [
         lambda result: lambda charcoal: (
             (result[0](charcoal) or True) and
-            result[1](charcoal)
+            result[2](charcoal)
         ),
         lambda result: lambda charcoal: None
     ],
@@ -443,6 +443,10 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: charcoal.Move(
             result[2],
             result[1](charcoal)
+        ),
+        lambda result: lambda charcoal: charcoal.Move(
+            result[1](charcoal),
+            result[2](charcoal)
         ),
         lambda result: lambda charcoal: charcoal.Pivot(
             Pivot.left,
@@ -581,7 +585,8 @@ InterpreterProcessor = {
         )(charcoal),
         lambda result: lambda charcoal: charcoal.Map(
             result[1](charcoal),
-            result[2]
+            result[2],
+            True
         )
     ]
 }
