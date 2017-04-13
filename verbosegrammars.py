@@ -175,19 +175,32 @@ VerboseGrammars = {
         ["Ordinal"],
         ["chr"],
         ["ord"],
-        ["Reverse"]
+        ["Reverse"],
+        ["GetVariable"]
     ],
     CharcoalToken.Binary: [
+        ["**"],
+        ["+"],
         ["Add"],
         ["Plus"],
+        ["-"],
         ["Subtract"],
         ["Minus"],
+        ["*"],
         ["Multiply"],
         ["Times"],
+        ["//"],
+        ["/"],
         ["Divide"],
+        ["IntDivide"],
+        ["IntegerDivide"],
+        ["%"],
         ["Modulo"],
+        ["=="],
         ["Equals"],
+        ["<"],
         ["Less"],
+        [">"],
         ["Greater"],
         ["InclusiveRange"],
         ["Range"],
@@ -243,6 +256,20 @@ VerboseGrammars = {
         ],
         [
             "PythonFunction",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.List,
+            ")"
+        ],
+        [
+            "EvaluateVariable",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.List,
+            ")"
+        ],
+        [
+            "evalvar",
             "(",
             CharcoalToken.Expression,
             CharcoalToken.List,
@@ -313,6 +340,7 @@ VerboseGrammars = {
             ")"
         ],
         ["Rectangle", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
+        ["Rectangle", "(", CharcoalToken.Expression, ")"],
         [
             "Oblong",
             "(",
@@ -321,6 +349,7 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             ")"
         ],
+        ["Oblong", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         [
             "Box",
             "(",
@@ -329,6 +358,7 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             ")"
         ],
+        ["Box", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         ["Move", "(", CharcoalToken.Arrow, ")"],
         ["Move", "(", CharcoalToken.Expression, CharcoalToken.Arrow, ")"],
         ["Move", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
@@ -340,15 +370,9 @@ VerboseGrammars = {
         ["JumpTo", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         ["RotateTransform", "(", CharcoalToken.Expression, ")"],
         ["RotateTransform", "(", ")"],
+        ["ReflectTransform", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectTransform", "(", CharcoalToken.Arrow, ")"],
-        [
-            "RotatePrism",
-            "(",
-            CharcoalToken.Arrow, 
-            CharcoalToken.Separator,
-            CharcoalToken.List,
-            ")"
-        ],
+        ["ReflectTransform", "(", ")"],
         [
             "RotatePrism",
             "(",
@@ -363,11 +387,11 @@ VerboseGrammars = {
             CharcoalToken.Arrow,
             ")"
         ],
-        ["RotatePrism", "(", CharcoalToken.List, ")"],
         ["RotatePrism", "(", CharcoalToken.Expression, ")"],
         ["RotatePrism", "(", ")"],
         ["ReflectMirror", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectMirror", "(", CharcoalToken.Arrow, ")"],
+        ["ReflectMirror", "(", ")"],
         [
             "RotateCopy",
             "(",
@@ -384,22 +408,171 @@ VerboseGrammars = {
             CharcoalToken.Expression,
             ")"
         ],
-        [
-            "RotateCopy",
-            "(",
-            CharcoalToken.Arrow,
-            ")"
-        ],
         ["RotateCopy", "(", CharcoalToken.List, ")"],
+        ["RotateCopy", "(", CharcoalToken.Arrow, ")"],
         ["RotateCopy", "(", CharcoalToken.Expression, ")"],
         ["RotateCopy", "(", ")"],
         ["ReflectCopy", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectCopy", "(", CharcoalToken.Arrow, ")"],
+        ["ReflectCopy", "(", ")"],
+        [
+            "RotateOverlapOverlap",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.List,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "RotateOverlapOverlap",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "RotateOverlapOverlap",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "RotateOverlapOverlap",
+            "(",
+            CharcoalToken.List,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "RotateOverlapOverlap",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        ["RotateOverlapOverlap", "(", CharcoalToken.Expression, ")"],
+        [
+            "RotateOverlap",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.List,
+            ")"
+        ],
+        [
+            "RotateOverlap",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        ["RotateOverlap", "(", CharcoalToken.Arrow, ")"],
+        ["RotateOverlap", "(", CharcoalToken.List, ")"],
+        ["RotateOverlap", "(", CharcoalToken.Expression, ")"],
+        ["RotateOverlap", "(", ")"],
+        [
+            "RotateShutterOverlap",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.List,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "RotateShutterOverlap",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "RotateShutterOverlap",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "RotateShutterOverlap",
+            "(",
+            CharcoalToken.List,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "RotateShutterOverlap",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        ["RotateShutterOverlap", "(", CharcoalToken.Expression, ")"],
+        [
+            "RotateShutter",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.List,
+            ")"
+        ],
+        [
+            "RotateShutter",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Separator,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        ["RotateShutter", "(", CharcoalToken.Arrow, ")"],
+        ["RotateShutter", "(", CharcoalToken.List, ")"],
+        ["RotateShutter", "(", CharcoalToken.Expression, ")"],
+        ["RotateShutter", "(", ")"],
+        [
+            "ReflectOverlapOverlap",
+            "(",
+            CharcoalToken.ArrowList,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "ReflectOverlapOverlap",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        ["ReflectOverlapOverlap", "(", CharcoalToken.Expression, ")"],
         ["ReflectOverlap", "(", CharcoalToken.ArrowList, ")"],
         ["ReflectOverlap", "(", CharcoalToken.Arrow, ")"],
+        ["ReflectOverlap", "(", ")"],
+        [
+            "ReflectButterflyOverlap",
+            "(",
+            CharcoalToken.ArrowList,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "ReflectButterflyOverlap",
+            "(",
+            CharcoalToken.Arrow,
+            CharcoalToken.Expression,
+            ")"
+        ],
+        ["ReflectButterflyOverlap", "(", CharcoalToken.Expression, ")"],
+        ["ReflectButterfly", "(", CharcoalToken.ArrowList, ")"],
+        ["ReflectButterfly", "(", CharcoalToken.Arrow, ")"],
+        ["ReflectButterfly", "(", ")"],
         ["Rotate", "(", CharcoalToken.Expression, ")"],
         ["Rotate", "(", ")"],
         ["Reflect", "(", CharcoalToken.Arrow, ")"],
+        ["Reflect", "(", ")"],
         ["Copy", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         ["for", "(", CharcoalToken.Expression, ")", CharcoalToken.Body],
         ["while", "(", CharcoalToken.Expression, ")", CharcoalToken.Body],
@@ -422,6 +595,7 @@ VerboseGrammars = {
             ")"
         ],
         ["Assign", "(", CharcoalToken.Expression, CharcoalToken.Name, ")"],
+        ["Assign", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
         ["Fill", "(", CharcoalToken.Expression, ")"],
         ["SetBackground", "(", CharcoalToken.Expression, ")"],
         ["Dump", "(", ")"],
@@ -445,6 +619,7 @@ VerboseGrammars = {
         ["Refresh", "(", ")"],
         ["ToggleTrim", "(", ")"],
         ["Trim", "(", CharcoalToken.Expression, CharcoalToken.Expression, ")"],
+        ["Trim", "(", CharcoalToken.Expression, ")"],
         ["Clear", "(", ")"],
         [
             "Extend",
@@ -487,6 +662,20 @@ VerboseGrammars = {
             "(",
             CharcoalToken.Expression,
             CharcoalToken.Expression,
+            ")"
+        ],
+        [
+            "ExecuteVariable",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.List,
+            ")"
+        ],
+        [
+            "execvar",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.List,
             ")"
         ]
     ]

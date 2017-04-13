@@ -59,7 +59,11 @@ StringifierProcessor = {
     ],
     CharcoalToken.Number: [
         lambda result: ["".join(
-            SuperscriptToNormal[int(n)] for n in str(result[0])
+            (
+                "·"
+                if n == "." else
+                SuperscriptToNormal[int(n)]
+            ) for n in str(result[0])
         )]
     ],
     CharcoalToken.Name: [
@@ -109,13 +113,17 @@ StringifierProcessor = {
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
-        lambda result: result[0] + result[2] + result[3] + result[4],
-        lambda result: result[0] + result[2] + result[3] + result[4],
-        lambda result: result[0] + result[2] + result[3],
-        lambda result: result[0] + result[2] + result[3],
-        lambda result: result[0] + result[2],
-        lambda result: result[0] + result[2],
-        lambda result: result[0]
+        lambda result: (
+            result[0] + result[2] + result[3] + result[4] + result[6]
+        ),
+        lambda result: (
+            result[0] + result[2] + result[3] + result[4] + result[6]
+        ),
+        lambda result: result[0] + result[2] + result[3] + result[5],
+        lambda result: result[0] + result[2] + result[3] + result[5],
+        lambda result: result[0] + result[2] + result[4],
+        lambda result: result[0] + result[2] + result[4],
+        lambda result: result[0] + result[3]
     ],
     CharcoalToken.Nilary: [
         lambda result: "Ｓ",
@@ -143,19 +151,32 @@ StringifierProcessor = {
         lambda result: "℅",
         lambda result: "℅",
         lambda result: "℅",
-        lambda result: "⮌"
+        lambda result: "⮌",
+        lambda result: "ＵＧ"
     ],
     CharcoalToken.Binary: [
+        lambda result: "Ｘ",
+        lambda result: "⁺",
         lambda result: "⁺",
         lambda result: "⁺",
         lambda result: "⁻",
         lambda result: "⁻",
+        lambda result: "⁻",
         lambda result: "×",
         lambda result: "×",
+        lambda result: "×",
+        lambda result: "∕",
         lambda result: "÷",
+        lambda result: "÷",
+        lambda result: "∕",
+        lambda result: "∕",
+        lambda result: "﹪",
         lambda result: "﹪",
         lambda result: "⁼",
+        lambda result: "⁼",
         lambda result: "‹",
+        lambda result: "‹",
+        lambda result: "›",
         lambda result: "›",
         lambda result: "…·",
         lambda result: "…",
@@ -191,7 +212,9 @@ StringifierProcessor = {
         lambda result: "ＫＤ" + result[2] + result[3],
         lambda result: "Ｅ" + result[2] + result[3],
         lambda result: "Ｅ" + result[2] + result[3],
-        lambda result: "ＵＰ" + result[2] + result[3]
+        lambda result: "ＵＰ" + result[2] + result[3],
+        lambda result: "ＵＶ" + result[2] + result[3],
+        lambda result: "ＵＶ" + result[2] + result[3]
     ],
 
     CharcoalToken.Program: [
@@ -217,8 +240,11 @@ StringifierProcessor = {
         lambda result: "ＧＨ" + result[2] + result[4],
         lambda result: "ＧＨ" + result[2] + result[4] + result[5],
         lambda result: "ＵＲ" + result[2] + result[3],
+        lambda result: "ＵＲ" + result[2] + "¦¦",
         lambda result: "ＵＯ" + result[2] + result[3] + result[4],
+        lambda result: "ＵＯ" + result[2] + result[3] + "¦¦",
         lambda result: "Ｂ" + result[2] + result[3] + result[4],
+        lambda result: "Ｂ" + result[2] + result[3] + "¦¦",
         lambda result: "Ｍ" + result[2],
         lambda result: "Ｍ" + result[2] + result[3],
         lambda result: "Ｍ" + result[2] + result[3],
@@ -231,14 +257,15 @@ StringifierProcessor = {
         lambda result: "⟲Ｔ" + result[2],
         lambda result: "⟲Ｔ",
         lambda result: "‖Ｔ" + result[2],
+        lambda result: "‖Ｔ" + result[2],
+        lambda result: "‖Ｔ",
         lambda result: "⟲Ｐ" + result[2] + result[4],
-        lambda result: "⟲Ｐ" + result[2] + result[4],
-        lambda result: "⟲Ｐ" + result[2],
         lambda result: "⟲Ｐ" + result[2],
         lambda result: "⟲Ｐ" + result[2],
         lambda result: "⟲Ｐ",
         lambda result: "‖Ｍ" + result[2],
         lambda result: "‖Ｍ" + result[2],
+        lambda result: "‖Ｍ",
         lambda result: "⟲Ｃ" + result[2] + result[4],
         lambda result: "⟲Ｃ" + result[2] + result[4],
         lambda result: "⟲Ｃ" + result[2],
@@ -247,17 +274,54 @@ StringifierProcessor = {
         lambda result: "⟲Ｃ",
         lambda result: "‖Ｃ" + result[2],
         lambda result: "‖Ｃ" + result[2],
+        lambda result: "‖Ｃ",
+        lambda result: "⟲ＯＯ" + result[2] + result[4] + result[5],
+        lambda result: "⟲ＯＯ" + result[2] + result[4] + result[5],
+        lambda result: "⟲ＯＯ" + result[2] + result[3],
+        lambda result: "⟲ＯＯ" + result[2] + result[3],
+        lambda result: "⟲ＯＯ" + result[2] + result[3],
+        lambda result: "⟲ＯＯ" + result[2],
+        lambda result: "⟲Ｏ" + result[2] + result[4],
+        lambda result: "⟲Ｏ" + result[2] + result[4],
+        lambda result: "⟲Ｏ" + result[2],
+        lambda result: "⟲Ｏ" + result[2],
+        lambda result: "⟲Ｏ" + result[2],
+        lambda result: "⟲Ｏ",
+        lambda result: "⟲ＳＯ" + result[2] + result[4] + result[5],
+        lambda result: "⟲ＳＯ" + result[2] + result[4] + result[5],
+        lambda result: "⟲ＳＯ" + result[2] + result[3],
+        lambda result: "⟲ＳＯ" + result[2] + result[3],
+        lambda result: "⟲ＳＯ" + result[2] + result[3],
+        lambda result: "⟲ＳＯ" + result[2],
+        lambda result: "⟲Ｓ" + result[2] + result[4],
+        lambda result: "⟲Ｓ" + result[2] + result[4],
+        lambda result: "⟲Ｓ" + result[2],
+        lambda result: "⟲Ｓ" + result[2],
+        lambda result: "⟲Ｓ" + result[2],
+        lambda result: "⟲Ｓ",
+        lambda result: "‖ＯＯ" + result[2] + result[3],
+        lambda result: "‖ＯＯ" + result[2] + result[3],
+        lambda result: "‖ＯＯ" + result[2],
         lambda result: "‖Ｏ" + result[2],
         lambda result: "‖Ｏ" + result[2],
+        lambda result: "‖Ｏ",
+        lambda result: "‖ＢＯ" + result[2] + result[3],
+        lambda result: "‖ＢＯ" + result[2] + result[3],
+        lambda result: "‖ＢＯ" + result[2],
+        lambda result: "‖Ｂ" + result[2],
+        lambda result: "‖Ｂ" + result[2],
+        lambda result: "‖Ｂ",
         lambda result: "⟲" + result[2],
         lambda result: "⟲",
         lambda result: "‖" + result[2],
+        lambda result: "‖",
         lambda result: "Ｃ" + result[2] + result[3],
         lambda result: "Ｆ" + result[2] + result[4],
         lambda result: "Ｗ" + result[2] + result[4],
         lambda result: "¿" + result[2] + result[4] + result[5],
         lambda result: "¿" + result[2] + result[4],
         lambda result: "Ａ§" + result[2] + result[3] + result[4],
+        lambda result: "Ａ" + result[2] + result[3],
         lambda result: "Ａ" + result[2] + result[3],
         lambda result: "¤" + result[2],
         lambda result: "ＵＢ" + result[2],
@@ -268,13 +332,15 @@ StringifierProcessor = {
         lambda result: "Ｈ",
         lambda result: "ＵＴ",
         lambda result: "Ｔ" + result[2] + result[3],
+        lambda result: "Ｔ" + result[2] + "¦¦",
         lambda result: "⎚",
         lambda result: "ＵＥ" + result[2] + result[3],
         lambda result: "ＵＥ" + result[2],
         lambda result: "⊞" + result[2] + result[3],
         lambda result: "≡" + result[2] + result[5] + result[8],
         lambda result: "≡" + result[2] + result[5],
-        lambda result: "ＵＭ" + result[2] + result[3]
+        lambda result: "ＵＭ" + result[2] + result[3],
+        lambda result: "ＵＸ" + result[2] + result[3]
     ]
 }
 

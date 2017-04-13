@@ -10,9 +10,13 @@ the CLI, and various classes used by the Charcoal class.
 # TODO List:
 # bresenham
 # image to ascii
-# ReflectOverlapTransform
-# and RotateOverlapTransform
-# Should rectangle and friends work for negative arguments?
+# turn grammars into dictionaries (bison-style)
+# fix reflextoverlap, add overlap overloads, fix cursor position transform
+# Should rectangle and friends work with negative arguments?
+# Put new things on wiki
+# should overlap methods have argument with amt of overlap
+# command to produce unicode char
+# tests for variable eval, exec, retrieve, floats and int divide
 
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
@@ -23,8 +27,9 @@ from verbosegrammars import VerboseGrammars
 from astprocessor import ASTProcessor
 from interpreterprocessor import InterpreterProcessor
 from stringifierprocessor import StringifierProcessor
-from codepage import UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage
-from codepage import sOperator
+from codepage import (
+    UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage, sOperator
+)
 from compression import Decompressed, Compressed
 from enum import Enum
 from ast import literal_eval
@@ -301,6 +306,13 @@ class Charcoal:
             "χ": 10,
             "φ": 1000
         }
+        wolfram = vars(__import__("wolfram"))
+
+        for key in wolfram:
+
+            if key[:2] != "__":
+                self.hidden[key] = wolfram[key]
+        
         self.direction = Direction.right
         self.background = " "
         self.bg_lines = []
@@ -520,6 +532,9 @@ class Charcoal:
         self.trim = False
         self.print_at_end = True
 
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Clear", self.canvas_step)
+
     def Get(self):
         """
         Get() -> str
@@ -528,6 +543,15 @@ class Charcoal:
 
         """
         y_index = self.y - self.top
+
+        if (
+            y_index >= len(self.lines) or
+            y_index < 0 or
+            self.x - self.indices[y_index] >= self.lengths[y_index] or
+            self.x - self.indices[y_index] < 0
+        ):
+            return ""
+
         return self.lines[y_index][self.x - self.indices[y_index]]
 
     def PutAt(self, string, x, y):
@@ -694,11 +718,12 @@ class Charcoal:
         multiprint=False,
         coordinates=False,
         move_at_end=True,
-        multichar_fill=False
+        multichar_fill=False,
+        overwrite=True
     ):
         """
         PrintLine(directions, length, string="", multiprint=False, \
-coordinates=False, move_at_end=True, multichar_fill=False)
+coordinates=False, move_at_end=True, multichar_fill=False, overwrite=True)
 
         Prints the given string, repeated to the given length, \
 in the specified directions away from the cursor.
@@ -719,10 +744,13 @@ the last character instead of moving to the cell after it.
         If multichar_fill is true, horizontal lines will also \
 be added to the list of coordinates.
 
+        If overwrite is false, existing characters will not be overwritten.
+
         """
         old_x = self.x
         old_y = self.y
         string_is_empty = not string
+        length = int(length)
 
         if coordinates is True:
             coordinates = Coordinates()
@@ -736,8 +764,10 @@ be added to the list of coordinates.
             self.y = old_y
 
             if (
-                direction == Direction.right or
-                direction == Direction.left
+                overwrite and (
+                    direction == Direction.right or
+                    direction == Direction.left
+                )
             ):
                 self.FillLines()
                 final = (string * (length // len(string) + 1))[:length]
@@ -772,7 +802,11 @@ be added to the list of coordinates.
                         coordinates.Add(self.x, self.y)
 
                     self.FillLines()
-                    self.Put(character)
+                    current = self.Get()
+
+                    if overwrite or not current or current == "\x00":
+                        self.Put(character)
+
                     self.Move(direction)
 
                 if not move_at_end:
@@ -805,8 +839,13 @@ with a character automatically selected from -|/\\.
 
         """
 
+        if isinstance(string, float):
+            string = int(string)
+
         if isinstance(string, int):
             length, string = string, ""
+
+        length = int(length)
 
         if not directions:
             directions = {self.direction}
@@ -933,7 +972,7 @@ a horizontal, vertical or diagonal line.
         for side in sides:
             self.PrintLine(
                 {side[0]},
-                side[1],
+                int(side[1]),
                 character,
                 coordinates=coordinates,
                 move_at_end=False,
@@ -1028,7 +1067,7 @@ a horizontal, vertical or diagonal line.
         if Info.step_canvas in self.info:
             self.RefreshFastText("Polygon fill", self.canvas_step)
 
-    def Oblong(self, width, height, fill):
+    def Oblong(self, width, height=0, fill=""):
         """
         Oblong(width, height, fill)
 
@@ -1038,6 +1077,12 @@ filled with the specified string.
         The top left of the rectangle is at the cursor.
 
         """
+
+        if isinstance(height, str) and not fill:
+            fill, height = height, width
+
+        height, width = int(height), int(width)
+
         self.Polygon([
             [Direction.right, width],
             [Direction.down, height],
@@ -1045,7 +1090,10 @@ filled with the specified string.
             [Direction.up, height]
         ], fill)
 
-    def Rectangle(self, width, height, character=None):
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Oblong", self.canvas_step)
+
+    def Rectangle(self, width, height=None, border=None):
         """
         Rectangle(width, height, character=None)
 
@@ -1058,10 +1106,18 @@ be used for the sides and + for the corners.
 
         """
 
+        if isinstance(height, str) and not border:
+            border, height = height, width
+
+        elif height is None:
+            height = width
+
         if not width or not height:
             return
 
-        if not character:
+        height, width = int(height), int(width)
+
+        if not border:
             initial_x = self.x
             initial_y = self.y
             self.PrintLine({Direction.right}, width, "-", move_at_end=False)
@@ -1078,33 +1134,40 @@ be used for the sides and + for the corners.
             self.y = initial_y
 
         else:
-            length = len(character)
+            length = len(border)
+            self.PrintLine(
+                {Direction.right},
+                width, border,
+                move_at_end=False
+            )
             self.PrintLine(
                 {Direction.down},
                 height,
-                character[(width - 1) % length:] +
-                character[:(width - 1) % length],
+                border[(width - 1) % length:] +
+                border[:(width - 1) % length],
                 move_at_end=False
             )
             self.PrintLine(
                 {Direction.left},
                 width,
-                character[(width + height - 2) % length:] +
-                character[:(width + height - 2) % length],
+                border[(width + height - 2) % length:] +
+                border[:(width + height - 2) % length],
                 move_at_end=False
             )
             self.PrintLine(
                 {Direction.up},
-                height,
-                character[(width * 2 + height - 3) % length:] +
-                character[:(width * 2 + height - 3) % length],
+                height - 1,
+                border[(width * 2 + height - 3) % length:] +
+                border[:(width * 2 + height - 3) % length],
                 move_at_end=False
             )
-            self.PrintLine(
-                {Direction.right},
-                width, character,
-                move_at_end=False
-            )
+
+        if Info.step_canvas in self.info:
+            self.RefreshFastText((
+                "Rectangle"
+                if character else
+                "Box"
+            ), self.canvas_step)
 
     def Fill(self, string):
         """
@@ -1115,15 +1178,15 @@ with the specified string, repeating it if needed.
 
         """
 
-        if self.Get() != "\000":
-            return
-
-        initial_x = self.x
-        initial_y = self.y
-        points = set()
-        queue = [(self.y, self.x)]
-
         try:
+
+            if self.Get() != "\000":
+                return
+
+            initial_x = self.x
+            initial_y = self.y
+            points = set()
+            queue = [(self.y, self.x)]
 
             while len(queue):
                 self.y, self.x = queue[0]
@@ -1178,6 +1241,9 @@ with the specified string, repeating it if needed.
         self.x = initial_x
         self.y = initial_y
 
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Fill", self.canvas_step)
+
     def Move(self, direction, length=1):
         """
         Move(direction, length=1)
@@ -1186,6 +1252,12 @@ with the specified string, repeating it if needed.
 in the specified direction.
 
         """
+
+        if isinstance(direction, float):
+            direction = int(direction)
+
+        if isinstance(length, float):
+            length = int(length)
 
         if isinstance(direction, int):
             self.x += direction
@@ -1214,12 +1286,23 @@ clockwise or counterclockwise depending on pivot.
         Moves cursor to the specified coordinates.
 
         """
+        x, y = int(x), int(y) 
         self.x = x
         self.y = y
 
-    def ReflectTransform(self, direction):
+    def ReflectButterfly(self, direction=Direction.right, overlap=1):
         """
-        ReflectTransform(direction)
+        ReflectButterfly(direction=Direction.right)
+
+        Reflect canvas in specified direction, reflecting characters \
+whenever possible. The original is kept, and characters are not overwritten.
+
+        """
+        self.ReflectOverlap(direction, True, overlap)
+
+    def ReflectTransform(self, direction=Direction.right):
+        """
+        ReflectTransform(direction=Direction.right)
 
         Reflect canvas in specified direction, reflecting characters \
 whenever possible.
@@ -1227,9 +1310,9 @@ whenever possible.
         """
         self.Reflect(direction, True)
 
-    def ReflectMirror(self, direction):
+    def ReflectMirror(self, direction=Direction.right):
         """
-        ReflectMirror(direction)
+        ReflectMirror(direction=Direction.right)
 
         Reflect canvas in specified direction, reflecting characters \
 whenever possible, and leaving the original intact.
@@ -1237,9 +1320,9 @@ whenever possible, and leaving the original intact.
         """
         self.ReflectCopy(direction, True)
 
-    def ReflectCopy(self, direction, transform=False):
+    def ReflectCopy(self, direction=Direction.right, transform=False):
         """
-        ReflectCopy(direction, transform=False)
+        ReflectCopy(direction=Direction.right, transform=False)
 
         Reflect canvas in specified direction, reflecting characters \
 whenever possible, and leaving the original intact. The closest \
@@ -1518,11 +1601,20 @@ characters to the axis are next to the axis.
             self.y = bottom_right - initial_x - 1
 
         if Info.step_canvas in self.info:
-            self.RefreshFastText("Reflect copy", self.canvas_step)
+            self.RefreshFastText((
+                "Reflect mirror"
+                if transform else
+                "Reflect copy"
+            ), self.canvas_step)
 
-    def ReflectOverlap(self, direction):
+    def ReflectOverlap(
+        self,
+        direction=Direction.right,
+        transform=False,
+        overlap=1
+    ):
         """
-        ReflectOverlap(direction)
+        ReflectOverlap(direction=Direction.right, transform=False, overlap=1)
 
         Reflect canvas in specified direction, reflecting characters \
 whenever possible, and leaving the original intact. The closest \
@@ -1530,6 +1622,8 @@ characters to the axis are on the axis.
 
         If transform is true, reflect characters in the copy, \
 but not if it overwrites the original.
+
+        Leaves out the specified overlap of characters closest to the axis. 
 
         """
 
@@ -1546,7 +1640,15 @@ but not if it overwrites the original.
             left = min(self.indices)
             self.x -= (self.x - left) * 2
             self.lines = [
-                (line[::-1] + "\000" * (index - left))[:-1] +
+                (
+                    "".join(
+                        HorizontalFlip.get(character, character)
+                        for character in
+                        (line[::-1] + "\000" * (index - left))[:-overlap]
+                    )
+                    if transform else
+                    (line[::-1] + "\000" * (index - left))[:-overlap]
+                ) +
                 "\000" * (index - left) +
                 line
                 for line, index in zip(self.lines, self.indices)
@@ -1567,7 +1669,15 @@ but not if it overwrites the original.
             self.lines = [
                 line +
                 "\000" * (right - right_index) +
-                ("\000" * (right - right_index) + line[::-1])[1:]
+                (
+                    "".join(
+                        HorizontalFlip.get(character, character)
+                        for character in
+                        ("\000" * (right - right_index) + line[::-1])[overlap:]
+                    )
+                    if transform else
+                    ("\000" * (right - right_index) + line[::-1])[overlap:]
+                )
                 for line, right_index in zip(self.lines, self.right_indices)
             ]
             self.background_inside = True
@@ -1586,17 +1696,38 @@ but not if it overwrites the original.
         elif direction == Direction.up:
             self.y -= (self.top - self.y) * 2
             self.top -= len(self.lines) - 1
-            self.lines = self.lines[:0:-1] + self.lines
-            self.indices = self.indices[:0:-1] + self.indices
-            self.lengths = self.lengths[:0:-1] + self.lengths
-            self.right_indices = self.right_indices[:0:-1] + self.right_indices
+            self.lines = (
+                [
+                    "".join(
+                        VerticalFlip.get(character, character)
+                        for character in line
+                    ) for line in self.lines[:overlap - 1:-1]
+                ]
+                if transform else
+                self.lines[:overlap - 1:-1]
+            ) + self.lines
+            self.indices = self.indices[:overlap - 1:-1] + self.indices
+            self.lengths = self.lengths[:overlap - 1:-1] + self.lengths
+            self.right_indices = (
+                self.right_indices[:overlap - 1:-1] +
+                self.right_indices
+            )
 
         elif direction == Direction.down:
             self.y += (len(self.lines) - self.y) * 2
-            self.lines += self.lines[-2::-1]
-            self.indices += self.indices[-2::-1]
-            self.lengths += self.lengths[-2::-1]
-            self.right_indices += self.right_indices[-2::-1]
+            self.lines += (
+                [
+                    "".join(
+                        VerticalFlip.get(character, character)
+                        for character in line
+                    ) for line in self.lines[-1 - overlap::-1]
+                ]
+                if transform else
+                self.lines[-1 - overlap::-1]
+            )
+            self.indices += self.indices[-1 - overlap::-1]
+            self.lengths += self.lengths[-1 - overlap::-1]
+            self.right_indices += self.right_indices[-1 - overlap::-1]
 
         else:
             finished = False
@@ -1606,8 +1737,8 @@ but not if it overwrites the original.
 
         initial_x = self.x
         initial_y = self.y
-
         self.Trim()
+
         if direction == Direction.up_left:
             top_left, negative_x = min(
                 (x + y, -i - x)
@@ -1619,13 +1750,25 @@ but not if it overwrites the original.
             )
             x = -negative_x
             self.x = x + 1
+            left = min(self.indices)
 
             for line, length, index in zip(
                 self.lines[:], self.lengths[:], self.indices[:]
             ):
                 self.x -= 1
                 self.y = top_left - index
-                self.PrintLine({Direction.up}, length, line)
+                string = (
+                    "".join(
+                        NWSEFlip.get(character, character)
+                        for character in line
+                    )
+                    if transform else
+                    line
+                )[max(
+                    0,
+                    index - left - overlap
+                ):]
+                self.PrintLine({Direction.up}, len(string), string)
 
             self.x = top_left - initial_y
             self.y = top_left - initial_x
@@ -1641,13 +1784,25 @@ but not if it overwrites the original.
             )
             x = -negative_x
             self.x = x - 1
+            right = max(self.right_indices)
 
             for line, length, right_index in zip(
                 self.lines[:], self.lengths[:], self.right_indices[:]
             ):
                 self.x += 1
                 self.y = right_index + top_right
-                self.PrintLine({Direction.up}, length, line[::-1])
+                string = (
+                    "".join(
+                        NESWFlip.get(character, character)
+                        for character in line
+                    )
+                    if transform else
+                    line
+                )[min(
+                    -1,
+                    -1 - right_index + right + overlap
+                )::-1]
+                self.PrintLine({Direction.up}, len(string), string)
 
             self.x = initial_y - top_right - 1
             self.y = top_right + initial_x + 1
@@ -1663,13 +1818,25 @@ but not if it overwrites the original.
             )
             x = x
             self.x = x + 1
+            left = min(self.indices)
 
             for line, length, index in zip(
                 self.lines[::-1], self.lengths[::-1], self.indices[::-1]
             ):
                 self.x -= 1
                 self.y = index + bottom_left
-                self.PrintLine({Direction.down}, length, line)
+                string = (
+                    "".join(
+                        NESWFlip.get(character, character)
+                        for character in line
+                    )
+                    if transform else
+                    line
+                )[max(
+                    0,
+                    index - left - overlap
+                ):]
+                self.PrintLine({Direction.down}, len(string), string)
 
             self.x = initial_y - bottom_left
             self.y = bottom_left + initial_x
@@ -1685,23 +1852,39 @@ but not if it overwrites the original.
             )
             x = -negative_x
             self.x = x - 1
+            right = max(self.right_indices)
 
             for line, length, right_index in zip(
                 self.lines[::-1], self.lengths[::-1], self.right_indices[::-1]
             ):
                 self.x += 1
                 self.y = bottom_right - right_index
-                self.PrintLine({Direction.down}, length, line[::-1])
+                string = (
+                    "".join(
+                        NWSEFlip.get(character, character)
+                        for character in line
+                    )
+                    if transform else
+                    line
+                )[min(
+                    -1,
+                    -1 - right_index + right + overlap
+                )::-1]
+                self.PrintLine({Direction.down}, len(string), string)
 
             self.x = bottom_right - initial_y - 1
             self.y = bottom_right - initial_x - 1
 
         if Info.step_canvas in self.info:
-            self.RefreshFastText("Reflect overlap", self.canvas_step)
+            self.RefreshFastText((
+                "Reflect overlap transform"
+                if transform else
+                "Reflect overlap"
+            ), self.canvas_step)
 
-    def Reflect(self, direction, transform=False):
+    def Reflect(self, direction=Direction.right, transform=False):
         """
-        Reflect(direction, transform=False)
+        Reflect(direction=Direction.right, transform=False)
 
         Reflect canvas in specified direction.
 
@@ -1773,7 +1956,28 @@ but not if it overwrites the original.
             self.Reflect(Direction.right, False)
 
         if Info.step_canvas in self.info:
-            self.RefreshFastText("Reflect", self.canvas_step)
+            self.RefreshFastText((
+                "Reflect transform"
+                if transform else
+                "Reflect"
+            ), self.canvas_step)
+
+    def RotateShutter(
+        self,
+        rotations=2,
+        anchor=Direction.down_right,
+        number=False,
+        overlap=1
+    ):
+        """
+        RotateShutter(direction)
+
+        Rotate canvas 45 degrees the specified number of times, \
+rotating characters whenever possible. \
+The original is kept, and characters are not overwritten.
+
+        """
+        self.RotateOverlap(rotations, anchor, True, number, overlap)
 
     def RotateTransform(self, rotations=2):
         """
@@ -1786,7 +1990,12 @@ but not if it overwrites the original.
         """
         self.Rotate(rotations, True)
 
-    def RotatePrism(self, rotations=2, anchor=Direction.down_right, number=False):
+    def RotatePrism(
+        self,
+        rotations=2,
+        anchor=Direction.down_right,
+        number=False
+    ):
         """
         RotatePrism(rotations=2)
 
@@ -1840,6 +2049,8 @@ make a copy for each of the digits in rotations.
             if Info.is_repl not in self.info:
                 sys.exit(1)
 
+        rotations = int(rotations)
+
         if number and rotations > 10:
 
             new_rotations = set()
@@ -1864,7 +2075,217 @@ make a copy for each of the digits in rotations.
 
         length = len(self.lines)
 
-        left = right = top = bottom = 0
+        if XMovement[anchor] == 1:
+            right = max(self.right_indices)
+
+        elif XMovement[anchor] == -1:
+            left = min(self.indices)
+
+        if YMovement[anchor] == 1:
+            bottom  = self.top + len(self.lines)
+
+        elif YMovement[anchor] == -1:
+            top = self.top
+
+        if 2 in rotations:
+            lines = [
+                "".join(
+                    RotateLeft.get(character, character)
+                    for character in line
+                )
+                for line in _lines
+            ] if transform else _lines
+
+            if anchor == Direction.down_right:
+                self.x = right
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x -= 1
+                    self.y = bottom + right - index - 1
+                    self.PrintLine({Direction.up}, length, line)
+
+            if anchor == Direction.down_left:
+                self.x = left
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x -= 1
+                    self.y = bottom + left - index - 1
+                    self.PrintLine({Direction.up}, length, line)
+
+            if anchor == Direction.up_left:
+                self.x = left + length
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x -= 1
+                    self.y = top + left - index - 1
+                    self.PrintLine({Direction.up}, length, line)
+
+            if anchor == Direction.up_right:
+                self.x = right + length
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x -= 1
+                    self.y = top + right - index - 1
+                    self.PrintLine({Direction.up}, length, line)
+
+        if 4 in rotations:
+            lines = [
+                "".join(
+                    RotateDown.get(character, character)
+                    for character in line
+                )
+                for line in _lines
+            ] if transform else _lines
+
+            if anchor == Direction.down_right:
+                self.y = bottom - 1
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x = right * 2 - index - 1
+                    self.y += 1
+                    self.PrintLine({Direction.left}, length, line)
+
+            if anchor == Direction.down_left:
+                self.y = bottom - 1
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x = left - index - 1
+                    self.y += 1
+                    self.PrintLine({Direction.left}, length, line)
+
+            if anchor == Direction.up_left:
+                self.y = top - length - 1
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x = left - index - 1
+                    self.y += 1
+                    self.PrintLine({Direction.left}, length, line)
+
+            if anchor == Direction.up_right:
+                self.y = top - length - 1
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x = right * 2 - index - 1
+                    self.y += 1
+                    self.PrintLine({Direction.left}, length, line)
+
+        if 6 in rotations:
+            lines = [
+                "".join(
+                    RotateRight.get(character, character)
+                    for character in line
+                )
+                for line in _lines
+            ] if transform else _lines
+
+            if anchor == Direction.down_right:
+                self.x = right - 1
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x += 1
+                    self.y = bottom - right + index
+                    self.PrintLine({Direction.down}, length, line)
+
+            if anchor == Direction.down_left:
+                self.x = left - 1
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x += 1
+                    self.y = bottom - left + index
+                    self.PrintLine({Direction.down}, length, line)
+
+            if anchor == Direction.up_left:
+                self.x = left - length - 1
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x += 1
+                    self.y = top - left + index
+                    self.PrintLine({Direction.down}, length, line)
+
+            if anchor == Direction.up_right:
+                self.x = right - length - 1
+
+                for line, length, index in zip(lines, lengths, indices):
+                    self.x += 1
+                    self.y = top - right + index
+                    self.PrintLine({Direction.down}, length, line)
+
+        if Info.step_canvas in self.info:
+            self.RefreshFastText((
+                "Rotate prism"
+                if transform else
+                "Rotate copy"
+            ), self.canvas_step)
+
+
+    def RotateOverlap(
+        self,
+        rotations=2,
+        anchor=Direction.down_right,
+        transform=False,
+        number=False,
+        overlap=1
+    ):
+        """
+        RotateOverlap(rotations=2, anchor=Direction.down_right, \
+transform=False, number=False, overlap=1)
+
+        Rotates canvas 45 degrees the specified number of times, \
+with the specified anchor point as the rotation axis.
+
+        Overlaps the specified number of characters with the original, \
+keeping the original character if there is a conflict.
+
+        If number is true, \
+make a copy for each of the digits in rotations.
+
+        If transform is true, rotate characters if possible.
+
+        """
+        _lines, lengths, indices = (
+            self.lines[::-1],
+            self.lengths[::-1],
+            self.indices[::-1]
+        )
+
+        if isinstance(rotations, list):
+
+            for rotation in rotations:
+                self.RotateOverlap(rotation, anchor)
+
+            return
+
+        if rotations % 2:
+            print("RuntimeError: Cannot rotate an odd number of times")
+
+            if Info.is_repl not in self.info:
+                sys.exit(1)
+
+        rotations = int(rotations)
+
+        if number and rotations > 10:
+
+            new_rotations = set()
+
+            while rotations:
+                new_rotations |= {rotations % 10}
+                rotations //= 10
+
+                if rotations % 2:
+                    print("RuntimeError: Cannot rotate an odd number of times")
+
+                    if Info.is_repl not in self.info:
+                        sys.exit(1)
+
+            rotations = new_rotations
+
+        else:
+            rotations = {rotations}
+
+        initial_x = self.x
+        initial_y = self.y
+
+        length = len(self.lines)
 
         if XMovement[anchor] == 1:
             right = max(self.right_indices)
@@ -1889,31 +2310,55 @@ make a copy for each of the digits in rotations.
 
             if anchor == Direction.down_right:
                 self.x = right
+
                 for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
-                    self.y = bottom + right - index - 1
-                    self.PrintLine({Direction.up}, length, line)
+                    self.y = bottom + right - index - 1 - overlap
+                    self.PrintLine(
+                        {Direction.up},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
             if anchor == Direction.down_left:
-                self.x = left
+                self.x = left + overlap
+
                 for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
                     self.y = bottom + left - index - 1
-                    self.PrintLine({Direction.up}, length, line)
+                    self.PrintLine(
+                        {Direction.up},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
             if anchor == Direction.up_left:
                 self.x = left + length
+
                 for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
-                    self.y = top + left - index - 1
-                    self.PrintLine({Direction.up}, length, line)
+                    self.y = top + left - index - 1 + overlap
+                    self.PrintLine(
+                        {Direction.up},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
             if anchor == Direction.up_right:
-                self.x = right + length
+                self.x = right + length - overlap
+
                 for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
                     self.y = top + right - index - 1
-                    self.PrintLine({Direction.up}, length, line)
+                    self.PrintLine(
+                        {Direction.up},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
         if 4 in rotations:
             lines = [
@@ -1925,32 +2370,56 @@ make a copy for each of the digits in rotations.
             ] if transform else _lines
 
             if anchor == Direction.down_right:
-                self.y = bottom - 1
+                self.y = bottom - 1 - overlap
+
                 for line, length, index in zip(lines, lengths, indices):
-                    self.x = right * 2 - index - 1
+                    self.x = right * 2 - index - 1 - overlap
                     self.y += 1
-                    self.PrintLine({Direction.left}, length, line)
+                    self.PrintLine(
+                        {Direction.left},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
             if anchor == Direction.down_left:
-                self.y = bottom - 1
+                self.y = bottom - 1 - overlap
+
                 for line, length, index in zip(lines, lengths, indices):
-                    self.x = left - index - 1
+                    self.x = left - index - 1 + overlap
                     self.y += 1
-                    self.PrintLine({Direction.left}, length, line)
+                    self.PrintLine(
+                        {Direction.left},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
             if anchor == Direction.up_left:
-                self.y = top - length - 1
+                self.y = top - length - 1 + overlap
+
                 for line, length, index in zip(lines, lengths, indices):
-                    self.x = left - index - 1
+                    self.x = left - index - 1 + overlap
                     self.y += 1
-                    self.PrintLine({Direction.left}, length, line)
+                    self.PrintLine(
+                        {Direction.left},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
             if anchor == Direction.up_right:
-                self.y = top - length - 1
+                self.y = top - length - 1 + overlap
+
                 for line, length, index in zip(lines, lengths, indices):
-                    self.x = right * 2 - index - 1
+                    self.x = right * 2 - index - 1 - overlap
                     self.y += 1
-                    self.PrintLine({Direction.left}, length, line)
+                    self.PrintLine(
+                        {Direction.left},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
         if 6 in rotations:
             lines = [
@@ -1962,35 +2431,63 @@ make a copy for each of the digits in rotations.
             ] if transform else _lines
 
             if anchor == Direction.down_right:
-                self.x = right - 1
+                self.x = right - 1 - overlap
+
                 for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
                     self.y = bottom - right + index
-                    self.PrintLine({Direction.down}, length, line)
+                    self.PrintLine(
+                        {Direction.down},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
             if anchor == Direction.down_left:
                 self.x = left - 1
+
                 for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
-                    self.y = bottom - left + index
-                    self.PrintLine({Direction.down}, length, line)
+                    self.y = bottom - left + index - overlap
+                    self.PrintLine(
+                        {Direction.down},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
             if anchor == Direction.up_left:
-                self.x = left - length - 1
+                self.x = left - length - 1 + overlap
+
                 for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
                     self.y = top - left + index
-                    self.PrintLine({Direction.down}, length, line)
+                    self.PrintLine(
+                        {Direction.down},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
             if anchor == Direction.up_right:
                 self.x = right - length - 1
+
                 for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
-                    self.y = top - right + index
-                    self.PrintLine({Direction.down}, length, line)
+                    self.y = top - right + index + overlap
+                    self.PrintLine(
+                        {Direction.down},
+                        length,
+                        line,
+                        overwrite=False
+                    )
 
         if Info.step_canvas in self.info:
-            self.RefreshFastText("Rotate copy", self.canvas_step)
+            self.RefreshFastText((
+                "Rotate shutter"
+                if transform else
+                "Rotate overlap"
+            ), self.canvas_step)
 
     def Rotate(self, rotations=2, transform=False):
         """
@@ -2001,7 +2498,7 @@ make a copy for each of the digits in rotations.
         If transform is true, rotate characters if possible.
 
         """
-        rotations %= 8
+        rotations = int(rotations) % 8
 
         if not rotations:
             return
@@ -2108,7 +2605,11 @@ make a copy for each of the digits in rotations.
             }[rotations]})
 
         if Info.step_canvas in self.info:
-            self.RefreshFastText("Rotate", self.canvas_step)
+            self.RefreshFastText((
+                "Rotate transform"
+                if transform else
+                "Rotate"
+            ), self.canvas_step)
 
     def Copy(self, delta_x, delta_y):
         """
@@ -2117,6 +2618,8 @@ make a copy for each of the digits in rotations.
         Copies canvas right delta_x cells and down delta_y cells.
 
         """
+        delta_x, delta_y = int(delta_x), int(delta_y)
+
         initial_x = self.x
         initial_y = self.y
 
@@ -2243,6 +2746,9 @@ if variable is a number, else returns a random item in variable.
             print("""\
 Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
 
+        if isinstance(variable, float):
+            variable = int(variable)
+
         if isinstance(variable, int):
             return random.randrange(variable)
 
@@ -2260,6 +2766,10 @@ else set the variable key to value.
 
         if value2 is not None:
             value[key] = value2
+
+            if Info.step_canvas in self.info and isinstance(value, Cells):
+                self.RefreshFastText("Assign", self.canvas_step)
+
             return
 
         self.scope[key] = value
@@ -2312,7 +2822,13 @@ else set the variable key to value.
         elif Info.prompt in self.info:
 
             try:
-                result = int(input("Enter number: "))
+                inp = input("Enter number:")
+
+                if "." in inp:
+                    result = float(inp)
+
+                else:
+                    result = int(inp)
 
             except:
                 result = 0
@@ -2367,7 +2883,7 @@ Warning: Possible ambiguity, \
 make sure you explicitly use 0 for no delay if needed""")
 
         sleep(max(0, self.timeout_end - clock()))
-        print("\033[0;0H" + str(self))
+        print("\033[2J\033[0;0H" + str(self))
         self.timeout_end = clock() + timeout / 1000
 
     def RefreshFast(self, timeout=0):
@@ -2381,7 +2897,7 @@ add a timeout of timeout ms before which the screen cannot be refreshed again.
 
         """
         sleep(max(0, self.timeout_end - clock()))
-        print("\033[0;0H" + str(self))
+        print("\033[2J\033[0;0H" + str(self))
         self.timeout_end = clock() + timeout / 1000
 
     def RefreshFastText(self, text, timeout=0):
@@ -2396,7 +2912,7 @@ add a timeout of timeout ms before which the screen cannot be refreshed again.
 
         """
         sleep(max(0, self.timeout_end - clock()))
-        print("\033[0;0H\033[2K" + text + "\n" + str(self))
+        print("\033[0;0H\033[2J" + text + "\n" + str(self))
         self.timeout_end = clock() + timeout / 1000
 
     def RefreshFor(self, timeout, variable, body):
@@ -2475,6 +2991,38 @@ whether the output wil be right-padded.
 
         return Run(code, grammar=CharcoalToken.Expression)
 
+    def EvaluateVariable(self, name, arguments):
+        """
+        EvaluateVariable(name, arguments)
+
+        Executes the function with the specified name \with the specified
+arguments.
+
+        Returns the result.
+
+        """
+
+        if name in self.scope:
+            return self.scope[name](*arguments)
+
+        elif name in self.hidden:
+            return self.hidden[name](*arguments)
+
+    def ExecuteVariable(self, name, arguments):
+        """
+        EvaluateVariable(name, arguments)
+
+        Executes the function with the specified name \with the specified
+arguments.
+
+        """
+
+        if name in self.scope:
+            self.scope[name](*arguments)
+
+        elif name in self.hidden:
+            self.hidden[name](*arguments)
+
     def CycleChop(self, iterable, length):
         """
         CycleChop(iterable, length)
@@ -2494,15 +3042,23 @@ the list or string.
         if isinstance(length, list) or isinstance(length, str):
             length = len(length)
 
+        elif isinstance(length, float):
+            length = int(length)
+
         return (iterable * (length // len(iterable) + 1))[:length]
 
-    def Crop(self, width, height):
+    def Crop(self, width, height=None):
         """
         Crop(width, height)
 
         Crop the canvas to width columns and height rows.
 
         """
+
+        if height is None:
+            height = width
+
+        width, height = int(width), int(height)
         top_crop = max(0, self.y - self.top)
         bottom_crop = min(len(self.lines), top_crop + height)
         self.lines = self.lines[top_crop:bottom_crop]
@@ -2513,12 +3069,18 @@ the list or string.
 
         for i in range(len(self.lines)):
             left_crop = max(0, self.x - self.indices[i])
-            right_crop = min(self.lengths[i], left_crop + width)
+            right_crop = max(
+                0,
+                min(self.lengths[i], self.x + width - self.indices[i])
+            )
             length = self.lengths[i]
             self.lines[i] = self.lines[i][left_crop:right_crop]
             self.indices[i] += left_crop
             self.lengths[i] -= left_crop - right_crop + length
             self.right_indices[i] += right_crop - length
+
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Crop", self.canvas_step)
 
     def Extend(self, horizontal=0, vertical=0):
         """
@@ -2528,6 +3090,7 @@ the list or string.
 and vertical rows between rows.
 
         """
+        horizontal, vertical = int(horizontal), int(vertical)
         horizontal += 1
         vertical += 1
 
@@ -2557,19 +3120,8 @@ and vertical rows between rows.
             self.indices = indices
             self.right_indices = right_indices
 
-    def RunFunction(self, function, arguments):
-        """
-        RunFunction(function, arguments)
-
-        # TODO: what was this even for
-
-        """
-        self.scope = Scope(self.scope)
-
-        for argument in arguments:
-            self.scope[self.GetFreeVariable()] = argument
-
-        self.scope = self.scope.parent
+        if Info.step_canvas in self.info:
+            self.RefreshFastText("Extend", self.canvas_step)
 
     def Ternary(self, condition, if_true, if_false):
         """
@@ -2592,6 +3144,7 @@ and vertical rows between rows.
         Returns the character at the specified coordinates on the canvas.
 
         """
+        x, y = int(x), int(y)
         y_index = y - self.top
 
         if y_index < 0 or y_index >= len(self.lines):
@@ -2626,6 +3179,7 @@ in the specified direction from the cursor.
         if not direction:
             direction = self.direction
 
+        length = int(length)
         x = self.x
         y = self.y
         delta_x = XMovement[direction]
@@ -2756,6 +3310,9 @@ iterable, else it returns the iterable.
         self.scope = self.scope.parent
         return iterable
 
+        if Info.step_canvas in self.info and isinstance(iterable, Cells):
+            self.RefreshFastText("Map", self.canvas_step)
+
 def PassThrough(result):
     """
     PassThrough(result) -> Any
@@ -2796,6 +3353,8 @@ starting from the token given as grammar.
     """
     original_index = index
     lexeme_index = 0
+    parse_trace = []
+    parse_index = 0
 
     for lexeme in grammars[grammar]:
         success = True
@@ -2910,12 +3469,25 @@ starting from the token given as grammar.
                         old_index = index
                         character = code[index]
                         result = 0
+                        integer = True
 
-                        while character >= "0" and character <= "9":
+                        while (
+                            (character >= "0" and character <= "9") or
+                            character == "."
+                        ):
+
+                            if character == ".":
+
+                                if not integer:
+                                    break
+
+                                integer = False
+
                             index += 1
 
                             if index == len(code):
                                 character = ""
+
                             else:
                                 character = code[index]
 
@@ -2923,7 +3495,11 @@ starting from the token given as grammar.
                             success = False
                             break
 
-                        tokens += processor[token][0]([int(code[old_index:index])])
+                        tokens += processor[token][0]([
+                            int(code[old_index:index])
+                            if integer else
+                            float(code[old_index:index])
+                        ])
 
                     elif token == CharcoalToken.Name:
 
@@ -2960,6 +3536,12 @@ starting from the token given as grammar.
 
                         tokens += [result[0]]
                         index = result[1]
+
+                        if index == False:
+                            parse_trace = result[0]
+                            parse_index = result[2]
+                            success = False
+                            break
 
                 else:
 
@@ -3043,8 +3625,35 @@ starting from the token given as grammar.
 
                             if index == len(code):
                                 character = ""
+
                             else:
                                 character = code[index]
+
+                        if character == "·":
+                            multiplier = .1
+                            index += 1
+
+                            if index == len(code):
+                                character = ""
+
+                            else:
+                                character = code[index]
+
+                            while (
+                                character >= "⁴" and character <= "⁹" or
+                                character in ["⁰", "¹", "²", "³"]
+                            ):
+                                result = result + SuperscriptToNormal[
+                                    character
+                                ] * multiplier
+                                index += 1
+                                multiplier *= .1
+
+                                if index == len(code):
+                                    character = ""
+
+                                else:
+                                    character = code[index]
 
                         if old_index == index:
                             success = False
@@ -3089,6 +3698,12 @@ starting from the token given as grammar.
                         tokens += [result[0]]
                         index = result[1]
 
+                        if index == False:
+                            parse_trace = result[0]
+                            parse_index = result[2]
+                            success = False
+                            break
+
             elif isinstance(token, str):
                 old_index = index
                 index += len(token)
@@ -3105,14 +3720,23 @@ starting from the token given as grammar.
                     repr(token)
                 )
 
-        if success:
-            result = (processor[grammar][lexeme_index](tokens), index)
+        if parse_trace and not parse_index and not original_index:
+            break
 
-            return result
+
+        if success:
+            return (processor[grammar][lexeme_index](tokens), index)
 
         lexeme_index += 1
 
-    return False
+    return ((
+        parse_trace
+        if not parse_index or parse_index == original_index else
+        (
+            ["%s: '%s'" % (grammar, code[original_index:parse_index])] +
+            parse_trace
+        )
+    ), False, original_index)
 
 def Parse(
     code,
@@ -3125,7 +3749,7 @@ def Parse(
     grave=False
 ):
     """
-    ParseExpression(code, grammar=CharcoalToken.Program, \
+    Parse(code, grammar=CharcoalToken.Program, \
 grammars=UnicodeGrammars, processor=ASTProcessor, whitespace=False, \
 normal_encoding=False, verbose=False, grave=False) -> Any
 
@@ -3200,10 +3824,10 @@ symbols they represent.
                 "c": "℅",
                 "o": "℅",
                 "f": "⌕",
+                "v": "⮌",
                 "[": "◧",
                 "]": "◨",
-                "=": "≡",
-                "": "⮌"
+                "=": "≡"
             }[match.group(1)]
             if match.group(1) else
             UnicodeLookup[chr(ord(match.group(2)) + 128)]
@@ -3224,7 +3848,20 @@ symbols they represent.
     if not result:
         return result
 
-    return result[0]
+    if result[1] == False:
+        PrintParseTrace(result[0])
+
+    return (
+        processor[CharcoalToken.Program][-1]([])
+        if result[1] == False else
+        result[0]
+    )
+
+
+def PrintParseTrace(trace):
+    print("""\
+Parsing failed, parse trace:
+%s""" % ("\n".join(trace)))
 
 
 def PrintTree(tree, padding=""):
@@ -3408,6 +4045,70 @@ symbols they represent.
     return result
 
 
+def Degrave(code):
+    return re.sub("``([\s\S])|`([\s\S])", lambda match: (
+            {
+                "`": "`",
+                " ": "´",
+                "4": "←",
+                "8": "↑",
+                "6": "→",
+                "2": "↓",
+                "7": "↖",
+                "9": "↗",
+                "3": "↘",
+                "1": "↙",
+                "#": "№",
+                "<": "↶",
+                ">": "↷",
+                "r": "⟲",
+                "j": "⪫",
+                "s": "⪪",
+                "c": "℅",
+                "o": "℅",
+                "f": "⌕",
+                "v": "⮌",
+                "[": "◧",
+                "]": "◨",
+                "=": "≡"
+            }[match.group(1)]
+            if match.group(1) else
+            UnicodeLookup[chr(ord(match.group(2)) + 128)]
+            if match.group(2) != "\n" else "¶"
+        ), code)
+
+
+def Golf(code):
+
+    for regex, replacement in (
+        ("([^·⁰¹²³⁴-⁹]|^)¹⁰⁰⁰([^·⁰¹²³⁴-⁹]|$)", "\\1φ\\2"),
+        ("([^·⁰¹²³⁴-⁹]|^)¹⁰([^·⁰¹²³⁴-⁹]|$)", "\\1χ\\2"),
+        ("””", "ω"),
+        ("(^|[^´].|[^ -~´¶]) !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
+abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
+        ("([^´].|[^ -~´¶]|^)abcdefghijklmnopqrstuvwxyz([^´]|$)", "\\1β\\2"),
+        ("([^´].|[^ -~´¶]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)", "\\1α\\2"),
+        (Compressed(" !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
+abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
+        (Compressed("abcdefghijklmnopqrstuvwxyz"), "β"),
+        (Compressed("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "α"),
+        ("([^·⁰¹²³⁴-⁹ -~´¶])¦([^·⁰¹²³⁴-⁹ -~´¶])", "\\1\\2"),
+        ("([^·⁰¹²³⁴-⁹])¦([·⁰¹²³⁴-⁹])", "\\1\\2"),
+        ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
+        ("([^´].|[^ -~´¶])¦([ -~´¶])", "\\1\\2"),
+        ("([ -~´¶])¦([^´])", "\\1\\2"),
+        ("Ｍ([←-↓↖-↙])(?!%s|[^·⁰¹²³⁴-⁹ -~´¶])" % sOperator, "\\1"),
+        ("(?:Ｍ[←-↓↖-↙])+$", ""),
+        ("[←-↓↖-↙]+$", ""),
+        ("»+$", "")
+    ):
+        code = re.sub(regex, replacement, code)
+
+    return code
+
+
 def AddAmbiguityWarnings():
     """
     AddAmbiguityWarnings()
@@ -3439,6 +4140,7 @@ def RemoveThrottle():
         lambda result: lambda charcoal: charcoal.DumpNoThrottle()
     )
 
+
 def AddPythonFunction(name):
     """
     AddPythonFunction(name)
@@ -3461,7 +4163,7 @@ and processors.
         if not module in imports:
             imports[module] = __import__(module)
 
-        function = imports[module][name]
+        function = getattr(imports[module], name)
 
     if not function:
         loc, glob = locals(), globals()
@@ -3819,67 +4521,17 @@ non-raw file input and file output."""
             verbose=True
         )[0]
 
-        for regex, replacement in (
-            ("»+$", ""),
-            ("(?:[^⁰¹²³⁴-⁹]|^)¹⁰⁰⁰(?:[^⁰¹²³⁴-⁹]|$)", "χ"),
-            ("(?:[^⁰¹²³⁴-⁹]|^)¹⁰(?:[^⁰¹²³⁴-⁹]|$)", "ψ"),
-            ("””", "ω"),
-            ("(^|[^´].|[^ -~´¶]) !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
-ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
-abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
-            ("([^´].|[^ -~´¶]|^)abcdefghijklmnopqrstuvwxyz([^´]|$)", "\\1β\\2"),
-            ("([^´].|[^ -~´¶]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)", "\\1α\\2"),
-            (Compressed(" !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
-ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
-abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
-            (Compressed("abcdefghijklmnopqrstuvwxyz"), "β"),
-            (Compressed("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "α"),
-            ("([^⁰¹²³⁴-⁹ -~´¶])¦([^⁰¹²³⁴-⁹ -~´¶])", "\\1\\2"),
-            ("([^⁰¹²³⁴-⁹])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
-            ("([⁰¹²³⁴-⁹])¦([^⁰¹²³⁴-⁹])", "\\1\\2"),
-            ("([^´].|[^ -~´¶])¦([ -~´¶])", "\\1\\2"),
-            ("([ -~´¶])¦([^´])", "\\1\\2"),
-            ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1"),
-            ("(?:Ｍ[←-↓↖-↙])+$", ""),
-            ("[←-↓↖-↙]+$", "")
-        ):
-            code = re.sub(regex, replacement, code)
+        if isinstance(code, list):
+            PrintParseTrace(code)
+            sys.exit(1)
+
+        code = Golf(code)
 
         if argv.deverbosify:
             print(code)
 
     if argv.grave or argv.degrave:
-
-        code = re.sub("``([\s\S])|`([\s\S])", lambda match: (
-            {
-                "`": "`",
-                " ": "´",
-                "4": "←",
-                "8": "↑",
-                "6": "→",
-                "2": "↓",
-                "7": "↖",
-                "9": "↗",
-                "3": "↘",
-                "1": "↙",
-                "#": "№",
-                "<": "↶",
-                ">": "↷",
-                "r": "⟲",
-                "j": "⪫",
-                "s": "⪪",
-                "c": "℅",
-                "o": "℅",
-                "f": "⌕",
-                "[": "◧",
-                "]": "◨",
-                "=": "≡",
-                "": "⮌"
-            }[match.group(1)]
-            if match.group(1) else
-            UnicodeLookup[chr(ord(match.group(2)) + 128)]
-            if match.group(2) != "\n" else "¶"
-        ), code)
+        code = Degrave(code)
 
         if argv.degrave:
             print(code)
@@ -3905,16 +4557,31 @@ abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
 
     if argv.astify or argv.onlyastify and not argv.repl:
         print("Program")
-        PrintTree(Parse(
+
+        result = Parse(
             code,
             whitespace=argv.whitespace,
             normal_encoding=argv.normalencoding
-        ))
+        )
+
+        if isinstance(result[0], CharcoalToken):
+            print("""\
+Parsing failed, parsed:
+%s
+
+Parse trace:
+%s
+""" % (result[2], "".join()))
+        else:
+            PrintTree(result)
 
         if argv.onlyastify:
             sys.exit()
 
     if argv.deverbosify and not argv.verbose:
+        sys.exit()
+
+    if argv.degrave and not argv.grave:
         sys.exit()
 
     global_charcoal = Charcoal(
@@ -3940,66 +4607,10 @@ abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
                         verbose=True
                     )[0]
 
-                    for regex, replacement in (
-                        ("»+$", ""),
-                        ("¹⁰⁰⁰", "χ"),
-                        ("¹⁰", "ψ"),
-                        ("””", "ω"),
-                        ("(^|[^´].|[^ -~´¶]) !\"#\$%&'\(\)\*\+,-\./0123456789\
-:;<=>\?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
-abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
-                        ("([^´].|[^ -~´¶]|^)abcdefghijklmnopqrstuvwxyz([^´]|$\
-", "\\1β\\2"),
-                        ("([^´].|[^ -~´¶]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)\
-", "\\1α\\2"),
-                        (Compressed(" !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
-ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
-abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
-                        (Compressed("abcdefghijklmnopqrstuvwxyz"), "β"),
-                        (Compressed("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "α"),
-                        ("([^⁰¹²³⁴-⁹ -~´¶])¦([^⁰¹²³⁴-⁹ -~´¶])", "\\1\\2"),
-                        ("([^⁰¹²³⁴-⁹])¦([⁰¹²³⁴-⁹])", "\\1\\2"),
-                        ("([⁰¹²³⁴-⁹])¦([^⁰¹²³⁴-⁹])", "\\1\\2"),
-                        ("([^´].|[^ -~´¶])¦([ -~´¶])", "\\1\\2"),
-                        ("([ -~´¶])¦([^´])", "\\1\\2"),
-                        ("Ｍ([←-↓↖-↙])(?!%s)" % sOperator, "\\1"),
-                        ("(?:Ｍ[←-↓↖-↙])+$", ""),
-                        ("[←-↓↖-↙]+$", "")
-                    ):
-                        code = re.sub(regex, replacement, code)
+                    code = Golf(code)
 
                 if argv.grave:
-
-                        code = re.sub("``([\s\S])|`([\s\S])", lambda match: (
-                            {
-                                "`": "`",
-                                " ": "´",
-                                "4": "←",
-                                "8": "↑",
-                                "6": "→",
-                                "2": "↓",
-                                "7": "↖",
-                                "9": "↗",
-                                "3": "↘",
-                                "1": "↙",
-                                "#": "№",
-                                "<": "↶",
-                                ">": "↷",
-                                "r": "⟲",
-                                "j": "⪫",
-                                "s": "⪪",
-                                "c": "℅",
-                                "o": "℅",
-                                "f": "⌕",
-                                "[": "◧",
-                                "]": "◨",
-                                "=": "≡",
-                                "": "⮌"
-                            }[match.group(1)]
-                            if match.group(1) else
-                            UnicodeLookup[chr(ord(match.group(2)) + 128)]
-                            if match.group(2) != "\n" else "¶"
-                        ), code)
+                    code = Degrave(code)
 
                 if argv.astify:
                     print("Program")

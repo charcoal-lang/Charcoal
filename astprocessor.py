@@ -111,7 +111,8 @@ ASTProcessor = {
         lambda result: "Minimum",
         lambda result: "Maximum",
         lambda result: "Character/Ordinal",
-        lambda result: "Reverse"
+        lambda result: "Reverse",
+        lambda result: "Get variable"
     ],
     CharcoalToken.Binary: [
         lambda result: "Sum",
@@ -148,11 +149,12 @@ ASTProcessor = {
     ],
     CharcoalToken.OtherOperator: [
         lambda result: ["Peek direction"] + result[1:],
-        lambda result: ["Map"] + result[1:]
+        lambda result: ["Map"] + result[1:],
+        lambda result: ["Evaluate variable"] + result[1:]
     ],
 
     CharcoalToken.Program: [
-        lambda result:  [result[2][0], result[0]] + result[2][1:],
+        lambda result: [result[2][0], result[0]] + result[2][1:],
         lambda result: ["Program"]
     ],
     CharcoalToken.Body: [
@@ -172,7 +174,10 @@ ASTProcessor = {
         lambda result: ["Hollow Polygon"] + result[1:],
         lambda result: ["Hollow Polygon"] + result[1:],
         lambda result: ["Rectangle"] + result[1:],
+        lambda result: ["Rectangle"] + result[1:],
         lambda result: ["Oblong"] + result[1:],
+        lambda result: ["Oblong"] + result[1:],
+        lambda result: ["Box"] + result[1:],
         lambda result: ["Box"] + result[1:],
         lambda result: ["Move"] + result,
         lambda result: ["Move"] + result[1:],
@@ -184,36 +189,29 @@ ASTProcessor = {
         lambda result: ["Pivot Right"],
         lambda result: ["Jump to"] + result[1:],
         lambda result: ["Rotate transform"] + result[1:],
-        lambda result: ["Rotate transform"],
-        lambda result: ["Reflect transform"] + result[1:],
-        lambda result: ["Reflect transform"] + result[1:],
-        lambda result: ["Rotate prism"] + result[1:],
-        lambda result: ["Rotate prism"] + result[1:],
-        lambda result: ["Rotate prism"] + result[1:],
-        lambda result: ["Rotate prism"] + result[1:],
-        lambda result: ["Reflect mirror"] + result[1:],
-        lambda result: ["Reflect mirror"] + result[1:],
-        lambda result: ["Rotate copy"] + result[1:],
-        lambda result: ["Rotate copy"] + result[1:],
-        lambda result: ["Rotate copy"] + result[1:],
-        lambda result: ["Rotate copy"] + result[1:],
-        lambda result: ["Rotate copy"] + result[1:],
-        lambda result: ["Rotate copy"] + result[1:],
-        lambda result: ["Rotate copy"] + result[1:],
-        lambda result: ["Rotate copy"],
-        lambda result: ["Reflect copy"] + result[1:],
-        lambda result: ["Reflect copy"] + result[1:],
-        lambda result: ["Reflect overlap"] + result[1:],
-        lambda result: ["Reflect overlap"] + result[1:],
+        lambda result: ["Rotate transform"]
+    ] +
+    [lambda result: ["Reflect transform"] + result[1:]] * 3 +
+    [lambda result: ["Rotate prism"] + result[1:]] * 8 +
+    [lambda result: ["Reflect mirror"] + result[1:]] * 3 +
+    [lambda result: ["Rotate copy"] + result[1:]] * 8 +
+    [lambda result: ["Reflect copy"] + result[1:]] * 3 +
+    [lambda result: ["Rotate overlap"] + result[1:]] * 16 +
+    [lambda result: ["Rotate shutter"] + result[1:]] * 16 +
+    [lambda result: ["Reflect overlap"] + result[1:]] * 6 +
+    [lambda result: ["Reflect butterfly"] + result[1:]] * 6 +
+    [
         lambda result: ["Rotate"] + result[1:],
         lambda result: ["Rotate"],
         lambda result: ["Reflect"] + result[1:],
+        lambda result: ["Reflect"],
         lambda result: ["Copy"] + result[1:],
         lambda result: ["For"] + result[1:],
         lambda result: ["While"] + result[1:],
         lambda result: ["If"] + result[1:],
         lambda result: ["If"] + result[1:],
         lambda result: ["Assign at index"] + result[1:],
+        lambda result: ["Assign"] + result[1:],
         lambda result: ["Assign"] + result[1:],
         lambda result: ["Fill"] + result[1:],
         lambda result: ["SetBackground", result[1]],
@@ -222,13 +220,16 @@ ASTProcessor = {
         lambda result: ["Refresh while"] + result[1:],
         lambda result: ["Refresh", result[1]],
         lambda result: ["Refresh"],
-        lambda result: ["Trim", result[1], result[2]],
+        lambda result: ["Toggle trim"],
+        lambda result: ["Crop", result[1], result[2]],
+        lambda result: ["Crop", result[1]],
         lambda result: ["Clear"],
         lambda result: ["Extend", result[1], result[2]],
         lambda result: ["Extend", result[1]],
         lambda result: ["Push"] + result[1:],
         lambda result: ["Switch"] + result[1:],
         lambda result: ["Switch"] + result[1:],
-        lambda result: ["Map"] + result[1:]
+        lambda result: ["Map"] + result[1:],
+        lambda result: ["Execute variable"] + result[1:]
     ]
 }

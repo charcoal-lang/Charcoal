@@ -24,7 +24,7 @@ for double_bracket, bracket in zip("⟦⟧⦃⦄«»", "[]{}()"):
     # not sure about ()
     UnicodeLookup[chr(ord(bracket) + 128)] = double_bracket
 
-for symbol, operator in zip("⁺⁻×÷﹪¬⁼‹›", "+-*/%!=<>"):
+for symbol, operator in zip("⁺⁻×÷∕﹪¬⁼‹›", "+-*/\\%!=<>"):
     UnicodeLookup[chr(ord(operator) + 128)] = symbol
 
 for arrow, ascii_equivalent in zip(
@@ -64,7 +64,7 @@ def InCodepage(character):
                 (character >= "α" and character <= "ω" and character != "ο") or
                 (character >= "Ａ" and character <= "Ｚ") or
                 character in "⁰¹²³⁴⁵⁶⁷⁸⁹\
-⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
+⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›\
 ←↑→↓↖↗↘↙\
 ↶↷⟲¿‽‖´·¤¦“”⎚¶…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨⮌≡№"
     )
@@ -73,17 +73,17 @@ UnicodeCommands = "\
 ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ\
 ⁰¹²³⁴⁵⁶⁷⁸⁹\
 αβγδεζηθικλμνξπρσςτυφχψω\
-⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›\
+⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›\
 ←↑→↓↖↗↘↙\
 ↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨⮌≡№"
 
 UnicodeCommandRegex = "\
 Ａ-Ｚ⁰¹²³⁴-⁹αβγδεζηθικλμνξπρσςτυφχψω\
-⟦⟧⦃⦄«»⁺⁻×÷﹪∧∨¬⁼‹›←-↓↖-↙\
+⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›←-↓↖-↙\
 ↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟⪫⪪⌕℅◧◨⮌≡№"
 
 sCommand = "[%s]" % UnicodeCommandRegex
-sOperator = "[ＳＮ‽¬Ｉ‽Ｖ⊟↧↥⌊⌈℅⮌⁺⁻×÷﹪⁼‹›…Ｘ§⪫⪪⌕◧◨№⎇Ｅ∧∨]|Ｋ.|±Ｌ|⊞Ｏ|⌕Ａ"
+sOperator = "[ＳＮ‽¬Ｉ‽Ｖ⊟↧↥⌊⌈℅⮌⁺⁻×÷∕﹪⁼‹›…Ｘ§⪫⪪⌕◧◨№⎇Ｅ∧∨]|Ｋ.|±Ｌ|⊞Ｏ|⌕Ａ"
 
 rCommand = re.compile("(%s)" % sCommand)
 rOperator = re.compile("(%s)" % sOperator)

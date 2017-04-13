@@ -154,6 +154,19 @@ ab
 3   1
 2   2
 13213""")
+        self.assertEqual(Run("Box(5.999, 5.999, '123')", verbose=True), """\
+12312
+1   3
+3   1
+2   2
+13213""")
+        self.assertEqual(Run("""
+Box(Times(2.999, 1.999), 5.999, '123')""", verbose=True), """\
+12312
+1   3
+3   1
+2   2
+13213""")
 
     def test_rectangle(self):
         self.assertEqual(Run("ＵＲ⁵¦⁵"), """\
@@ -540,6 +553,141 @@ abc
 db 
 ec """
         )
+
+
+    def test_rotate_overlap(self):
+        self.assertEqual(Run("abc¶de⟲Ｏ²"), """\
+abc
+de 
+ be
+ ad""")
+        self.assertEqual(Run("abc¶de⟲Ｏ⁴"), """\
+abc  
+de ed
+  cba""")
+        self.assertEqual(Run("abc¶de⟲Ｏ⁶"), """\
+  da
+abcb
+de c""")
+        self.assertEqual(Run("abc↙Ｍ←de⟲Ｏ↙²"), """\
+ce  
+babc
+a de""")
+        self.assertEqual(Run("abc↙Ｍ←de⟲Ｏ↙⁴"), """\
+  abc
+ed de
+cba  """)
+        self.assertEqual(Run("abc↙Ｍ←de⟲Ｏ↙⁶"), """\
+abc
+ de
+db 
+ec """)
+        self.assertEqual(Run("abc↖Ｍ←de⟲Ｏ↖²"), """\
+ec 
+db 
+ de
+abc""")
+        self.assertEqual(Run("abc↖Ｍ←de⟲Ｏ↖⁴"), """\
+cba  
+ed de
+  abc""")
+        self.assertEqual(Run("abc↖Ｍ←de⟲Ｏ↖⁶"), """\
+a de
+babc
+ce  """)
+        self.assertEqual(Run("de¶abc⟲Ｏ↗²"), """\
+de c
+abcb
+  da""")
+        self.assertEqual(Run("de¶abc⟲Ｏ↗⁴"), """\
+  cba
+de ed
+abc  """)
+        self.assertEqual(Run("de¶abc⟲Ｏ↗⁶"), """\
+ ad
+ be
+de 
+abc""")
+        self.assertEqual(
+            Run("Print('abc\\nde');RotateOverlap(2)", verbose=True),
+            """\
+abc
+de 
+ be
+ ad"""
+        )
+        self.assertEqual(
+            Run("Print('abc\\nde');RotateOverlap(4)", verbose=True),
+            """\
+abc  
+de ed
+  cba"""
+        )
+        self.assertEqual(
+            Run("Print('abc\\nde');RotateOverlap(6)", verbose=True),
+            """\
+  da
+abcb
+de c"""
+        )
+        self.assertEqual(
+            Run(
+                """
+Print('abc');
+Move(:DownLeft);
+Move(:Left);
+Print('de');
+RotateOverlap(:DownLeft, 2)""",
+                verbose=True
+            ),
+             """\
+ce  
+babc
+a de"""
+        )
+        self.assertEqual(
+            Run(
+                """
+Print('abc');
+Move(:DownLeft);
+Move(:Left);
+Print('de');
+RotateOverlap(:DownLeft, 4)""",
+                verbose=True
+            ),
+            """\
+  abc
+ed de
+cba  """
+        )
+        self.assertEqual(
+            Run(
+                """
+Print('abc');
+Move(:DownLeft);
+Move(:Left);
+Print('de');
+RotateOverlap(:DownLeft, 6)""",
+                verbose=True
+            ),
+            """\
+abc
+ de
+db 
+ec """
+        )
+
+    def test_rotate_shutter(self):
+        self.assertEqual(Run("⁴+⟲Ｓ²⁴⁶"), """\
+    |    
+    |    
+    |    
+    |    
+----+----
+    |    
+    |    
+    |    
+    |    """)
 
     def test_reflect_copy(self):
         self.assertEqual(Run("abc¶def¶ghi‖Ｃ←"), "cbaabc\nfeddef\nihgghi")
@@ -990,6 +1138,9 @@ ghi
   h  
   gda""")
 
+    def test_reflect_butterfly(self):
+        self.assertEqual(Run("<<|\\‖Ｂ→"), "<<|\|>>")
+
     def test_rotate(self):
         self.assertEqual(Run("abc¶def¶ghi⟲²"), "cfi\nbeh\nadg")
         self.assertEqual(Run("abc¶def¶ghi⟲¹"), """\
@@ -1059,7 +1210,7 @@ aaaaa""")
         self.assertEqual(Run("…abc¹⁰"), "abcabcabca")
 
     def test_crop(self):
-        self.assertEqual(Run("abcddd¶d¶ghi¶j¶j¶jＭ³↖Ｔ³¦³"), """\
+        self.assertEqual(Run("abcddd¶d¶ghi¶j¶j¶jjjＭ³↖Ｔ³¦³"), """\
 ghi
 j  
 j  """)
@@ -1236,6 +1387,15 @@ foofoofoofoofoo""")
 
     def test_python(self):
         self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")
+
+    def test_wolfram(self):
+        self.assertEqual(Run("ＵＶIntegerQ⟦¹⟧"), "-")
+        self.assertEqual(Run("ＵＶIntegerQ⟦¹·¹⟧"), "")
+        self.assertEqual(Run("ＵＶOddQ⟦¹⟧"), "-")
+        self.assertEqual(Run("ＵＶOddQ⟦²⟧"), "")
+        self.assertEqual(Run("ＵＶEvenQ⟦²⟧"), "-")
+        self.assertEqual(Run("ＵＶEvenQ⟦¹⟧"), "")
+        self.assertEqual(Run("ＵＶLog10⟦¹²³⁸¹⁹⟧"), "-----")
 
     def test_preinitialized(self):
         self.assertEqual(Run("θ", "a b c d e"), "a")
