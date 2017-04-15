@@ -1190,32 +1190,31 @@ with the specified string, repeating it if needed.
                 self.y, self.x = queue[0]
 
                 while self.Get() == "\000":
-                    self.Move(Direction.up)
-
-                self.Move(Direction.down)
-                queue = queue[1:]
-                points.add((self.y, self.x))
-
-                if (self.y, self.x - 1) not in points:
-                    self.x -= 1
-
-                    if self.Get() == "\000":
-                        queue += [(self.y, self.x)]
-
-                    self.x += 1
-
-                if (self.y, self.x + 1) not in points:
-                    self.x += 1
-
-                    if self.Get() == "\000":
-                        queue += [(self.y, self.x)]
-                    self.x -= 1
+                    self.y -= 1
 
                 self.y += 1
+                queue = queue[1:]
                 value = self.Get()
 
                 while value == "\000":
                     points.add((self.y, self.x))
+
+                    if (self.y, self.x - 1) not in points:
+                        self.x -= 1
+    
+                        if self.Get() == "\000":
+                            queue += [(self.y, self.x)]
+    
+                        self.x += 1
+    
+                    if (self.y, self.x + 1) not in points:
+                        self.x += 1
+    
+                        if self.Get() == "\000":
+                            queue += [(self.y, self.x)]
+    
+                        self.x -= 1
+
                     self.y += 1
                     value = self.Get()
 
