@@ -397,19 +397,19 @@ UnicodeGrammars = {
         ["ＵＢ", CharcoalToken.Expression],
         ["Ｄ"],
         [
-            "ＨＦ",
+            "ＲＦ",
             CharcoalToken.Expression,
             CharcoalToken.Expression,
             CharcoalToken.Body
         ],
         [
-            "ＨＷ",
+            "ＲＷ",
             CharcoalToken.Expression,
             CharcoalToken.Expression,
             CharcoalToken.Body
         ],
-        ["Ｈ", CharcoalToken.Expression],
-        ["Ｈ"],
+        ["Ｒ", CharcoalToken.Expression],
+        ["Ｒ"],
         ["ＵＴ"],
         ["Ｔ", CharcoalToken.Expression, CharcoalToken.Expression],
         ["Ｔ", CharcoalToken.Expression],
