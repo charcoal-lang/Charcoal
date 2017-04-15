@@ -11,12 +11,10 @@ the CLI, and various classes used by the Charcoal class.
 # bresenham
 # image to ascii
 # turn grammars into dictionaries (bison-style)
-# fix reflextoverlap, add overlap overloads, fix cursor position transform
 # Should rectangle and friends work with negative arguments?
 # Put new things on wiki
-# should overlap methods have argument with amt of overlap
 # command to produce unicode char
-# tests for variable eval, exec, retrieve, floats and int divide
+# tests for reflect overlap overlap, floats and int divide
 
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
@@ -1750,13 +1748,15 @@ but not if it overwrites the original.
             )
             x = -negative_x
             self.x = x + 1
-            left = min(self.indices)
 
             for line, length, index in zip(
                 self.lines[:], self.lengths[:], self.indices[:]
             ):
                 self.x -= 1
-                self.y = top_left - index
+                self.y = min(
+                    top_left - index + overlap - 1,
+                    top_left - self.x
+                )
                 string = (
                     "".join(
                         NWSEFlip.get(character, character)
@@ -1766,12 +1766,17 @@ but not if it overwrites the original.
                     line
                 )[max(
                     0,
-                    index - left - overlap
+                    overlap - (1 + index - self.x)
                 ):]
-                self.PrintLine({Direction.up}, len(string), string)
+                self.PrintLine(
+                    {Direction.up},
+                    len(string),
+                    string,
+                    overwrite=False
+                )
 
             self.x = top_left - initial_y
-            self.y = top_left - initial_x
+            self.y = top_left - initial_x + overlap - 1
 
         elif direction == Direction.up_right:
             top_right, negative_x = min(
@@ -1784,13 +1789,15 @@ but not if it overwrites the original.
             )
             x = -negative_x
             self.x = x - 1
-            right = max(self.right_indices)
 
             for line, length, right_index in zip(
                 self.lines[:], self.lengths[:], self.right_indices[:]
             ):
                 self.x += 1
-                self.y = right_index + top_right
+                self.y = min(
+                    top_right + right_index + overlap - 1,
+                    top_right + self.x + 1
+                )
                 string = (
                     "".join(
                         NESWFlip.get(character, character)
@@ -1800,12 +1807,17 @@ but not if it overwrites the original.
                     line
                 )[min(
                     -1,
-                    -1 - right_index + right + overlap
+                    -overlap + (self.x - right_index + 1)
                 )::-1]
-                self.PrintLine({Direction.up}, len(string), string)
+                self.PrintLine(
+                    {Direction.up},
+                    len(string),
+                    string,
+                    overwrite=False
+                )
 
             self.x = initial_y - top_right - 1
-            self.y = top_right + initial_x + 1
+            self.y = top_right + initial_x + overlap
 
         elif direction == Direction.down_left:
             bottom_left, x = max(
@@ -1818,13 +1830,15 @@ but not if it overwrites the original.
             )
             x = x
             self.x = x + 1
-            left = min(self.indices)
 
             for line, length, index in zip(
                 self.lines[::-1], self.lengths[::-1], self.indices[::-1]
             ):
                 self.x -= 1
-                self.y = index + bottom_left
+                self.y = max(
+                    bottom_left + index - overlap + 1,
+                    bottom_left + self.x
+                )
                 string = (
                     "".join(
                         NESWFlip.get(character, character)
@@ -1834,12 +1848,17 @@ but not if it overwrites the original.
                     line
                 )[max(
                     0,
-                    index - left - overlap
+                    overlap - (1 + index - self.x)
                 ):]
-                self.PrintLine({Direction.down}, len(string), string)
+                self.PrintLine(
+                    {Direction.down},
+                    len(string),
+                    string,
+                    overwrite=False
+                )
 
             self.x = initial_y - bottom_left
-            self.y = bottom_left + initial_x
+            self.y = bottom_left + initial_x + 1 - overlap
 
         elif direction == Direction.down_right:
             bottom_right, negative_x = max(
@@ -1852,13 +1871,15 @@ but not if it overwrites the original.
             )
             x = -negative_x
             self.x = x - 1
-            right = max(self.right_indices)
 
             for line, length, right_index in zip(
                 self.lines[::-1], self.lengths[::-1], self.right_indices[::-1]
             ):
                 self.x += 1
-                self.y = bottom_right - right_index
+                self.y = max(
+                    bottom_right - right_index - overlap + 1,
+                    bottom_right - self.x - 1
+                )
                 string = (
                     "".join(
                         NWSEFlip.get(character, character)
@@ -1868,12 +1889,17 @@ but not if it overwrites the original.
                     line
                 )[min(
                     -1,
-                    -1 - right_index + right + overlap
+                    -overlap + (self.x - right_index + 1)
                 )::-1]
-                self.PrintLine({Direction.down}, len(string), string)
+                self.PrintLine(
+                    {Direction.down},
+                    len(string),
+                    string,
+                    overwrite=False
+                )
 
             self.x = bottom_right - initial_y - 1
-            self.y = bottom_right - initial_x - 1
+            self.y = bottom_right - initial_x - overlap
 
         if Info.step_canvas in self.info:
             self.RefreshFastText((
@@ -2216,7 +2242,6 @@ make a copy for each of the digits in rotations.
                 if transform else
                 "Rotate copy"
             ), self.canvas_step)
-
 
     def RotateOverlap(
         self,

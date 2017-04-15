@@ -1137,6 +1137,14 @@ d
 ghi  
   h  
   gda""")
+        self.assertEqual(Run("a¶d¶ghi‖ＯＯ↘²"), """\
+a    
+d    
+ghi  
+  gda""")
+        self.assertEqual(Run("abcＭ↖d‖ＯＯ↖²"), """\
+cdd
+abc""")
 
     def test_reflect_butterfly(self):
         self.assertEqual(Run("<<|\\‖Ｂ→"), "<<|\|>>")
