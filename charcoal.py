@@ -461,6 +461,13 @@ class Charcoal:
 
         """
         self.inputs += inputs
+        self.original_inputs += inputs
+        self.all_inputs = self.inputs + [""] * (5 - len(self.inputs))
+        self.hidden["θ"] = self.all_inputs[0]
+        self.hidden["η"] = self.all_inputs[1]
+        self.hidden["ζ"] = self.all_inputs[2]
+        self.hidden["ε"] = self.all_inputs[3]
+        self.hidden["δ"] = self.all_inputs[4]
 
     def Trim(self):
         """
@@ -3019,7 +3026,7 @@ whether the output wil be right-padded.
         """
         EvaluateVariable(name, arguments)
 
-        Executes the function with the specified name \with the specified
+        Executes the function with the specified name with the specified
 arguments.
 
         Returns the result.
@@ -3036,7 +3043,7 @@ arguments.
         """
         EvaluateVariable(name, arguments)
 
-        Executes the function with the specified name \with the specified
+        Executes the function with the specified name with the specified
 arguments.
 
         """
