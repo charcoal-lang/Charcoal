@@ -2761,7 +2761,7 @@ or into a number if it was a string.
         if isinstance(variable, str):
             return int(variable or "0")
 
-        if isinstance(variable, int):
+        if isinstance(variable, int) or isinstance(variable, float):
             return str(variable)
 
     def Random(self, variable=1):
