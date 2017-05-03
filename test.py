@@ -676,6 +676,31 @@ abc
 db 
 ec """
         )
+        self.assertEqual(Run("abcＭ↓def⟲Ｃ↖²⁴⁶"), """\
+       f    
+       e    
+       d    
+      c     
+fed   b     
+   cbaa     
+     aabc   
+     b   def
+     c      
+    d       
+    e       
+    f       """)
+        self.assertEqual(Run("abcＭ↓def⟲Ｏ↖²⁴⁶"), """\
+      f    
+      e    
+      d    
+     c     
+fed  b     
+   cbabc   
+     b  def
+     c     
+    d      
+    e      
+    f      """)
 
     def test_rotate_shutter(self):
         self.assertEqual(Run("⁴+⟲Ｓ²⁴⁶"), """\

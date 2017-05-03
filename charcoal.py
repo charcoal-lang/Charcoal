@@ -469,6 +469,22 @@ class Charcoal:
         self.hidden["ε"] = self.all_inputs[3]
         self.hidden["δ"] = self.all_inputs[4]
 
+    def ClearInputs(self):
+        """
+        ClearInputs()
+
+        Removes all inputs from canvas.
+
+        """
+        self.inputs = []
+        self.original_inputs = []
+        self.all_inputs = [""] * 5
+        self.hidden["θ"] = ""
+        self.hidden["η"] = ""
+        self.hidden["ζ"] = ""
+        self.hidden["ε"] = ""
+        self.hidden["δ"] = ""
+
     def Trim(self):
         """
         Trim()
@@ -4718,9 +4734,9 @@ Parse trace:
 
     else:
         successes = failures = 0
-        argv.input = [""] + [ProcessInput(inp) for inp in argv.input]
-        argv.output = [""] + argv.output
-        output_length = len(argv.output)
+        argv.input = [ProcessInput(inp) for inp in argv.input]
+        argv.output = argv.output
+        output_length = len(argv.output) + 1
         test_charcoal = Charcoal()
         program = GetProgram(
             code,
@@ -4730,9 +4746,10 @@ Parse trace:
 
         if argv.quiettesting:
 
-            for i in range(1, len(argv.input)):
+            for i in range(len(argv.input)):
 
                 test_charcoal.Clear()
+                test_charcoal.ClearInputs()
                 test_charcoal.AddInputs(argv.input[i])
                 program(test_charcoal)
                 result = str(test_charcoal)
@@ -4752,13 +4769,14 @@ Parse trace:
             success_padding = ["=" * 19, "=" * 21]
             success_string = ["failed", "succeded"]
 
-            for i in range(1, len(argv.input)):
+            for i in range(len(argv.input)):
 
                 if i == next_padding:
                     padding += "="
                     next_padding *= 10
 
                 test_charcoal.Clear()
+                test_charcoal.ClearInputs()
                 test_charcoal.AddInputs(argv.input[i])
                 program(test_charcoal)
                 result = str(test_charcoal)
