@@ -262,6 +262,12 @@ VerboseGrammars = {
             ")"
         ],
         [
+            "PythonFunction",
+            "(",
+            CharcoalToken.Expression,
+            ")"
+        ],
+        [
             "EvaluateVariable",
             "(",
             CharcoalToken.Expression,
@@ -295,6 +301,12 @@ VerboseGrammars = {
             "(",
             CharcoalToken.Expression,
             CharcoalToken.List,
+            ")"
+        ],
+        [
+            "PythonFunction",
+            "(",
+            CharcoalToken.Expression,
             ")"
         ],
         ["InputString", "(", CharcoalToken.Name, ")"],

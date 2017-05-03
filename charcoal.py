@@ -4189,12 +4189,20 @@ and processors.
     _name = name
 
     if "." in name:
-        module, name = re.split("\.(?=[^.]+)", name)
 
-        if not module in imports:
-            imports[module] = __import__(module)
+        try:
+            module, *parts = name.split(".")
 
-        function = getattr(imports[module], name)
+            if not module in imports:
+                imports[module] = __import__(module)
+
+            function = imports[module]
+
+            for part in parts:
+                function = getattr(function, part)
+
+        except:
+            pass
 
     if not function:
         loc, glob = locals(), globals()
@@ -4226,7 +4234,8 @@ and processors.
                 function = function[part]
 
     is_operator = re.search(
-        "(?i)return|disassemble|find|compute",
+        "\
+(?i)return|disassemble|find|compute|build|make|convert|create|read|\*\*|->",
         function.__doc__
     )
 
@@ -4238,6 +4247,10 @@ and processors.
                 "ＵＰ" + _name,
                 CharcoalToken.Separator,
                 CharcoalToken.List
+            ],
+            [
+                "ＵＰ" + _name,
+                CharcoalToken.Separator
             ]
         ]
         VerboseGrammars[CharcoalToken.OtherOperator] += [
@@ -4248,19 +4261,26 @@ and processors.
                 CharcoalToken.Separator,
                 CharcoalToken.List,
                 ")"
+            ],
+            [
+                "PythonFunction",
+                "(",
+                _name,
+                CharcoalToken.Separator,
+                ")"
             ]
         ]
         ASTProcessor[CharcoalToken.OtherOperator] += [
-            lambda result: [
-                "Python function: \"%s\"" % name,
-                result[2]
-            ]
+            lambda result: ["Python function: \"%s\"" % name, result[2]],
+            lambda result: ["Python function: \"%s\"" % name]
         ]
         StringifierProcessor[CharcoalToken.OtherOperator] += [
+            lambda result: "ＵＰ" + "".join(result[2:-1]),
             lambda result: "ＵＰ" + "".join(result[2:-1])
         ]
         InterpreterProcessor[CharcoalToken.OtherOperator] += [
-            lambda result: lambda charcoal: function(*result[2](charcoal))
+            lambda result: lambda charcoal: function(*result[2](charcoal)),
+            lambda result: lambda charcoal: function()
         ]
 
     else:
@@ -4269,6 +4289,10 @@ and processors.
                 "ＵＰ" + _name,
                 CharcoalToken.Separator,
                 CharcoalToken.List
+            ],
+            [
+                "ＵＰ" + _name,
+                CharcoalToken.Separator
             ]
         ]
         VerboseGrammars[CharcoalToken.Command] += [
@@ -4279,19 +4303,26 @@ and processors.
                 CharcoalToken.Separator,
                 CharcoalToken.List,
                 ")"
+            ],
+            [
+                "PythonFunction",
+                "(",
+                _name,
+                CharcoalToken.Separator,
+                ")"
             ]
         ]
         ASTProcessor[CharcoalToken.Command] += [
-            lambda result: [
-                "Python function: \"%s\"" % name,
-                result[2]
-            ]
+            lambda result: ["Python function: \"%s\"" % name, result[2]],
+            lambda result: ["Python function: \"%s\"" % name]
         ]
         StringifierProcessor[CharcoalToken.Command] += [
+            lambda result: "ＵＰ" + "".join(result[2:-1]),
             lambda result: "ＵＰ" + "".join(result[2:-1])
         ]
         InterpreterProcessor[CharcoalToken.Command] += [
-            lambda result: lambda charcoal: function(*result[2](charcoal))
+            lambda result: lambda charcoal: function(*result[2](charcoal)),
+            lambda result: lambda charcoal: function()
         ]
 
 # from https://gist.github.com/puentesarrin/6567480

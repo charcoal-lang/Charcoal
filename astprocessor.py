@@ -232,7 +232,6 @@ ASTProcessor = {
         lambda result: ["Extend", result[1]],
         lambda result: ["Push"] + result[1:],
         lambda result: ["Switch"] + result[1:],
-        lambda result: ["Switch"] + result[1:],
         lambda result: ["Map"] + result[1:],
         lambda result: ["Execute variable"] + result[1:]
     ]

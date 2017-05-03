@@ -1395,6 +1395,10 @@ foofoofoofoofoo""")
 
     def test_python(self):
         self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")
+        self.assertEqual(
+            Run("ＵＰrandom.seed⟦⁰⟧ＩＵＰrandom.random"),
+            "0.8444218515250481"
+        )
 
     def test_wolfram(self):
         self.assertEqual(Run("ＵＶIntegerQ⟦¹⟧"), "-")

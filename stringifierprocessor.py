@@ -213,6 +213,7 @@ StringifierProcessor = {
         lambda result: "Ｅ" + result[2] + result[3],
         lambda result: "Ｅ" + result[2] + result[3],
         lambda result: "ＵＰ" + result[2] + result[3],
+        lambda result: "ＵＰ" + result[2],
         lambda result: "ＵＶ" + result[2] + result[3],
         lambda result: "ＵＶ" + result[2] + result[3]
     ],
@@ -227,6 +228,7 @@ StringifierProcessor = {
     ],
     CharcoalToken.Command: [
         lambda result: "ＵＰ" + result[2] + result[3],
+        lambda result: "ＵＰ" + result[2],
         lambda result: "Ｓ" + result[2],
         lambda result: "Ｎ" + result[2],
         lambda result: "Ｖ" + result[2],
