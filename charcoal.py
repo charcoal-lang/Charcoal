@@ -14,7 +14,11 @@ the CLI, and various classes used by the Charcoal class.
 # Should rectangle and friends work with negative arguments?
 # Put new things on wiki
 # command to produce unicode char
-# tests for reflect overlap overlap, floats and int divide
+# tests for reflect overlap overlap, floats, int divide and wolfram
+# command to get result from new Charcoal instance
+# fix rotate overlap, rotate copy and rotate overlap overlap
+# Python eval and exec since it will be shorter for many things
+# e.g. instead of ＩＵＶRound⟦ＵＧPi⟧ you can then use <pythoneval>Round(Pi)
 
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
@@ -29,6 +33,7 @@ from codepage import (
     UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage, sOperator
 )
 from compression import Decompressed, Compressed
+from wolfram import *
 from enum import Enum
 from ast import literal_eval
 from time import sleep, clock
@@ -270,7 +275,8 @@ class Charcoal:
         inputs=[],
         info=set(),
         canvas_step=500,
-        original_input=""
+        original_input="",
+        trim=False
     ):
         """
         Charcoal(inputs=[], info=set(), canvas_step=500, original_input="") -> Charcoal
@@ -317,7 +323,7 @@ class Charcoal:
         self.bg_line_number = self.bg_line_length = 0
         self.timeout_end = self.dump_timeout_end = 0
         self.background_inside = False
-        self.trim = False
+        self.trim = trim
         self.print_at_end = True
         self.canvas_step = canvas_step
 
@@ -860,6 +866,9 @@ with a character automatically selected from -|/\\.
 
         """
 
+        if isinstance(string, WolframObject):
+            string = string.run().to_number()
+
         if isinstance(string, float):
             string = int(string)
 
@@ -1247,8 +1256,17 @@ with the specified string, repeating it if needed.
             if Info.is_repl not in self.info:
                 sys.exit(1)
 
-        points = list(points)
-        points.sort()
+        points = sorted(points)
+        n_points = len(points)
+
+        if isinstance(string, int) or isinstance(string, float):
+            string = str(string)
+
+        if isinstance(string, WolframObject):
+            # using run() will overshoot in length a little
+            # meaning it will overshoot in precision too
+            string = str(string.run(n_points))
+
         length = len(string)
 
         for i in range(len(points)):
@@ -2779,6 +2797,9 @@ or into a number if it was a string.
 
         if isinstance(variable, int) or isinstance(variable, float):
             return str(variable)
+
+        if isinstance(variable, WolframObject):
+            return str(variable.run())
 
     def Random(self, variable=1):
         """

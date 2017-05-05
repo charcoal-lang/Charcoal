@@ -329,16 +329,18 @@ InterpreterProcessor = {
         ),
         lambda result: lambda left, right, charcoal: left ** right,
         lambda result: lambda left, right, charcoal: (
+            lambda value: "" if value == "\x00" else value
+        )(
+            (left[right] if right in left else None)
+            if isinstance(left, dict) else
+            left[right % len(left)]
+            if isinstance(left, list) or isinstance(left, str) else
             (
-                lambda value: "" if value == "\x00" else value
-            )(
-                left[right] if
-                isinstance(left, dict) else
-                left[right % len(left)]
+                getattr(left, right)
+                if isinstance(right, str) and hasattr(left, right) else
+                left[right % len(left)] # default to iterable
             )
-        ) if (
-            (not isinstance(left, dict)) or right in left
-        ) else None,
+        ),
         lambda result: lambda left, right, charcoal: (
             left.append(right) or left
         ),

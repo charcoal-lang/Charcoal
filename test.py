@@ -1433,6 +1433,8 @@ foofoofoofoofoo""")
         self.assertEqual(Run("ＵＶEvenQ⟦²⟧"), "-")
         self.assertEqual(Run("ＵＶEvenQ⟦¹⟧"), "")
         self.assertEqual(Run("ＵＶLog10⟦¹²³⁸¹⁹⟧"), "-----")
+        self.assertEqual(Run("ＩＵＶRound⟦ＵＧPiχ⟧"), "3.1415926535")
+        self.assertEqual(Run("ＩＵＶRound⟦ＵＧPi⟧"), "3")
 
     def test_preinitialized(self):
         self.assertEqual(Run("θ", "a b c d e"), "a")
@@ -1520,9 +1522,7 @@ pppppppp
 ........
 PPPPPPPP
 RNBKQBNR""")
-        self.assertEqual(Run("""\
-×⁶()↙↓¹⁰↖↖¹⁰↓↓²↘⁸Ｍ↑__↖←¤:↗¤\
-3.141592653589793238462643383279502884197169"""), """\
+        pi_slice = """\
 ()()()()()()
 |\\3.1415926|
 |:\\53589793|
@@ -1533,8 +1533,12 @@ RNBKQBNR""")
     \\::\\971|
      \\::\\69|
       \\::\\3|
-       \\__\\|""")
+       \\__\\|"""
         self.assertEqual(Run("""\
+×⁶()↙↓¹⁰↖↖¹⁰↓↓²↘⁸Ｍ↑__↖←¤:↗¤\
+3.141592653589793238462643383279502884197169"""), pi_slice)
+        self.assertEqual(
+            Run("""\
 Print(Multiply(6, '()'));
 Move(:DownLeft);
 Print(:Down, 10);
@@ -1549,18 +1553,11 @@ Move(:UpLeft);
 Move(:Left);
 Fill(':');
 Move(:UpRight);
-Fill('3.141592653589793238462643383279502884197169')""", verbose=True), """\
-()()()()()()
-|\\3.1415926|
-|:\\53589793|
-\\::\\2384626|
- \\::\\433832|
-  \\::\\79502|
-   \\::\\8841|
-    \\::\\971|
-     \\::\\69|
-      \\::\\3|
-       \\__\\|""")
+Fill('3.141592653589793238462643383279502884197169')""", verbose=True),
+            pi_slice
+        )
+        self.assertEqual(Run("""\
+×⁶()↙↓¹⁰↖↖¹⁰↓↓²↘⁸Ｍ↑__↖←¤:↗¤ＵＧPi"""), pi_slice)
         self.assertEqual(
             Run("__↗¹←↑¹↖²←_↘‖Ｍ←¤Ｓ", "#"), """\
   __  
