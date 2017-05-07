@@ -89,6 +89,7 @@ UnicodeGrammars = {
         [CharcoalToken.Name, CharcoalToken.Separator],
         [CharcoalToken.List, CharcoalToken.Separator],
         [CharcoalToken.Dictionary, CharcoalToken.Separator],
+        ["«", CharcoalToken.Program, "»", CharcoalToken.Separator],
         [
             CharcoalToken.OtherOperator,
             CharcoalToken.Separator
@@ -419,7 +420,8 @@ UnicodeGrammars = {
         ["⊞", CharcoalToken.Expression, CharcoalToken.Expression],
         ["≡", CharcoalToken.Expression, CharcoalToken.Cases, CharcoalToken.Body],
         ["ＵＭ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["Ｘ", CharcoalToken.Expression, CharcoalToken.List]
+        ["ＵＸ", CharcoalToken.Expression, CharcoalToken.List],
+        ["ＵＳ", CharcoalToken.Expression, CharcoalToken.Expression]
     ]
 }
 

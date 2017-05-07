@@ -19,9 +19,8 @@ default_charset = (
     digits +
     ascii_uppercase
 )
-Codepage.remove("\"")
-gap = ord("\"")
-# TODO: finish codepage so I can do OrdinalLookup[whatever]
+Codepage.remove("”")
+gap = OrdinalLookup["”"]
 
 def Compressed(string):
 
@@ -177,6 +176,7 @@ def Decompress(string):
     number = 0
     result = []
     base = OrdinalLookup.get(string[0], ord(string[0])) + 1
+
     if base > gap:
         base -= 1
 
@@ -185,7 +185,7 @@ def Decompress(string):
         number = (number * 255) + ordinal - (ordinal > gap)
 
     if base == 1:
-        return "\n" * number
+        return [ord("\n")] * number
 
     while number > 1:
         remainder = number % base
@@ -193,4 +193,3 @@ def Decompress(string):
         number //= base
 
     return result
-

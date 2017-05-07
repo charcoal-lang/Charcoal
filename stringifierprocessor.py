@@ -112,6 +112,7 @@ StringifierProcessor = {
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
+        lambda result: result[1] + result[3],
         lambda result: result[0] + result[1],
         lambda result: (
             result[0] + result[2] + result[3] + result[4] + result[6]
@@ -342,7 +343,8 @@ StringifierProcessor = {
         lambda result: "≡" + result[2] + result[5] + result[8],
         lambda result: "≡" + result[2] + result[5],
         lambda result: "ＵＭ" + result[2] + result[3],
-        lambda result: "ＵＸ" + result[2] + result[3]
+        lambda result: "ＵＸ" + result[2] + result[3],
+        lambda result: "ＵＳ" + result[2] + result[3]
     ]
 }
 

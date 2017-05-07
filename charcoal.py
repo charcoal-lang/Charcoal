@@ -11,12 +11,9 @@ the CLI, and various classes used by the Charcoal class.
 # bresenham
 # image to ascii
 # turn grammars into dictionaries (bison-style)
-# Should rectangle and friends work with negative arguments?
-# Put new things on wiki
-# command to produce unicode char
+# escape to produce unicode char
 # tests for reflect overlap overlap, floats, int divide and wolfram
 # command to get result from new Charcoal instance
-# fix rotate overlap, rotate copy and rotate overlap overlap
 # Python eval and exec since it will be shorter for many things
 # e.g. instead of ＩＵＶRound⟦ＵＧPi⟧ you can then use <pythoneval>Round(Pi)
 
@@ -1437,8 +1434,8 @@ characters to the axis are next to the axis.
             ]
 
         elif direction == Direction.up:
-            self.y -= (self.top - self.y) * 2 + 1
-            self.top -= len(self.lines) - 1
+            self.y -= (self.y - self.top) * 2 + 1
+            self.top -= len(self.lines)
             self.lines = (
                 [
                     "".join(
@@ -1454,7 +1451,7 @@ characters to the axis are next to the axis.
             self.right_indices = self.right_indices[::-1] + self.right_indices
 
         elif direction == Direction.down:
-            self.y += (len(self.lines) - self.y) * 2 + 1
+            self.y += (self.top + len(self.lines) - self.y) * 2 - 1
             self.lines += (
                 [
                     "".join(
@@ -2139,7 +2136,7 @@ make a copy for each of the digits in rotations.
         initial_x = self.x
         initial_y = self.y
 
-        length = len(self.lines)
+        line_count = len(self.lines)
 
         if XMovement[anchor] == 1:
             right = max(self.right_indices)
@@ -2170,7 +2167,7 @@ make a copy for each of the digits in rotations.
                     self.y = bottom + right - index - 1
                     self.PrintLine({Direction.up}, length, line)
 
-            if anchor == Direction.down_left:
+            elif anchor == Direction.down_left:
                 self.x = left
 
                 for line, length, index in zip(lines, lengths, indices):
@@ -2178,16 +2175,16 @@ make a copy for each of the digits in rotations.
                     self.y = bottom + left - index - 1
                     self.PrintLine({Direction.up}, length, line)
 
-            if anchor == Direction.up_left:
-                self.x = left + length
+            elif anchor == Direction.up_left:
+                self.x = left + line_count
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
                     self.y = top + left - index - 1
                     self.PrintLine({Direction.up}, length, line)
 
-            if anchor == Direction.up_right:
-                self.x = right + length
+            elif anchor == Direction.up_right:
+                self.x = right + line_count
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
@@ -2211,7 +2208,7 @@ make a copy for each of the digits in rotations.
                     self.y += 1
                     self.PrintLine({Direction.left}, length, line)
 
-            if anchor == Direction.down_left:
+            elif anchor == Direction.down_left:
                 self.y = bottom - 1
 
                 for line, length, index in zip(lines, lengths, indices):
@@ -2219,16 +2216,16 @@ make a copy for each of the digits in rotations.
                     self.y += 1
                     self.PrintLine({Direction.left}, length, line)
 
-            if anchor == Direction.up_left:
-                self.y = top - length - 1
+            elif anchor == Direction.up_left:
+                self.y = top - line_count - 1
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x = left - index - 1
                     self.y += 1
                     self.PrintLine({Direction.left}, length, line)
 
-            if anchor == Direction.up_right:
-                self.y = top - length - 1
+            elif anchor == Direction.up_right:
+                self.y = top - line_count - 1
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x = right * 2 - index - 1
@@ -2252,7 +2249,7 @@ make a copy for each of the digits in rotations.
                     self.y = bottom - right + index
                     self.PrintLine({Direction.down}, length, line)
 
-            if anchor == Direction.down_left:
+            elif anchor == Direction.down_left:
                 self.x = left - 1
 
                 for line, length, index in zip(lines, lengths, indices):
@@ -2260,16 +2257,16 @@ make a copy for each of the digits in rotations.
                     self.y = bottom - left + index
                     self.PrintLine({Direction.down}, length, line)
 
-            if anchor == Direction.up_left:
-                self.x = left - length - 1
+            elif anchor == Direction.up_left:
+                self.x = left - line_count - 1
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
                     self.y = top - left + index
                     self.PrintLine({Direction.down}, length, line)
 
-            if anchor == Direction.up_right:
-                self.x = right - length - 1
+            elif anchor == Direction.up_right:
+                self.x = right - line_count - 1
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
@@ -2350,7 +2347,7 @@ make a copy for each of the digits in rotations.
         initial_x = self.x
         initial_y = self.y
 
-        length = len(self.lines)
+        line_count = len(self.lines)
 
         if XMovement[anchor] == 1:
             right = max(self.right_indices)
@@ -2400,7 +2397,7 @@ make a copy for each of the digits in rotations.
                     )
 
             if anchor == Direction.up_left:
-                self.x = left + length
+                self.x = left + line_count
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
@@ -2413,7 +2410,7 @@ make a copy for each of the digits in rotations.
                     )
 
             if anchor == Direction.up_right:
-                self.x = right + length - overlap
+                self.x = right + line_count - overlap
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x -= 1
@@ -2461,7 +2458,7 @@ make a copy for each of the digits in rotations.
                     )
 
             if anchor == Direction.up_left:
-                self.y = top - length - 1 + overlap
+                self.y = top - line_count - 1 + overlap
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x = left - index - 1 + overlap
@@ -2474,7 +2471,7 @@ make a copy for each of the digits in rotations.
                     )
 
             if anchor == Direction.up_right:
-                self.y = top - length - 1 + overlap
+                self.y = top - line_count - 1 + overlap
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x = right * 2 - index - 1 - overlap
@@ -2522,7 +2519,7 @@ make a copy for each of the digits in rotations.
                     )
 
             if anchor == Direction.up_left:
-                self.x = left - length - 1 + overlap
+                self.x = left - line_count - 1 + overlap
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
@@ -2535,7 +2532,7 @@ make a copy for each of the digits in rotations.
                     )
 
             if anchor == Direction.up_right:
-                self.x = right - length - 1
+                self.x = right - line_count - 1
 
                 for line, length, index in zip(lines, lengths, indices):
                     self.x += 1
@@ -3071,7 +3068,15 @@ arguments.
         """
 
         if name in self.scope:
-            return self.scope[name](*arguments)
+            function = self.scope[name]
+            self.scope = Scope(self.scope)
+            
+            for argument, key in zip(arguments, "ικλμνξπρςστυφχψωαβγδεζηθ"):
+                self.scope[key] = argument
+            
+            result = function()
+            self.scope = self.scope.parent
+            return result
 
         elif name in self.hidden:
             return self.hidden[name](*arguments)
@@ -3086,7 +3091,14 @@ arguments.
         """
 
         if name in self.scope:
-            self.scope[name](*arguments)
+            function = self.scope[name]
+            self.scope = Scope(self.scope)
+            
+            for argument, key in zip(arguments, "ικλμνξπρςστυφχψωαβγδεζηθ"):
+                self.scope[key] = argument
+            
+            function(self)
+            self.scope = self.scope.parent
 
         elif name in self.hidden:
             self.hidden[name](*arguments)
@@ -4138,8 +4150,17 @@ def Degrave(code):
                 "v": "⮌",
                 "[": "◧",
                 "]": "◨",
-                "=": "≡"
-            }[match.group(1)]
+                "=": "≡",
+                "t": "⎇",
+                "?": "‽",
+                "&": "∧",
+                "|": "∨",
+                "d": "↧",
+                "u": "↥",
+                "n": "±",
+                "+": "⊞",
+                "-": "⊟"
+            }[match.group(1)] # TODO: add “”⌊⌈±
             if match.group(1) else
             UnicodeLookup[chr(ord(match.group(2)) + 128)]
             if match.group(2) != "\n" else "¶"

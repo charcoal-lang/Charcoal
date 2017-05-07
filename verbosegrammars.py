@@ -95,6 +95,7 @@ VerboseGrammars = {
         [CharcoalToken.Name, CharcoalToken.Separator],
         [CharcoalToken.List, CharcoalToken.Separator],
         [CharcoalToken.Dictionary, CharcoalToken.Separator],
+        ["{", CharcoalToken.Program, "}", CharcoalToken.Separator],
         [
             CharcoalToken.OtherOperator,
             CharcoalToken.Separator
@@ -688,6 +689,13 @@ VerboseGrammars = {
             "(",
             CharcoalToken.Expression,
             CharcoalToken.List,
+            ")"
+        ],
+        [
+            "SetVariable",
+            "(",
+            CharcoalToken.Expression,
+            CharcoalToken.Expression,
             ")"
         ]
     ]

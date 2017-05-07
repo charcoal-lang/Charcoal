@@ -341,6 +341,7 @@ cbabc
         self.assertEqual(Run("Ｆ⁵a"), "aaaaa")
         self.assertEqual(Run("ＦabcιＦdefι"), "abcdef")
         self.assertEqual(Run("Ａ⁵ιＦＳκ", "foobar"), "foobar")
+        self.assertEqual(Run("ＵＳ«ικλ»iＵＸi⟦a¦bc¦d⟧"), "abcd")
         self.assertEqual(Run("for(5)Print('a')", verbose=True), "aaaaa")
         self.assertEqual(
             Run(
@@ -950,6 +951,34 @@ ghi
    i  
    h  
    gda""")
+        self.assertEqual(Run("↗⁶‖Ｃ↓a"), """\
+     / 
+    /  
+   /   
+  /    
+ /     
+/      
+/      
+ /     
+  /    
+   /   
+    /  
+     / 
+      a""")
+        self.assertEqual(Run("↘⁶‖Ｃ↑a"), """\
+      a
+     \\ 
+    \\  
+   \\   
+  \\    
+ \\     
+\\      
+\\      
+ \\     
+  \\    
+   \\   
+    \\  
+     \\ """)
 
     def test_reflect_overlap(self):
         self.assertEqual(Run("abc¶def¶ghi‖Ｏ←"), "cbabc\nfedef\nihghi")
@@ -1450,7 +1479,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\
         self.assertEqual(Run("ω"), "")
         self.assertEqual(Run("ψ"), "") # null byte
         self.assertEqual(Run("χ"), "----------")
-        self.assertEqual(Run("φ"), "-"*1000)
+        self.assertEqual(Run("φ"), "-" * 1000)
 
     def test_input(self):
         self.assertEqual(

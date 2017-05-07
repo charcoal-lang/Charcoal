@@ -87,8 +87,10 @@ class Real(WolframNumber):
     def __str__(self):
         string = str(self.value)
         zeroes = 1 - self.exponent - len(string)
+
         if zeroes > 0:
             string = "0" * zeroes + string
+
         return (
             string + "0" * self.exponent
             if self.exponent > 0 else
@@ -199,6 +201,15 @@ class Rational(WolframNumber):
         return str(self)
 
     def __mul__(self, other):
+        # TODO: lazy
+        if isinstance(other, Rational):
+            return Rational(
+                self.numerator * other.numerator,
+                self.denominator * other.denominator
+            )
+    
+    def __div__(self, other):
+        # TODO: lazy
         if isinstance(other, Rational):
             return Rational(
                 self.numerator * other.numerator,
