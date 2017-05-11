@@ -120,6 +120,7 @@ ASTProcessor = {
         lambda result: "Difference",
         lambda result: "Product",
         lambda result: "Quotient",
+        lambda result: "Integer quotient",
         lambda result: "Modulo",
         lambda result: "Equals",
         lambda result: "Less than",

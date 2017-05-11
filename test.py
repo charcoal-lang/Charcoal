@@ -175,12 +175,32 @@ Box(Times(2.999, 1.999), 5.999, '123')""", verbose=True), """\
 |   |
 |   |
 +---+""")
+        self.assertEqual(Run("ＵＲ±⁵¦±⁵"), """\
++---+
+|   |
+|   |
+|   |
++---+""")
         self.assertEqual(Run("Rectangle(5, 5)", verbose=True), """\
 +---+
 |   |
 |   |
 |   |
 +---+""")
+
+    def test_oblong(self):
+        self.assertEqual(Run("ＵＯ⁵¦⁵a"), """\
+aaaaa
+aaaaa
+aaaaa
+aaaaa
+aaaaa""")
+        self.assertEqual(Run("ＵＯ±⁵¦±⁵a"), """\
+aaaaa
+aaaaa
+aaaaa
+aaaaa
+aaaaa""")
 
     def test_background(self):
         self.assertEqual(Run("Ｐ+abcＵＢ*"), """\
@@ -979,6 +999,18 @@ ghi
    \\   
     \\  
      \\ """)
+        self.assertEqual(Run("↗²↖↙⁴‖Ｃa"), """\
+   //    
+  /  /   
+ / // /  
+/ /  / / 
+        a""")
+        self.assertEqual(Run("↗²↖↙⁴‖Ｃ←a"), """\
+/      /
+ /    / 
+/ /  / /
+ / // / 
+    a   """)
 
     def test_reflect_overlap(self):
         self.assertEqual(Run("abc¶def¶ghi‖Ｏ←"), "cbabc\nfedef\nihghi")
@@ -1462,8 +1494,8 @@ foofoofoofoofoo""")
         self.assertEqual(Run("ＵＶEvenQ⟦²⟧"), "-")
         self.assertEqual(Run("ＵＶEvenQ⟦¹⟧"), "")
         self.assertEqual(Run("ＵＶLog10⟦¹²³⁸¹⁹⟧"), "-----")
-        self.assertEqual(Run("ＩＵＶRound⟦ＵＧPiχ⟧"), "3.1415926535")
-        self.assertEqual(Run("ＩＵＶRound⟦ＵＧPi⟧"), "3")
+        self.assertEqual(Run("ＩＵＶN⟦ＵＧPiχ⟧"), "3.141592653")
+        self.assertEqual(Run("ＩＵＶN⟦ＵＧPi⟧"), "3.141592653")
 
     def test_preinitialized(self):
         self.assertEqual(Run("θ", "a b c d e"), "a")

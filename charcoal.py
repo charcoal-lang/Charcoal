@@ -14,8 +14,8 @@ the CLI, and various classes used by the Charcoal class.
 # escape to produce unicode char
 # tests for reflect overlap overlap, floats, int divide and wolfram
 # command to get result from new Charcoal instance
-# Python eval and exec since it will be shorter for many things
-# e.g. instead of ＩＵＶRound⟦ＵＧPi⟧ you can then use <pythoneval>Round(Pi)
+#   - will be default behavior when a command is passed a body
+# fill overload to fill as background instead of greedy fill
 
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
@@ -863,7 +863,7 @@ with a character automatically selected from -|/\\.
 
         """
 
-        if isinstance(string, WolframObject):
+        if isinstance(string, Expression):
             string = string.run().to_number()
 
         if isinstance(string, float):
@@ -997,9 +997,16 @@ a horizontal, vertical or diagonal line.
         coordinates = Coordinates()
 
         for side in sides:
+            direction = side[0]
+            length = int(side[1])
+
+            if length < 0:
+                direction = NewlineDirection[NewlineDirection[direction]]
+                length *= -1
+
             self.PrintLine(
-                {side[0]},
-                int(side[1]),
+                {direction},
+                length,
                 character,
                 coordinates=coordinates,
                 move_at_end=False,
@@ -1147,14 +1154,47 @@ be used for the sides and + for the corners.
         if not border:
             initial_x = self.x
             initial_y = self.y
-            self.PrintLine({Direction.right}, width, "-", move_at_end=False)
-            self.PrintLine({Direction.down}, height, "|", move_at_end=False)
-            self.PrintLine({Direction.left}, width, "-", move_at_end=False)
-            self.PrintLine({Direction.up}, height, "|", move_at_end=False)
+            
+            if width > 0:
+                self.PrintLine({Direction.right}, width, "-", move_at_end=False)
+            
+            else:
+                self.PrintLine({Direction.left}, -width, "-", move_at_end=False)
+
+            if height > 0:
+                self.PrintLine({Direction.down}, height, "|", move_at_end=False)
+                
+            else:
+                self.PrintLine({Direction.up}, -height, "|", move_at_end=False)
+            
+            if width > 0:
+                self.PrintLine({Direction.left}, width, "-", move_at_end=False)
+
+            else:
+                self.PrintLine({Direction.right}, -width, "-", move_at_end=False)
+
+            if height > 0:
+                self.PrintLine({Direction.up}, height, "|", move_at_end=False)
+            
+            else:
+                self.PrintLine({Direction.down}, -height, "|", move_at_end=False)
+
             self.Put("+")
-            self.x += width - 1
+            self.x += (
+                width - 1
+                if width > 0 else
+                width + 1
+                if width < 0 else
+                0
+            )
             self.Put("+")
-            self.y += height - 1
+            self.y += (
+                height - 1
+                if height > 0 else
+                height + 1
+                if height < 0 else
+                0
+            )
             self.Put("+")
             self.x = initial_x
             self.Put("+")
@@ -1259,9 +1299,7 @@ with the specified string, repeating it if needed.
         if isinstance(string, int) or isinstance(string, float):
             string = str(string)
 
-        if isinstance(string, WolframObject):
-            # using run() will overshoot in length a little
-            # meaning it will overshoot in precision too
+        if isinstance(string, Expression):
             string = str(string.run(n_points))
 
         length = len(string)
@@ -1405,7 +1443,7 @@ characters to the axis are next to the axis.
 
         elif direction == Direction.right:
             right = max(self.right_indices)
-            self.x += (right - self.x) * 2 + 1
+            self.x += (right - self.x) * 2 - 1
             self.lines = [
                 line +
                 "\000\000" * (right - right_index) +
@@ -2795,7 +2833,7 @@ or into a number if it was a string.
         if isinstance(variable, int) or isinstance(variable, float):
             return str(variable)
 
-        if isinstance(variable, WolframObject):
+        if isinstance(variable, Expression):
             return str(variable.run())
 
     def Random(self, variable=1):
@@ -4188,11 +4226,14 @@ abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
         ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
         ("([^´].|[^ -~´¶])¦([ -~´¶])", "\\1\\2"),
         ("([ -~´¶])¦([^´])", "\\1\\2"),
+        ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),
+        ("¦((?:^|[^´])[α-ξπ-ω])", "\\1"),
         ("Ｍ([←-↓↖-↙])(?!%s|[^·⁰¹²³⁴-⁹ -~´¶])" % sOperator, "\\1"),
         ("(?:Ｍ[←-↓↖-↙])+$", ""),
         ("[←-↓↖-↙]+$", ""),
         ("»+$", "")
     ):
+        # TODO: prevent matches in compressed strings
         code = re.sub(regex, replacement, code)
 
     return code
