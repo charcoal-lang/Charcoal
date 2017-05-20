@@ -1,6 +1,8 @@
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
 from unicodegrammars import UnicodeGrammars
+from wolfram import Rule, DelayedRule
+
 
 def FindAll(haystack, needle):
     result = []
@@ -291,16 +293,11 @@ InterpreterProcessor = {
         )
     ],
     CharcoalToken.Binary: [
-        lambda result: lambda left, right, charcoal: (
-            (left + [right]) if
-            isinstance(left, list) and not isinstance(right, list) else
-            ([left] + right) if
-            not isinstance(left, list) and isinstance(right, list) else
-            (str(left) + str(right)) if
-            isinstance(left, str) or isinstance(right, str) else
-            (left + right)
+        lambda result: lambda left, right, charcoal: charcoal.Add(left, right),
+        lambda result: lambda left, right, charcoal: charcoal.Subtract(
+            left,
+            right
         ),
-        lambda result: lambda left, right, charcoal: left - right,
         lambda result: lambda left, right, charcoal: left * right,
         lambda result: lambda left, right, charcoal: (
             ((left * (1 + 1 // right))[:len(left) // right]) if
@@ -359,7 +356,9 @@ InterpreterProcessor = {
         lambda result: lambda left, right, charcoal: (
             left + " " * (right - len(left))
         ),
-        lambda result: lambda left, right, charcoal: left.count(right)
+        lambda result: lambda left, right, charcoal: left.count(right),
+        lambda result: lambda left, right, charcoal: Rule(left, right),
+        lambda result: lambda left, right, charcoal: DelayedRule(left, right)
     ],
     CharcoalToken.Ternary: [
     ],

@@ -6,7 +6,7 @@ Want to be able to write basic Charcoal quickly? Then read on. If you came here 
 
 To use the REPL, simply invoke with `./charcoal.py`, `python charcoal.py` or `python3 charcoal.py`.
 
-    Charcoal> Hello, World!
+    Charcoal> Hello, World!  
     Hello, World!
     Charcoal> ^C
     Cleared canvas
@@ -15,17 +15,17 @@ To use the REPL, simply invoke with `./charcoal.py`, `python charcoal.py` or `py
 There are two basic types of literals: strings and numbers. A string is just a run of printable ASCII, and a number is just a run of the superscript digits `⁰¹²³⁴⁵⁶⁷⁸⁹`.
 
 Examples:
-`foo` is equivalent to `"foo"`
-`foo¶bar` is the same as `"foo\nbar"`.
-`¹²³⁴` is `1234`.
+`foo` is equivalent to `"foo"`.  
+`foo¶bar` is the same as `"foo\nbar"`.  
+`¹²³⁴` is `1234`.  
 
 ## Printing
 In a Charcoal program, expressions are implicitly printed. Numbers print a line, and arrows can be used to specify a direction.
 
 Examples:
-`foo` prints `foo`
-`foo⁴` prints `foo----`
-`foo↖⁴` prints:
+`foo` prints `foo`  
+`foo⁴` prints `foo----`  
+`foo↖⁴` prints:  
 ```
 \   
  \  

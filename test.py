@@ -1487,6 +1487,7 @@ foofoofoofoofoo""")
         )
 
     def test_wolfram(self):
+        # TODO: test stringsplit
         self.assertEqual(Run("ＵＶIntegerQ⟦¹⟧"), "-")
         self.assertEqual(Run("ＵＶIntegerQ⟦¹·¹⟧"), "")
         self.assertEqual(Run("ＵＶOddQ⟦¹⟧"), "-")
@@ -1496,6 +1497,87 @@ foofoofoofoofoo""")
         self.assertEqual(Run("ＵＶLog10⟦¹²³⁸¹⁹⟧"), "-----")
         self.assertEqual(Run("ＩＵＶN⟦ＵＧPiχ⟧"), "3.141592653")
         self.assertEqual(Run("ＩＵＶN⟦ＵＧPi⟧"), "3.141592653")
+        self.assertEqual(Run("ＩＵＶN⟦ＵＧDegree⟧"), "0.01745329251")
+        # TODO: use official examples
+        self.assertEqual(Run("ＵＶStringJoin⟦a¦b⟦cd¦ef⟧⟦⟦⟦g¦hi¦⟧⟧⟧⟧"), """\
+abcdefghi""")
+        self.assertEqual(Run("ＵＶStringLength⟦asdhf⟧"), "-----")
+        self.assertEqual(Run("ＵＶStringSplit⟦foo bar baz⟧"), """\
+foo
+bar
+baz""")
+        self.assertEqual(Run("ＵＶStringSplit⟦abacaba¦b⟧"), """\
+a  
+aca
+a  """)
+        self.assertEqual(Run("ＵＶStringSplit⟦abacaba¦⟦b¦c⟧⟧"), """\
+a
+a
+a
+a""")
+        self.assertEqual(Run("ＵＶStringSplit⟦abacaba➙b¦d⟧"), """\
+a  
+d  
+aca
+d  
+a  """)
+        self.assertEqual(Run("ＵＶStringSplit⟦abacaba⟦➙b¦d➙c¦e⟧⟧"), """\
+a
+d
+a
+e
+a
+d
+a""")
+        self.assertEqual(Run("ＵＶStringSplit⟦abacaba¦b¹⟧"), """\
+a    
+acaba""")
+        self.assertEqual(Run("ＵＶStringSplit⟦abacaba¦⟦b¦c⟧¹⟧"), """\
+a    
+acaba""")
+        self.assertEqual(Run("ＵＶStringSplit⟦abacaba➙b¦d¹⟧"), """\
+a    
+d    
+acaba""")
+        self.assertEqual(Run("ＵＶStringSplit⟦abacaba⟦➙b¦d➙c¦e⟧¹⟧"), """\
+a    
+d    
+acaba""")
+        # These are official
+        self.assertEqual(Run("ＵＶStringTake⟦abcdefghijklm⁶⟧"), "abcdef")
+        self.assertEqual(Run("ＵＶStringTake⟦abcdefghijklm±⁴⟧"), "jklm")
+        self.assertEqual(Run("ＵＶStringTake⟦abcdefghijklm⟦⁵¦¹⁰⟧⟧"), "efghij")
+        self.assertEqual(Run("ＵＶStringTake⟦abcdefghijklm⟦⁶⟧⟧"), "f")
+        self.assertEqual(Run("ＵＶStringTake⟦abcdefghijklm⟦¹±¹¦²⟧⟧"), "acegikm")
+        self.assertEqual(Run("ＵＶStringTake⟦⟦abcdef¦stuv¦xyzw⟧±²⟧"), """\
+ef
+uv
+zw""")
+        self.assertEqual(Run("ＵＶStringTake⟦◆´α´β´γ⟷ℬ↵±⁴⟧"), "ℬ↵")
+        self.assertEqual(Run("ＵＶStringTake⟦abcＵＶUpTo⟦⁴⟧⟧"), "abc")
+        self.assertEqual(Run("ＵＶStringDrop⟦abcdefghijklm⁴⟧"), "efghijklm")
+        self.assertEqual(Run("ＵＶStringDrop⟦abcdefghijklm±⁴⟧"), "abcdefghi")
+        self.assertEqual(Run("ＵＶStringDrop⟦abcdefghijklm⟦⁵¦¹⁰⟧⟧"), "abcdklm")
+        self.assertEqual(Run("ＵＶStringDrop⟦abcdefghijklm⟦³⟧⟧"), """\
+abdefghijklm""")
+        self.assertEqual(Run("ＵＶStringDrop⟦abcdefghijklm⟦¹±¹¦²⟧⟧"), "bdfhjl")
+        self.assertEqual(Run("ＵＶStringDrop⟦⟦abcdef¦xyzw¦stuv⟧±²⟧"), """\
+abcd
+xy  
+st  """)
+        self.assertEqual(Run("ＵＶStringDrop⟦◆´α´β´γ⟷ℬ↵±⁴⟧"), "◆αβγ⟷")
+        self.assertEqual(Run("ＵＶStringDrop⟦abcＵＶUpTo⟦⁴⟧⟧"), "")
+        self.assertEqual(Run("ＵＶStringPart⟦abcdefghijklm⁶⟧"), "f")
+        self.assertEqual(Run("ＵＶStringPart⟦abcdefghijklm⟦¹¦³¦⁵⟧⟧"), "a\nc\ne")
+        self.assertEqual(Run("ＵＶStringPart⟦abcdefghijklm±⁴⟧"), "j")
+        self.assertEqual(Run("ＵＶStringStartsQ⟦abcd¦a⟧"), "-")
+        self.assertEqual(Run("ＵＶStringStartsQ⟦quickSort¦quick⟧"), "-")
+        self.assertEqual(Run("ＵＶStringStartsQ⟦United States¦United⟧"), "-")
+        self.assertEqual(Run("""\
+ＵＶStringStartsQ⟦⟦int1¦int2¦int3¦float1¦float2¦longint1⟧¦int⟧"""), """\
+-
+-
+-""")
 
     def test_preinitialized(self):
         self.assertEqual(Run("θ", "a b c d e"), "a")
@@ -1655,7 +1737,6 @@ Congratulations on your new baby! :D⟲²""",
  ***** 
 *******
    *   """)
-
 
 CharcoalTests = unittest.TestLoader().loadTestsFromTestCase(CharcoalTest)
 

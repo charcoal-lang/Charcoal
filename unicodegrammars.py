@@ -41,6 +41,22 @@ UnicodeGrammars = {
         ["¦"],
         []
     ],
+    CharcoalToken.Span: [
+        [
+            CharcoalToken.Expression,
+            "；",
+            CharcoalToken.Expression,
+            "；",
+            CharcoalToken.Expression
+        ],
+        [CharcoalToken.Expression, "；", "；", CharcoalToken.Expression],
+        [CharcoalToken.Expression, "；", CharcoalToken.Expression],
+        [CharcoalToken.Expression, "；"],
+        ["；", CharcoalToken.Expression, "；", CharcoalToken.Expression],
+        ["；", CharcoalToken.Expression],
+        ["；", "；", CharcoalToken.Expression],
+        ["；", "；"]
+    ],
 
     CharcoalToken.Arrows: [
         [CharcoalToken.Arrow, CharcoalToken.Arrows],
@@ -172,7 +188,9 @@ UnicodeGrammars = {
         ["⌕"],
         ["◧"],
         ["◨"],
-        ["№"]
+        ["№"],
+        ["➙"],
+        ["⧴"]
     ],
     CharcoalToken.Ternary: [
     ],

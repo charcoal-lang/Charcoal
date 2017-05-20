@@ -40,6 +40,22 @@ VerboseGrammars = {
         [","],
         []
     ],
+    CharcoalToken.Span: [
+        [
+            CharcoalToken.Expression,
+            ";;",
+            CharcoalToken.Expression,
+            ";;",
+            CharcoalToken.Expression
+        ],
+        [CharcoalToken.Expression, ";;", ";;", CharcoalToken.Expression],
+        [CharcoalToken.Expression, ";;", CharcoalToken.Expression],
+        [CharcoalToken.Expression, ";;"],
+        [";;", CharcoalToken.Expression, ";;", CharcoalToken.Expression],
+        [";;", CharcoalToken.Expression],
+        [";;", ";;", CharcoalToken.Expression],
+        [";;", ";;"]
+    ],
 
     CharcoalToken.Arrows: [
         [CharcoalToken.Arrow, CharcoalToken.Separator, CharcoalToken.Arrows],
@@ -218,7 +234,9 @@ VerboseGrammars = {
         ["Find"],
         ["PadLeft"],
         ["PadRight"],
-        ["Count"]
+        ["Count"],
+        ["Rule"],
+        ["DelayedRule"]
     ],
     CharcoalToken.Ternary: [
     ],

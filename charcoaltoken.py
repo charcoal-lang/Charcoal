@@ -8,6 +8,7 @@ class CharcoalToken(Enum):
     String = 5
     Number = 6
     Name = 7
+    Span = 8
 
     Arrows = 11
     Sides = 12

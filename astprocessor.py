@@ -39,6 +39,22 @@ ASTProcessor = {
         lambda result: None,
         lambda result: None
     ],
+    CharcoalToken.Span: [
+        lambda result: [
+            "Span",
+            ["Start", result[0]],
+            ["Stop", result[2]],
+            ["Step", result[4]]
+        ],
+        lambda result: ["Span", ["Start", result[0]], ["Step", result[3]]],
+        lambda result: ["Span", ["Start", result[0]], ["Stop", result[2]]],
+        lambda result: ["Span", ["Start", result[0]]],
+        lambda result: ["Span", ["Stop", result[1]], ["Step", result[3]]
+        ],
+        lambda result: ["Span", ["Stop", result[1]]],
+        lambda result: ["Span", ["Step", result[2]]],
+        lambda result: ["Span"]
+    ],
 
     CharcoalToken.Arrows: [
         lambda result: [result[1][0], result[0]] + result[1][1:],
@@ -136,7 +152,9 @@ ASTProcessor = {
         lambda result: "Find",
         lambda result: "Pad left",
         lambda result: "Pad right",
-        lambda result: "Count"
+        lambda result: "Count",
+        lambda result: "Rule",
+        lambda result: "Delayed rule"
     ],
     CharcoalToken.Ternary: [
     ],

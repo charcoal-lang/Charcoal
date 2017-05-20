@@ -16,12 +16,16 @@ try:
         _fields_ = [("X", c_short), ("Y", c_short)]
 
     class SMALL_RECT(Structure):
-        _fields_ = [("Left", c_short), ("Top", c_short),
-                    ("Right", c_short), ("Bottom", c_short)]
+        _fields_ = [
+            ("Left", c_short), ("Top", c_short), ("Right", c_short),
+            ("Bottom", c_short)
+        ]
 
     class CONSOLE_SCREEN_BUFFER_INFO(Structure):
-        _fields_ = [("Size", COORD), ("CursorPosition", COORD), ("Attributes",
-                                                                 c_short), ("Window", SMALL_RECT), ("MaximumWindowSize", COORD)]
+        _fields_ = [
+            ("Size", COORD), ("CursorPosition", COORD), ("Attributes", c_short),
+            ("Window", SMALL_RECT), ("MaximumWindowSize", COORD)
+        ]
 
     class CONSOLE_CURSOR_INFO(Structure):
         _fields_ = [('dwSize', c_ulong), ('bVisible', c_int)]
@@ -62,14 +66,17 @@ else:
             self.orig_sbinfo = CONSOLE_SCREEN_BUFFER_INFO()
             self.orig_csinfo = CONSOLE_CURSOR_INFO()
             windll.kernel32.GetConsoleScreenBufferInfo(
-                self.hconsole, byref(self.orig_sbinfo))
+                self.hconsole, byref(self.orig_sbinfo)
+            )
             windll.kernel32.GetConsoleCursorInfo(
-                hconsole, byref(self.orig_csinfo))
+                hconsole, byref(self.orig_csinfo)
+            )
 
         def screen_buffer_info(self):
             sbinfo = CONSOLE_SCREEN_BUFFER_INFO()
             windll.kernel32.GetConsoleScreenBufferInfo(
-                self.hconsole, byref(sbinfo))
+                self.hconsole, byref(sbinfo)
+            )
             return sbinfo
 
         def clear_line(self, param):
@@ -80,38 +87,51 @@ else:
                 line_length = sbinfo.Size.X
             elif mode == 2:  # Clear entire line
                 line_start = COORD(
-                    sbinfo.CursorPosition.X, sbinfo.CursorPosition.Y)
+                    sbinfo.CursorPosition.X, sbinfo.CursorPosition.Y
+                )
                 line_length = sbinfo.Size.X - sbinfo.CursorPosition.X
             else:  # Clear from cursor position to end of line
                 line_start = sbinfo.CursorPosition
                 line_length = sbinfo.Size.X - sbinfo.CursorPosition.X
             chars_written = c_int()
             windll.kernel32.FillConsoleOutputCharacterA(
-                self.hconsole, c_char(b' '), line_length, line_start, byref(chars_written))
+                self.hconsole, c_char(b' '), line_length, line_start,
+                byref(chars_written)
+            )
             windll.kernel32.FillConsoleOutputAttribute(
-                self.hconsole, sbinfo.Attributes, line_length, line_start, byref(chars_written))
+                self.hconsole, sbinfo.Attributes, line_length, line_start,
+                byref(chars_written)
+            )
 
         def clear_screen(self, param):
             mode = to_int(param, 0)
             sbinfo = self.screen_buffer_info()
             if mode == 1:  # Clear from begining of screen to cursor position
                 clear_start = COORD(0, 0)
-                clear_length = sbinfo.CursorPosition.X * \
-                    sbinfo.CursorPosition.Y
+                clear_length = (
+                    sbinfo.CursorPosition.X * sbinfo.CursorPosition.Y
+                )
             elif mode == 2:  # Clear entire screen and return cursor to home
                 clear_start = COORD(0, 0)
                 clear_length = sbinfo.Size.X * sbinfo.Size.Y
                 windll.kernel32.SetConsoleCursorPosition(
-                    self.hconsole, clear_start)
+                    self.hconsole, clear_start
+                )
             else:  # Clear from cursor position to end of screen
                 clear_start = sbinfo.CursorPosition
-                clear_length = ((sbinfo.Size.X - sbinfo.CursorPosition.X) +
-                                sbinfo.Size.X * (sbinfo.Size.Y - sbinfo.CursorPosition.Y))
+                clear_length = (
+                    (sbinfo.Size.X - sbinfo.CursorPosition.X) +
+                    sbinfo.Size.X * (sbinfo.Size.Y - sbinfo.CursorPosition.Y)
+                )
             chars_written = c_int()
             windll.kernel32.FillConsoleOutputCharacterA(
-                self.hconsole, c_char(b' '), clear_length, clear_start, byref(chars_written))
+                self.hconsole, c_char(b' '), clear_length, clear_start,
+                byref(chars_written)
+            )
             windll.kernel32.FillConsoleOutputAttribute(
-                self.hconsole, sbinfo.Attributes, clear_length, clear_start, byref(chars_written))
+                self.hconsole, sbinfo.Attributes, clear_length, clear_start,
+                byref(chars_written)
+            )
 
         def push_cursor(self, param):
             sbinfo = self.screen_buffer_info()
@@ -177,23 +197,24 @@ else:
                 y_offset=-to_int(param, 1)
             )
 
-        escape_to_color = {(0, 30): 0x0,  # black
-                           (0, 31): 0x4,  # red
-                           (0, 32): 0x2,  # green
-                           (0, 33): 0x4 + 0x2,  # dark yellow
-                           (0, 34): 0x1,  # blue
-                           (0, 35): 0x1 + 0x4,  # purple
-                           (0, 36): 0x2 + 0x4,  # cyan
-                           (0, 37): 0x1 + 0x2 + 0x4,  # grey
-                           (1, 30): 0x1 + 0x2 + 0x4,  # dark gray
-                           (1, 31): 0x4 + 0x8,  # red
-                           (1, 32): 0x2 + 0x8,  # light green
-                           (1, 33): 0x4 + 0x2 + 0x8,  # yellow
-                           (1, 34): 0x1 + 0x8,  # light blue
-                           (1, 35): 0x1 + 0x4 + 0x8,  # light purple
-                           (1, 36): 0x1 + 0x2 + 0x8,  # light cyan
-                           (1, 37): 0x1 + 0x2 + 0x4 + 0x8,  # white
-                           }
+        escape_to_color = {
+            (0, 30): 0x0,  # black
+            (0, 31): 0x4,  # red
+            (0, 32): 0x2,  # green
+            (0, 33): 0x4 + 0x2,  # dark yellow
+            (0, 34): 0x1,  # blue
+            (0, 35): 0x1 + 0x4,  # purple
+            (0, 36): 0x2 + 0x4,  # cyan
+            (0, 37): 0x1 + 0x2 + 0x4,  # grey
+            (1, 30): 0x1 + 0x2 + 0x4,  # dark gray
+            (1, 31): 0x4 + 0x8,  # red
+            (1, 32): 0x2 + 0x8,  # light green
+            (1, 33): 0x4 + 0x2 + 0x8,  # yellow
+            (1, 34): 0x1 + 0x8,  # light blue
+            (1, 35): 0x1 + 0x4 + 0x8,  # light purple
+            (1, 36): 0x1 + 0x2 + 0x8,  # light cyan
+            (1, 37): 0x1 + 0x2 + 0x4 + 0x8,  # white
+        }
 
         def set_color(self, param):
             cols = param.split(';')
@@ -202,16 +223,20 @@ else:
                 c = to_int(c, 0)
                 if c in range(30, 38):
                     attr = (attr & 0xf0) | (
-                        self.escape_to_color.get((0, c), 0x7))
+                        self.escape_to_color.get((0, c), 0x7)
+                    )
                 elif c in range(40, 48):
                     attr = (attr & 0x0f) | (
-                        self.escape_to_color.get((0, c), 0x7) << 8)
+                        self.escape_to_color.get((0, c), 0x7) << 8
+                    )
                 elif c in range(90, 98):
                     attr = (attr & 0xf0) | (
-                        self.escape_to_color.get((1, c - 60), 0x7))
+                        self.escape_to_color.get((1, c - 60), 0x7)
+                    )
                 elif c in range(100, 108):
                     attr = (attr & 0x0f) | (
-                        self.escape_to_color.get((1, c - 60), 0x7) << 8)
+                        self.escape_to_color.get((1, c - 60), 0x7) << 8
+                    )
                 elif c == 1:
                     attr |= 0x08
             windll.kernel32.SetConsoleTextAttribute(self.hconsole, attr)
@@ -257,10 +282,14 @@ else:
                         chars_written = c_int()
                         if isinstance(txt, _type):
                             windll.kernel32.WriteConsoleW(
-                                self.hconsole, txt, len(txt), byref(chars_written), None)
+                                self.hconsole, txt, len(txt),
+                                byref(chars_written), None
+                            )
                         else:
                             windll.kernel32.WriteConsoleA(
-                                self.hconsole, txt, len(txt), byref(chars_written), None)
+                                self.hconsole, txt, len(txt),
+                                byref(chars_written), None
+                            )
             finally:
                 wlock.release()
 
