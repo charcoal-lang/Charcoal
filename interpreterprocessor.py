@@ -1,45 +1,34 @@
 from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
 from unicodegrammars import UnicodeGrammars
-from wolfram import Rule, DelayedRule
+from wolfram import (
+    Rule, DelayedRule, Span, Repeated, RepeatedNull, PatternTest
+)
 
 
 def FindAll(haystack, needle):
     result = []
-
     if isinstance(haystack, str):
         index = haystack.find(needle)
-
         while True:
-
             if index != -1:
                 result += [index]
-
             else:
                 return result
-
             index = haystack.find(needle, index + 1)
-
     else:
-
         try:
             index = haystack.index(needle)
-
         except:
             return []
-
         while True:
-
             result += [index]
-
             try:
                 index = haystack.index(needle, index + 1)
-
             except:
                 return result
 
 def ListFind(haystack, needle):
-
     try:
         return haystack.index(needle)
 
@@ -159,6 +148,35 @@ InterpreterProcessor = {
         lambda result: None,
         lambda result: None
     ],
+    CharcoalToken.Span: [
+        lambda result: lambda charcoal: Span(
+            result[0](charcoal),
+            result[2](charcoal),
+            result[4](charcoal)
+        ),
+        lambda result: lambda charcoal: Span(
+            result[0](charcoal),
+            None,
+            result[3](charcoal)
+        ),
+        lambda result: lambda charcoal: Span(
+            result[0](charcoal),
+            result[2](charcoal)
+        ),
+        lambda result: lambda charcoal: Span(result[0](charcoal)),
+        lambda result: lambda charcoal: Span(
+            None,
+            result[1](charcoal),
+            result[3](charcoal)
+        ),
+        lambda result: lambda charcoal: Span(None, result[1](charcoal)),
+        lambda result: lambda charcoal: Span(
+            None,
+            None,
+            result[2](charcoal)
+        ),
+        lambda resilt: lambda charcoal: Span()
+    ],
 
     CharcoalToken.Arrows: [
         lambda result: [result[0]] + result[1],
@@ -171,6 +189,12 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: [result[0](charcoal)]
     ],
     CharcoalToken.Expressions: [
+        lambda result: lambda charcoal: [
+            result[0](charcoal)
+        ] + result[1](charcoal),
+        lambda result: lambda charcoal: [result[0](charcoal)]
+    ],
+    CharcoalToken.WolframExpressions: [
         lambda result: lambda charcoal: [
             result[0](charcoal)
         ] + result[1](charcoal),
@@ -202,6 +226,10 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: result[1](charcoal),
         lambda result: lambda charcoal: []
     ],
+    CharcoalToken.WolframList: [
+        lambda result: lambda charcoal: result[1](charcoal),
+        lambda result: lambda charcoal: []
+    ],
     CharcoalToken.ArrowList: [
         lambda result: result[1],
         lambda result: []
@@ -211,6 +239,10 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: {}
     ],
 
+    CharcoalToken.WolframExpression: [
+        lambda result: lambda charcoal: result[0](charcoal),
+        lambda result: lambda charcoal: result[0](charcoal)
+    ],
     CharcoalToken.Expression: [
         lambda result: lambda charcoal: result[0],
         lambda result: lambda charcoal: result[0],
@@ -278,11 +310,7 @@ InterpreterProcessor = {
         lambda result: lambda item, charcoal: item.upper(),
         lambda result: lambda item, charcoal: min(item),
         lambda result: lambda item, charcoal: max(item),
-        lambda result: lambda item, charcoal: (
-            chr(item) if isinstance(item, int) else
-            chr(int(item)) if isinstance(item, float) else
-            ord(item)
-        ),
+        lambda result: lambda item, charcoal: charcoal.ChrOrd(item),
         lambda result: lambda item, charcoal: item[::-1],
         lambda result: lambda item, charcoal: (
             charcoal.scope[item] if
@@ -290,7 +318,9 @@ InterpreterProcessor = {
             charcoal.hidden[item] if
             item in charcoal.hidden else
             None
-        )
+        ),
+        lambda result: lambda item, charcoal: Repeated(item),
+        lambda result: lambda item, charcoal: RepeatedNull(item)
     ],
     CharcoalToken.Binary: [
         lambda result: lambda left, right, charcoal: charcoal.Add(left, right),
@@ -358,7 +388,8 @@ InterpreterProcessor = {
         ),
         lambda result: lambda left, right, charcoal: left.count(right),
         lambda result: lambda left, right, charcoal: Rule(left, right),
-        lambda result: lambda left, right, charcoal: DelayedRule(left, right)
+        lambda result: lambda left, right, charcoal: DelayedRule(left, right),
+        lambda result: lambda left, right, charcoal: PatternTest(left, right)
     ],
     CharcoalToken.Ternary: [
     ],
@@ -725,7 +756,7 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: charcoal.If(
             result[1],
             result[2],
-            lambda result: lambda charcoal: None
+            lambda charcoal: None
         ),
         lambda result: lambda charcoal: charcoal.Assign(
             result[1](charcoal),

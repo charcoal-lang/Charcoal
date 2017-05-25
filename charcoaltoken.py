@@ -13,22 +13,25 @@ class CharcoalToken(Enum):
     Arrows = 11
     Sides = 12
     Expressions = 13
-    PairExpressions = 14
-    Cases = 15
+    WolframExpressions = 14
+    PairExpressions = 15
+    Cases = 16
 
     Expression = 21
-    Nilary = 22
-    Unary = 23
-    Binary = 24
-    Ternary = 25
-    LazyUnary = 26
-    LazyBinary = 27
-    LazyTernary = 28
-    OtherOperator = 29
+    WolframExpression = 22
+    Nilary = 23
+    Unary = 24
+    Binary = 25
+    Ternary = 26
+    LazyUnary = 27
+    LazyBinary = 28
+    LazyTernary = 29
+    OtherOperator = 30
 
     List = 31
-    ArrowList = 32
-    Dictionary = 33
+    WolframList = 32
+    ArrowList = 33
+    Dictionary = 34
 
     Program = 41
     Command = 42

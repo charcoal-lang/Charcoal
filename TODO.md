@@ -1,2 +1,4 @@
 # To Do
-Add `switch`, `Push`, `Count` and `Peek` commands to JS
+- [ ] Give JS version feature parity (also make it work first)
+- [ ] `Execute` operator
+- [ ] Shorter `getvar`/`evalvar`/`execvar`

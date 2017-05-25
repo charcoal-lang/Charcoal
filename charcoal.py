@@ -162,6 +162,7 @@ class Info(Enum):
 
 
 class Coordinates:
+    __slots__ = ("top", "coordinates")
 
     def __init__(self):
         self.top = 0
@@ -182,6 +183,7 @@ class Coordinates:
 
 
 class Scope:
+    __slots__ = ("parent", "lookup")
 
     def __init__(self, parent={}):
         self.parent = parent
@@ -234,6 +236,7 @@ class Scope:
         del self[key]
 
 class Cells(list):
+    __slots__ = ("xs", "ys", "charcoal")
 
     def __init__(self, charcoal, value, xs, ys):
         super(Cells, self).__init__(value)
@@ -254,6 +257,13 @@ class Cells(list):
         self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
 
 class Charcoal:
+    __slots__ = (
+        "x", "y", "top", "lines", "indices", "lengths", "right_indices",
+        "scope", "info", "original_input", "inputs", "original_inputs",
+        "all_inputs", "hidden", "direction", "background", "bg_lines",
+        "bg_line_number", "bg_line_length", "timeout_end", "dump_timeout_end",
+        "background_inside", "trim", "print_at_end", "canvas_step"
+    )
 
     def __init__(
         self,
@@ -791,6 +801,8 @@ with a character automatically selected from -|/\\.
                 string = str(string)
             elif isinstance(string, List):
                 string = string.leaves
+            elif type(string) in [Rule, DelayedRule, Pattern]:
+                string = "" # TODO
             else:
                 string = string.to_number()
         if isinstance(string, float):
@@ -2448,7 +2460,7 @@ otherwise executes if false.
 
     def Cast(self, variable):
         """
-        Cast(variable)
+        Cast(variable) -> any
 
         Returns a variable cast into a string if it was a number, \
 or into a number if it was a string.
@@ -2456,7 +2468,6 @@ or into a number if it was a string.
         Vectorizes.
 
         """
-        # TODO: cast List
         if isinstance(variable, list):
             return [self.Cast(item) for item in variable]
         if isinstance(variable, str):
@@ -2467,6 +2478,27 @@ or into a number if it was a string.
             return int(str(variable) or "0")
         if isinstance(variable, Expression):
             return str(variable.run())
+
+    def ChrOrd(self, variable):
+        """
+        ChrOrd(variable) -> any
+
+        Returns a variable cast into a string if it was a number, \
+or into a number if it was a string.
+
+        Vectorizes.
+
+        """
+        if isinstance(variable, list):
+            return [self.ChrOrd(item) for item in variable]
+        if isinstance(variable, str):
+            return ord(variable or "\000")
+        if isinstance(variable, int) or isinstance(variable, float):
+            return chr(int(variable))
+        if isinstance(variable, String):
+            return ord(str(variable) or "\000")
+        if isinstance(variable, Expression):
+            return chr(int(variable.run()))
 
     def Random(self, variable=1):
         """
@@ -3316,7 +3348,8 @@ def Parse(
     whitespace=False,
     normal_encoding=False,
     verbose=False,
-    grave=False
+    grave=False,
+    silent=False
 ):
     """
     Parse(code, grammar=CharcoalToken.Program, \
@@ -3371,7 +3404,7 @@ symbols they represent.
     result = ParseExpression(code, 0, grammar, grammars, processor)
     if not result:
         return result
-    if result[1] == False:
+    if result[1] == False and not silent:
         PrintParseTrace(result[0])
     return (
         processor[CharcoalToken.Program][-1]([])
@@ -3381,7 +3414,10 @@ symbols they represent.
 
 
 def PrintParseTrace(trace):
-    print("""\
+    if not isinstance(trace, list):
+        print("Parsing failed")
+    else:
+        print("""\
 Parsing failed, parse trace:
 %s""" % ("\n".join(trace)))
 
@@ -3450,7 +3486,8 @@ def Run(
     whitespace=False,
     normal_encoding=False,
     verbose=False,
-    grave=False
+    grave=False,
+    silent=False
 ):
     """
     Run(code, inputs="", charcoal=None, grammar=CharcoalToken.Program, \
@@ -3483,11 +3520,15 @@ else the result of parsing.
         charcoal.AddInputs(inputs)
     result = Parse(
         code, grammar, grammars, InterpreterProcessor, whitespace,
-        normal_encoding, verbose, grave
+        normal_encoding, verbose, grave, silent
     )(charcoal)
     if grammar == CharcoalToken.Program:
         return str(charcoal)
     return result
+
+from charcoalunicode import Grammar as UnicodeGrammar
+from nearley import Parser
+unicode_parser = Parser(UnicodeGrammar)
 
 
 def GetProgram(
@@ -3547,34 +3588,38 @@ def Degrave(code):
 
 
 def Golf(code):
-    for regex, replacement in (
-        ("([^·⁰¹²³⁴-⁹]|^)¹⁰⁰⁰([^·⁰¹²³⁴-⁹]|$)", "\\1φ\\2"),
-        ("([^·⁰¹²³⁴-⁹]|^)¹⁰([^·⁰¹²³⁴-⁹]|$)", "\\1χ\\2"),
-        ("””", "ω"),
-        ("(^|[^´].|[^ -~´¶]) !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
-ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
-abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
-        ("([^´].|[^ -~´¶]|^)abcdefghijklmnopqrstuvwxyz([^´]|$)", "\\1β\\2"),
-        ("([^´].|[^ -~´¶]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)", "\\1α\\2"),
-        (Compressed(" !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
-ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
-abcdefghijklmnopqrstuvwxyz{\|}~"), "γ"),
+    codes = re.split("([“”])([^”]*?)(”)", code)
+    for i in range(0, len(codes), 3):
+        for regex, replacement in (
+            ("([^·⁰¹²³⁴-⁹]|^)¹⁰⁰⁰([^·⁰¹²³⁴-⁹]|$)", "\\1φ\\2"),
+            ("([^·⁰¹²³⁴-⁹]|^)¹⁰([^·⁰¹²³⁴-⁹]|$)", "\\1χ\\2"),
+            ("””", "ω"),
+            ("(^|[^´].|[^ -~´¶]) !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
+    ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
+    abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
+            ("([^´].|[^ -~´¶]|^)abcdefghijklmnopqrstuvwxyz([^´]|$)", "\\1β\\2"),
+            ("([^´].|[^ -~´¶]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)", "\\1α\\2"),
+            ("([^·⁰¹²³⁴-⁹ -~´¶])¦([^·⁰¹²³⁴-⁹ -~´¶])", "\\1\\2"),
+            ("([^·⁰¹²³⁴-⁹])¦([·⁰¹²³⁴-⁹])", "\\1\\2"),
+            ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
+            ("([^´].|[^ -~´¶])¦([ -~´¶])", "\\1\\2"),
+            ("([ -~´¶])¦([^´])", "\\1\\2"),
+            ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),
+            ("¦((?:^|[^´])[α-ξπ-ω])", "\\1"),
+            ("Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´¶])" % sOperator, "\\1"),
+            ("(?:Ｍ[←-↓↖-↙])+$", ""),
+            ("[←-↓↖-↙]+$", ""),
+            ("»+$", "")
+        ):
+            codes[i] = re.sub(regex, replacement, codes[i])
+    code = "".join(codes)
+    for match, replacement in (
+        (Compressed(" !\"#$%&'()*+,-./0123456789:;<=>?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"), "γ"),
         (Compressed("abcdefghijklmnopqrstuvwxyz"), "β"),
-        (Compressed("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "α"),
-        ("([^·⁰¹²³⁴-⁹ -~´¶])¦([^·⁰¹²³⁴-⁹ -~´¶])", "\\1\\2"),
-        ("([^·⁰¹²³⁴-⁹])¦([·⁰¹²³⁴-⁹])", "\\1\\2"),
-        ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
-        ("([^´].|[^ -~´¶])¦([ -~´¶])", "\\1\\2"),
-        ("([ -~´¶])¦([^´])", "\\1\\2"),
-        ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),
-        ("¦((?:^|[^´])[α-ξπ-ω])", "\\1"),
-        ("Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´¶])" % sOperator, "\\1"),
-        ("(?:Ｍ[←-↓↖-↙])+$", ""),
-        ("[←-↓↖-↙]+$", ""),
-        ("»+$", "")
+        (Compressed("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "α")
     ):
-        # TODO: prevent matches in compressed strings
-        code = re.sub(regex, replacement, code)
+        code = code.replace(match, replacement)
     return code
 
 
@@ -3985,7 +4030,7 @@ Parse trace:
     )
     if argv.repl:
         is_clear = True
-        prompt = "\033[1;37mCharcoal> \033[0m"
+        prompt = "\033[36;1mCharcoal> \033[0m"
         while True:
             try:
                 code = old_input(prompt)

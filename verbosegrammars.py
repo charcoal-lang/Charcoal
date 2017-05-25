@@ -72,6 +72,13 @@ VerboseGrammars = {
         ],
         [CharcoalToken.Expression]
     ],
+    CharcoalToken.WolframExpressions: [
+        [
+            CharcoalToken.WolframExpression,
+            CharcoalToken.WolframExpressions
+        ],
+        [CharcoalToken.WolframExpression]
+    ],
     CharcoalToken.PairExpressions: [
         [
             CharcoalToken.Expression,
@@ -96,6 +103,10 @@ VerboseGrammars = {
         ["[", CharcoalToken.Expressions, "]"],
         ["[", "]"]
     ],
+    CharcoalToken.WolframList: [
+        ["[", CharcoalToken.WolframExpressions, "]"],
+        ["[", "]"]
+    ],
     CharcoalToken.ArrowList: [
         ["[", CharcoalToken.Multidirectional, "]"],
         ["[", "]"]
@@ -105,6 +116,10 @@ VerboseGrammars = {
         ["{", "}"]
     ],
 
+    CharcoalToken.WolframExpression: [
+        [CharcoalToken.Span, CharcoalToken.Separator],
+        [CharcoalToken.Expression]
+    ],
     CharcoalToken.Expression: [
         [CharcoalToken.Number, CharcoalToken.Separator],
         [CharcoalToken.String, CharcoalToken.Separator],
@@ -193,7 +208,9 @@ VerboseGrammars = {
         ["chr"],
         ["ord"],
         ["Reverse"],
-        ["GetVariable"]
+        ["GetVariable"],
+        ["Repeated"],
+        ["RepeatedNull"]
     ],
     CharcoalToken.Binary: [
         ["**"],
@@ -236,7 +253,8 @@ VerboseGrammars = {
         ["PadRight"],
         ["Count"],
         ["Rule"],
-        ["DelayedRule"]
+        ["DelayedRule"],
+        ["PatternTest"]
     ],
     CharcoalToken.Ternary: [
     ],
@@ -290,14 +308,14 @@ VerboseGrammars = {
             "EvaluateVariable",
             "(",
             CharcoalToken.Expression,
-            CharcoalToken.List,
+            CharcoalToken.WolframList,
             ")"
         ],
         [
             "evalvar",
             "(",
             CharcoalToken.Expression,
-            CharcoalToken.List,
+            CharcoalToken.WolframList,
             ")"
         ]
     ],
@@ -699,14 +717,14 @@ VerboseGrammars = {
             "ExecuteVariable",
             "(",
             CharcoalToken.Expression,
-            CharcoalToken.List,
+            CharcoalToken.WolframList,
             ")"
         ],
         [
             "execvar",
             "(",
             CharcoalToken.Expression,
-            CharcoalToken.List,
+            CharcoalToken.WolframList,
             ")"
         ],
         [

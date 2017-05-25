@@ -17,6 +17,11 @@ gap = OrdinalLookup["”"]
 
 
 def Compressed(string):
+    """
+    Compressed(string) -> str
+    Returns the shortest Charcoal compressed literal of the given string.
+
+    """
     if not string:
         return "””"
     if not all(
@@ -40,6 +45,12 @@ def Compressed(string):
 
 
 def CompressPermutations(string):
+    """
+    CompressPermutations(string) -> str
+    Returns without delimiters the given string compressed \
+using a permuted codepage, without delimiters.
+
+    """
     numeric = lowercase = uppercase = whitespace = symbol = 0
     for character in string:
         if character >= "0" and character <= "9":
@@ -70,12 +81,22 @@ def CompressPermutations(string):
 
 
 def CompressString(string):
+    """
+    CompressString(string) -> str
+    Returns without delimiters the given string compressed.
+
+    """
     return Compress([
         default_charset.index(character) for character in string
     ])
 
 
 def Compress(ordinals):
+    """
+    Compress(ordinals) -> str
+    Returns without delimiters the given string compressed.
+
+    """
     base, result, number = max(ordinals) + 1, "", 1
     if base == 1:
         number = len(ordinals)
@@ -89,6 +110,11 @@ def Compress(ordinals):
 
 
 def Decompressed(string):
+    """
+    Decompressed(string) -> str
+    Returns the decompressed form of the given Charcoal string.
+
+    """
     if string == "””":
         return ""
     if string[-1] != "”":
@@ -100,6 +126,12 @@ def Decompressed(string):
 
 
 def DecompressPermutations(string):
+    """
+    DecompressPermutations(string) -> str
+    Returns the original form of the given string compressed \
+using a permuted codepage, passed without delimiters.
+
+    """
     index = OrdinalLookup.get(string[0], ord(string[0]))
     if index > gap:
         index -= 1
@@ -121,12 +153,23 @@ def DecompressPermutations(string):
 
 
 def DecompressString(string):
+    """
+    DecompressString(string) -> str
+    Returns the original form of the given string compressed, \
+passed without delimiters.
+
+    """
     return "".join([
         default_charset[ordinal] for ordinal in Decompress(string)
     ])
 
 
 def Decompress(string):
+    """
+    Decompress(string) -> list
+    Returns the ordinals in the original form of the given string compressed.
+
+    """
     number, result = 0, []
     base = OrdinalLookup.get(string[0], ord(string[0])) + 1
     if base > gap:

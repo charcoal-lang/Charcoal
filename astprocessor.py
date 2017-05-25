@@ -68,6 +68,10 @@ ASTProcessor = {
         lambda result: [result[1][0], result[0]] + result[1][1:],
         lambda result: ["Expressions", result[0]]
     ],
+    CharcoalToken.WolframExpressions: [
+        lambda result: [result[1][0], result[0]] + result[1][1:],
+        lambda result: ["Wolfram expressions", result[0]]
+    ],
     CharcoalToken.PairExpressions: [
         lambda result: [result[2][0], [result[0], result[1]]] + result[2][1:],
         lambda result: ["PairExpressions", [result[0], result[1]]]
@@ -81,6 +85,10 @@ ASTProcessor = {
         lambda result: ["List"] + result[1][1:],
         lambda result: ["List"]
     ],
+    CharcoalToken.WolframList: [
+        lambda result: ["Wolfram list"] + result[1][1:],
+        lambda result: ["Wolfram list"]
+    ],
     CharcoalToken.ArrowList: [
         lambda result: ["Arrow list"] + result[1][1:],
         lambda result: ["Arrow list"]
@@ -90,6 +98,10 @@ ASTProcessor = {
         lambda result: ["Dictionary"]
     ],
 
+    CharcoalToken.WolframExpression: [
+        lambda result: result[0],
+        lambda result: result[0]
+    ],
     CharcoalToken.Expression: [
         lambda result: result[0],
         lambda result: result[0],
@@ -129,7 +141,9 @@ ASTProcessor = {
         lambda result: "Maximum",
         lambda result: "Character/Ordinal",
         lambda result: "Reverse",
-        lambda result: "Get variable"
+        lambda result: "Get variable",
+        lambda result: "Repeated",
+        lambda result: "Repeated null"
     ],
     CharcoalToken.Binary: [
         lambda result: "Sum",
@@ -154,7 +168,8 @@ ASTProcessor = {
         lambda result: "Pad right",
         lambda result: "Count",
         lambda result: "Rule",
-        lambda result: "Delayed rule"
+        lambda result: "Delayed rule",
+        lambda result: "Pattern test"
     ],
     CharcoalToken.Ternary: [
     ],

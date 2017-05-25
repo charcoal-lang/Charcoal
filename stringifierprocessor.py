@@ -71,6 +71,16 @@ StringifierProcessor = {
             "abgdezhciklmnxprstufko".index(result[0])
         ]
     ],
+    CharcoalToken.Span: [
+        lambda result: result[0] + "；" + result[2] + "；" + result[4],
+        lambda result: result[0] + "；；" + result[3],
+        lambda result: result[0] + "；" + result[2],
+        lambda result: result[0] + "；",
+        lambda result: "；" + result[1] + "；" + result[3],
+        lambda result: "；" + result[1],
+        lambda result: "；；" + result[2],
+        lambda result: "；；"
+    ],
 
     CharcoalToken.Arrows: [
         lambda result: result[0] + result[2],
@@ -81,6 +91,10 @@ StringifierProcessor = {
         lambda result: result[0]
     ],
     CharcoalToken.Expressions: [
+        lambda result: result[0] + result[1],
+        lambda result: result[0]
+    ],
+    CharcoalToken.WolframExpressions: [
         lambda result: result[0] + result[1],
         lambda result: result[0]
     ],
@@ -97,6 +111,10 @@ StringifierProcessor = {
         lambda result: "⟦" + result[1] + "⟧",
         lambda result: "⟦⟧"
     ],
+    CharcoalToken.WolframList: [
+        lambda result: "⟦" + result[1] + "⟧",
+        lambda result: "⟦⟧"
+    ],
     CharcoalToken.ArrowList: [
         lambda result: "⟦" + result[1] + "⟧",
         lambda result: "⟦⟧"
@@ -106,6 +124,10 @@ StringifierProcessor = {
         lambda result: "⦃⦄"
     ],
 
+    CharcoalToken.WolframExpression: [
+        lambda result: result[0] + result[1],
+        lambda result: result[0],
+    ],
     CharcoalToken.Expression: [
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
@@ -153,7 +175,9 @@ StringifierProcessor = {
         lambda result: "℅",
         lambda result: "℅",
         lambda result: "⮌",
-        lambda result: "ＵＧ"
+        lambda result: "ＵＧ",
+        lambda result: "″",
+        lambda result: "‴"
     ],
     CharcoalToken.Binary: [
         lambda result: "Ｘ",
@@ -196,7 +220,8 @@ StringifierProcessor = {
         lambda result: "◨",
         lambda result: "№",
         lambda result: "➙",
-        lambda result: "⧴"
+        lambda result: "⧴",
+        lambda result: "？"
     ],
     CharcoalToken.Ternary: [
     ],

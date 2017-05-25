@@ -31,11 +31,14 @@ for other, ascii_character in zip("¿‖´·¤¦⎚…§⎆⎈⌀", "?;`.o: _$,&
     # not sure about ;
     add_character(other, chr(ord(ascii_character) + 128))
 for replacement, replaced in zip(
-    "¶⎇‽；∧∨“”↧↥⌊⌈±⊞⊟➙⧴",
-    "\n\x15\x16\x00\x01\x02\x03\x04\x17\x18\x19\x1A\x1B\x05\x06\x07\x08"
+    "¶⎇‽；∧∨“”↧↥⌊⌈±⊞⊟➙⧴″‴",
+    "\n\x15\x16\x00\x01\x02\x03\x04\x17\x18\x19\x1A\x1B\x05\x06\x07\x08\x0A\x0B"
 ):
     add_character(replacement, replaced)
-for high, low in zip("⪫⪪℅◧◨⮌⌕≡№", "\x01\x02\x03\x04\x05\x06\x1B\x07\x08"):
+for high, low in zip(
+    "？⪫⪪℅◧◨⮌⌕≡№",
+    "\x00\x01\x02\x03\x04\x05\x06\x1B\x07\x08"
+):
     add_character(high, chr(ord(low) + 128))
 #rule and rule delayed = ➙⧴
 keys = list(UnicodeLookup.keys())
@@ -75,7 +78,7 @@ def InCodepage(character):
                 character in "⁰¹²³⁴⁵⁶⁷⁸⁹\
 ⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›\
 ←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖´·¤¦“”⎚¶…§⎇↥↧⌊⌈±⊞⊟➙⧴⪫⪪⌕℅◧◨⮌≡№"
+↶↷⟲¿‽‖´·¤¦“”⎚¶…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№"
     )
 
 UnicodeCommands = "\
@@ -84,13 +87,13 @@ UnicodeCommands = "\
 αβγδεζηθικλμνξπρσςτυφχψω\
 ⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›\
 ←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴⪫⪪⌕℅◧◨⮌≡№"
+↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№"
 UnicodeCommandRegex = "\
 Ａ-Ｚ⁰¹²³⁴-⁹αβγδεζηθικλμνξπρσςτυφχψω\
 ⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›←-↓↖-↙\
-↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴⪫⪪⌕℅◧◨⮌≡№"
+↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№"
 sCommand = "[%s]" % UnicodeCommandRegex
 sOperator = """\
-[ＳＮ‽¬Ｉ‽Ｖ⊟➙⧴↧↥⌊⌈℅⮌⁺⁻×÷∕﹪⁼‹›…Ｘ§⪫⪪⌕◧◨№⎇Ｅ∧∨]|Ｋ.|±Ｌ|⊞Ｏ|⌕Ａ"""
+[ＳＮ‽¬Ｉ‽Ｖ⊟➙⧴″‴↧↥⌊⌈℅⮌⁺⁻×÷∕﹪⁼‹›…Ｘ§？⪫⪪⌕◧◨№⎇Ｅ∧∨]|Ｋ.|±Ｌ|⊞Ｏ|⌕Ａ"""
 rCommand = re.compile("(%s)" % sCommand)
 rOperator = re.compile("(%s)" % sOperator)

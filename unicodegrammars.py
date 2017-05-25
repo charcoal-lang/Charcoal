@@ -1,5 +1,4 @@
 from charcoaltoken import CharcoalToken
-from inspect import signature
 import re
 
 UnicodeGrammars = {
@@ -73,6 +72,13 @@ UnicodeGrammars = {
         ],
         [CharcoalToken.Expression]
     ],
+    CharcoalToken.WolframExpressions: [
+        [
+            CharcoalToken.WolframExpression,
+            CharcoalToken.WolframExpressions
+        ],
+        [CharcoalToken.WolframExpression]
+    ],
     CharcoalToken.PairExpressions: [
         [
             CharcoalToken.Expression,
@@ -86,6 +92,10 @@ UnicodeGrammars = {
         []
     ],
 
+    CharcoalToken.WolframList: [
+        ["⟦", CharcoalToken.WolframExpressions, "⟧"],
+        ["⟦", "⟧"]
+    ],
     CharcoalToken.List: [
         ["⟦", CharcoalToken.Expressions, "⟧"],
         ["⟦", "⟧"]
@@ -99,6 +109,10 @@ UnicodeGrammars = {
         ["⦃", "⦄"]
     ],
 
+    CharcoalToken.WolframExpression: [
+        [CharcoalToken.Span, CharcoalToken.Separator],
+        [CharcoalToken.Expression]
+    ],
     CharcoalToken.Expression: [
         [CharcoalToken.Number, CharcoalToken.Separator],
         [CharcoalToken.String, CharcoalToken.Separator],
@@ -165,7 +179,9 @@ UnicodeGrammars = {
         ["⌈"],
         ["℅"],
         ["⮌"],
-        ["ＵＧ"]
+        ["ＵＧ"],
+        ["″"],
+        ["‴"]
     ],
     CharcoalToken.Binary: [
         ["⁺"],
@@ -190,7 +206,8 @@ UnicodeGrammars = {
         ["◨"],
         ["№"],
         ["➙"],
-        ["⧴"]
+        ["⧴"],
+        ["？"]
     ],
     CharcoalToken.Ternary: [
     ],
@@ -206,7 +223,7 @@ UnicodeGrammars = {
     CharcoalToken.OtherOperator: [
         ["ＫＤ", CharcoalToken.Expression, CharcoalToken.Arrow],
         ["Ｅ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["ＵＶ", CharcoalToken.Expression, CharcoalToken.Expression]
+        ["ＵＶ", CharcoalToken.Expression, CharcoalToken.WolframList]
     ],
 
     CharcoalToken.Program: [
@@ -438,7 +455,7 @@ UnicodeGrammars = {
         ["⊞", CharcoalToken.Expression, CharcoalToken.Expression],
         ["≡", CharcoalToken.Expression, CharcoalToken.Cases, CharcoalToken.Body],
         ["ＵＭ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["ＵＸ", CharcoalToken.Expression, CharcoalToken.List],
+        ["ＵＸ", CharcoalToken.Expression, CharcoalToken.WolframList],
         ["ＵＳ", CharcoalToken.Expression, CharcoalToken.Expression]
     ]
 }

@@ -1,9 +1,29 @@
 from math import (
-    log, log2, log10, sqrt, sin, cos, tan, asin, acos, atan,
-    floor, ceil
+    exp, log, log2, log10, sqrt, sin, cos, tan, asin, acos, atan, floor, ceil
 )
 from functools import reduce, lru_cache
-from re import split, compile as re_compile, escape as re_escape
+
+try:
+    from regex import (
+        match, search, split, sub, findall,
+        compile as re_compile, escape as re_escape,
+        M as multiline_flag
+    )
+    def multilineify(function):
+        def wrap_function(*args, **kwargs):
+            kwargs['flags'] = multiline_flag
+            return function(*args, **kwargs)
+        return wrap_function
+    match, search, split, sub, findall = (
+        multilineify(match),
+        multilineify(search),
+        multilineify(split),
+        multilineify(sub),
+        multilineify(findall)
+    )
+except:
+    print("Please install the 'regex' module: 'sudo -H pip3 install regex'")
+    __import__("sys").exit()
 
 # TODO: chain plus/minus for less precision needed
 # TODO: tests for rational ops
@@ -77,7 +97,10 @@ cx = create_expression
 def boolean(value):
     return _True if value else _False
 
-class Expression:
+class Expression(object):
+
+    __slots__ = ("head", "leaves", "run")
+
     def __init__(self, head=None, leaves=[], run=None):
         self.head = head
         self.leaves = [create_expression(leaf) for leaf in leaves]
@@ -149,11 +172,16 @@ class Expression:
     def is_even(self):
         return self.run().is_even()
 
+# Options
+IgnoreCase = Expression()
+
 class Number(Expression):
     def __init__(self, head=None):
         super().__init__(head=head)
 
 class Real(Number):
+    slots = ("head", "leaves", "run", "is_int", "precision")
+
     def __init__(self, value, exponent=0, precision=0, is_int=False):
         super().__init__(head=headify(Real))
         self.precision = precision or floor(log10(abs(value) or 1))
@@ -479,6 +507,17 @@ class String(Expression):
     def __iter__(self):
         return iter(self.leaves[0])
 
+    def __add__(self, other):
+        if isinstance(other, String):
+            return String(self.leaves[0] + other.leaves[0])
+
+    def __or__(self, other):
+        other_type = type(other)
+        if other_type == String:
+            return List(self.leaves[0], other.leaves[0])
+        if other_type == List:
+            return List(*(other.leaves + self.leaves))
+
 class Rule(Expression):
     def __init__(self, match, replacement):
         super().__init__(head=headify(Rule))
@@ -488,6 +527,127 @@ class DelayedRule(Expression):
     def __init__(self, match, replacement):
         super().__init__(head=headify(DelayedRule))
         self.leaves = [match, replacement]
+
+class Pattern(Expression):
+    def __init__(self, regex):
+        super().__init__(head=headify(Pattern))
+        self.leaves = [regex]
+
+    def __str__(self):
+        return self.leaves[0]
+
+    def __repr__(self):
+        return repr(self.leaves[0])
+
+    def __add__(self, other):
+        other_type = type(other)
+        if other_type == Pattern:
+            return Pattern(self.leaves[0] + other.leaves[0])
+        if other_type == String:
+            return Pattern(self.leaves[0] + re_escape(other.leaves[0]))
+
+    def __radd__(self, other):
+        if isinstance(other, String):
+            return Pattern(re_escape(other.leaves[0]) + self.leaves[0])
+
+    def __hash__(self):
+        return hash(self.leaves[0])
+
+    def __eq__(self, other):
+        return self.leaves[0] == other.leaves[0]
+
+_ = Pattern(r".")
+__ = Pattern(r".+")
+___ = Pattern(r".*")
+StartOfString = Pattern(r"^")
+EndOfString = Pattern(r"$")
+StartOfLine = Pattern(r"\A")
+EndOfLine = Pattern(r"\Z")
+Whitespace = Pattern(r"\s+")
+NumberString = Pattern(r"\d+.?\d*")
+WordCharacter = Pattern(r"(?:\p{L}|[0-9])")
+LetterCharacter = Pattern(r"\p{L}")
+DigitCharacter = Pattern(r"[0-9]")
+HexadecimalCharacter = Pattern(r"[0-9a-fA-F]")
+WhitespaceCharacter = Pattern(r"\s")
+PunctuationCharacter = Pattern(r"\p{P}")
+WordBoundary = Pattern(r"\b")
+
+# TODO: PatternTest (_ ? LetterQ)
+
+class RegularExpression(Pattern):
+    def __init__(self, regex):
+        super().__init__(regex)
+        self.head = headify(RegularExpression)
+
+class Repeated(Pattern):
+    def __init__(self, item):
+        if isinstance(item, Pattern):
+            super().__init__("(?:" + str(item) + ")+")
+        else:
+            super().__init__("(?:" + re_escape(str(item)) + ")+")
+        self.head = headify(Repeated)
+
+class RepeatedNull(Pattern):
+    def __init__(self, item):
+        if isinstance(item, Pattern):
+            super().__init__("(?:" + str(item) + ")+")
+        else:
+            super().__init__("(?:" + re_escape(str(item)) + ")+")
+        self.head = headify(RepeatedNull)
+
+# TODO: AlphabetData (from lazy ranges)
+
+class Span(Expression):
+    __slots__ = ("head", "leaves", "process")
+
+    def __init__(self, start=None, stop=None, step=None):
+        super().__init__(head=headify(Span))
+
+        def modify(number, iterable):
+            if isinstance(number, Expression):
+                number = number.to_number()
+            if number == 1:
+                return -len(iterable)
+            return number + ((len(iterable) + 1) if number < 0 else 0)
+
+        if start is not None:
+            if stop is not None:
+                if step is not None:
+                    self.process = lambda iterable: (lambda start, end: (
+                        iterable[start - 1:end:step]
+                        if step > 0 else
+                        iterable[start:end - 1:step]
+                    ))(modify(start, iterable), modify(stop, iterable))
+                else:
+                    self.process = lambda iterable: iterable[
+                        modify(start, iterable) - 1:modify(stop, iterable)
+                    ]
+            else:
+                if step is not None:
+                    self.process = lambda iterable: iterable[
+                        modify(start, iterable) - 1::step
+                    ]
+                else:
+                    self.process = lambda iterable: iterable[
+                        modify(start, iterable) - 1:
+                    ]
+        else:
+            if stop is not None:
+                if step is not None:
+                    self.process = lambda iterable: iterable[
+                        :modify(stop, iterable):step
+                    ]
+                else:
+                    self.process = lambda iterable: iterable[
+                        :modify(stop, iterable)
+                    ]
+            else:
+                if step is not None:
+                    self.process = lambda iterable: iterable[::step]
+                else:
+                    # TODO: clone or no
+                    self.process = lambda iterable: iterable[:]
 
 def integerQ(number):
     return int(
@@ -506,7 +666,7 @@ def n(number, digits=0):
 
 #TODO: round, log
 
-class Wolfram:
+class Wolfram(object):
 
     def Head(leaves, precision=10):
         return leaves[0].head
@@ -549,20 +709,51 @@ class Wolfram:
     def Sqrt(leaves, precision=10):
 
         def calculate_sqrt(n, precision):
+            # TODO: there's too much precisions
             if isinstance(precision, Expression):
                 precision = precision.to_number()
-            result = int(sqrt(n) * 10 ** precision)
-            n *= 10 ** (precision * 2)
+            precision = max(precision, 1)
+            digits = int(log10(n) + 1) // 2
+            try: # TODO: avoid try
+                result = (
+                    int(sqrt(n) * 10 ** (precision - digits))
+                    if precision > digits else
+                    int(sqrt(n)) // 10 ** (digits - precision)
+                )
+            except:
+                result = (
+                    int(exp(log(n) / 2) * 10 ** (precision - digits))
+                    if precision > digits else
+                    int(exp(log(n) / 2)) // 10 ** (digits - precision)
+                )
+            if precision > digits:
+                n *= 10 ** ((precision - digits) * 2)
+            else:
+                n //= 10 ** ((digits - precision) * 2)
             difference = result * result - n
             while difference >= result or difference <= -result:
-                result = result - int(0.5 + difference / (2 * result))
+                result = result - ((difference + result) // (2 * result))
                 difference = result * result - n
             while not result % 10:
                 result //= 10
                 precision -= 1
-            return Real(result, -precision)
+            return Real(result, -precision + digits)
 
         return calculate_sqrt(leaves[0].to_number(), precision)
+
+    pattern_test_lookup = {}
+
+    def PatternTest(leaves, precision=10):
+        if leaves[0] == _:
+            return Wolfram.pattern_test_lookup[leaves[1]]
+        if leaves[0] == __:
+            return Pattern(
+                "(?:%s)+" * str(pattern_test_lookup[leaves[1]])
+            )
+        if leaves[0] == ___:
+            return Pattern(
+                "(?:%s)*" * str(pattern_test_lookup[leaves[1]])
+            )
 
     # https://reference.wolfram.com/language/ref/Flatten.html
     # TODO: test, implement fourth overload
@@ -613,55 +804,100 @@ class Wolfram:
         )
 
     def StringLength(leaves, precision=10):
+        if isinstance(leaves[0], List):
+            return List(*[
+                Wolfram.StringLength([item])
+                for item in leaves[0].leaves
+            ])
         return Integer(len(leaves[0].leaves[0]))
 
     def StringSplit(leaves, precision=10):
+        # TODO: implement patterns, RegularExpression
         if isinstance(leaves[0], List):
             other_leaves = leaves[1:]
             return create_expression([
-                StringSplit([item] + other_leaves) for item in leaves[0].leaves
+               Wolfram.StringSplit([item] + other_leaves)
+               for item in leaves[0].leaves
             ])
-        maxsplit = leaves[2].to_number() if len(leaves) > 2 else -1
+        ignorecase, maxsplit = (
+            (
+                ["(?i)" * (leaves[2].leaves == [IgnoreCase, _True]), 0]
+                if type(leaves[2]) == Rule else
+                ["", leaves[2].to_number()]
+            )
+            if len(leaves) > 2 else
+            ["", 0]
+        )
         string = str(leaves[0])
         if len(leaves) == 1:
-            return create_expression(r_whitespace.split(string, max(
-                maxsplit,
-                0
-            )))
+            result = r_whitespace.split(string, maxsplit)
+            return create_expression(result[
+                not result[0]:
+                max(1, len(result) - (not(result[-1])))
+            ])
         splitter = leaves[1]
         splitter_type = type(leaves[1])
         if splitter_type == String:
-            return create_expression(string.split(str(splitter), maxsplit))
+            result = (
+                split(ignorecase + re_escape(str(splitter)), string, maxsplit)
+            )
+            return create_expression(result[
+                not result[0]:
+                max(1, len(result) - (not(result[-1])))
+            ])
+        if isinstance(splitter, Pattern):
+            result = split(ignorecase + str(splitter), string, maxsplit)
+            return create_expression(result[
+                not result[0]:
+                max(1, len(result) - (not(result[-1])))
+            ])
         if splitter_type == List:
-            if type(splitter.leaves[0]) == Rule:
+            if isinstance(splitter.leaves[0], Pattern):
+                result = split(
+                    ignorecase + "(" + "|".join(list(map(
+                        str, splitter.leaves
+                    ))) + ")",
+                    string,
+                    maxsplit
+                )
+            if isinstance(splitter.leaves[0], Rule):
                 lookup = {}
                 for rule in splitter.leaves:
                     lookup[rule.leaves[0]] = rule.leaves[1]
                 result = split(
-                    "(" + "|".join(list(map(
-                        lambda l: re_escape(l.leaves[0]),
+                    ignorecase + "(" + "|".join(list(map(
+                        lambda l: re_escape(str(l.leaves[0])),
                         splitter.leaves
                     ))) + ")",
                     string,
-                    max(maxsplit, 0)
+                    maxsplit
                 )
                 for i in range(1, len(result), 2):
                     result[i] = lookup[result[i]]
-                return create_expression(result)
-            return create_expression(split(
-                "|".join(list(map(
+                return create_expression(result[
+                    not result[0]:
+                    max(1, len(result) - (not(result[-1])))
+                ])
+            result = split(
+                ignorecase + "|".join(list(map(
                     lambda string: re_escape(str(string)),
                     splitter.leaves
                 ))),
                 string,
-                max(maxsplit, 0)
-            ))
-        # Assume Rile
+                maxsplit
+            )
+            return create_expression(result[
+                not result[0]:
+                max(1, len(result) - (not(result[-1])))
+            ])
+        # Assume Rule
         result = []
-        splitted = string.split(str(splitter.leaves[0]), maxsplit)
+        splitted = split(
+            ignorecase + re_escape(str(splitter.leaves[0])), string, maxsplit
+        )
         for string in splitted:
             result += [string, splitter.leaves[1]]
-        return create_expression(result[:-1])
+        return create_expression(result[not result[0]:-1 - (not result[-1])])
 
     def StringTake(leaves, precision=10):
         if type(leaves[0]) == List:
@@ -758,19 +994,168 @@ class Wolfram:
                 String(string[leaf - 1])
                 for leaf in leaves
             ])
-        # Assume range thingy
-        # ok where is docs for range thingy halp
+        # Assume Span
+        return List(*[
+            String(char)
+            for char in leaves[1].process(string)
+        ])
+# TODO: Except, StringExtract
 
-    def StringStartsQ(leaves, precision=10):
-        # TODO: IgnoreCase option, match patterns
-        if len(leaves) == 1:
-            return lambda *things: StringStartsQ(leaves[0] + things)
-        if type(leaves[0]) == List:
+    def StringReplace(leaves, precision=10):
+        if isinstance(leaves[0], List):
+            other_leaves = leaves[1:]
             return List(*[
-                Wolfram.StringStartsQ([item, leaves[1]])
+                Wolfram.StringReplace([item] + other_leaves)
                 for item in leaves[0].leaves
             ])
+        ignorecase, maxreplace = (
+            (
+                ["(?i)" * (leaves[2].leaves == [IgnoreCase, _True]), 0]
+                if type(leaves[2]) == Rule else
+                ["", leaves[2].to_number()]
+            )
+            if len(leaves) > 2 else
+            ["", 0]
+        )
+        string = str(leaves[0])
+        string = str(leaves[0])
+        if len(leaves) == 1:
+            return lambda items: StringReplace([items, leaves[0]])
+        replacer = leaves[1]
+        replacer_type = type(leaves[1])
+        if replacer_type == String:
+            return create_expression(sub(
+                ignorecase + re_escape(str(replacer)),
+                string,
+                maxreplace
+            ))
+        if replacer_type == List:
+            #Assume Rule
+            lookup = {}
+            for rule in replacer.leaves:
+                lookup[rule.leaves[0]] = rule.leaves[1]
+            result = split(
+                "(" + "|".join(list(map(
+                    lambda l: re_escape(str(l.leaves[0])),
+                    replacer.leaves
+                ))) + ")",
+                string,
+                maxreplace
+            )
+            for i in range(1, len(result), 2):
+                result[i] = lookup[result[i]]
+            return String("".join(result))
+        # Assume Rule
+        result = []
+        splitted = split(
+            ignorecase + re_escape(str(replacer.leaves[0])), string, maxreplace
+        )
+        for string in splitted:
+            result += [string, replacer.leaves[1]]
+        return String("".join(result[:-1]))
+
+    def StringCount(leaves, precision=10):
+        if isinstance(leaves[0], List):
+            other_leaves = leaves[1:]
+            return List(*[
+                Wolfram.StringCount([item] + other_leaves)
+                for item in leaves[0].leaves
+            ])
+        if isinstance(leaves[1], List):
+            return Integer(len(findall("|".join(list(map(
+                lambda l: re_escape(str(l.leaves[0])),
+                leaves[1].leaves
+            ))))))
+        # assume String
+        return Integer(str(leaves[0]).count(str(leaves[1])))
+
+    def StringStartsQ(leaves, precision=10):
+        if len(leaves) == 1:
+            return lambda *things: Wolfram.StringStartsQ(leaves[0] + things)
+        if isinstance(leaves[0], List):
+            return List(*[
+                Wolfram.StringStartsQ([item] + leaves[1:])
+                for item in leaves[0].leaves
+            ])
+        if (
+            len(leaves) > 2 and
+            type(leaves[2]) == Rule and
+            leaves[2].leaves == [IgnoreCase, _True]
+        ):
+            return boolean(
+                match("(?i)" + re_escape(str(leaves[1])), str(leaves[0]))
+            )
         return boolean(str(leaves[0]).startswith(str(leaves[1])))
+
+    def StringEndsQ(leaves, precision=10):
+        if len(leaves) == 1:
+            return lambda *things: Wolfram.StringStartsQ(leaves[0] + things)
+        if isinstance(leaves[0], List):
+            return List(*[
+                Wolfram.StringEndsQ([item] + leaves[1:])
+                for item in leaves[0].leaves
+            ])
+        if (
+            len(leaves) > 2 and
+            type(leaves[2]) == Rule and
+            leaves[2].leaves == [IgnoreCase, _True]
+        ):
+            return boolean(
+                search("(?i)" + re_escape(str(leaves[1])) + "$", str(leaves[0]))
+            )
+        return boolean(str(leaves[0]).endswith(str(leaves[1])))
+
+    def StringContainsQ(leaves, precision=10):
+        if len(leaves) == 1:
+            return lambda *things: Wolfram.StringContainsQ(leaves[0] + things)
+        if isinstance(leaves[0], List):
+            other_leaves = leaves[1:]
+            return List(*[
+                Wolfram.StringContainsQ([item] + other_leaves)
+                for item in leaves[0].leaves
+            ])
+        if (
+            len(leaves) > 2 and
+            type(leaves[2]) == Rule and
+            leaves[2].leaves == [IgnoreCase, _True]
+        ):
+            return boolean(
+                search("(?i)" + re_escape(str(leaves[1])), str(leaves[0]))
+            )
+        return boolean(str(leaves[1]) in str(leaves[0]))
+
+    def PrintableAsciiQ(leaves, precision=10):
+        if isinstance(leaves[0], List):
+            return List(*[
+                Wolfram.PrintableAsciiQ([item])
+                for item in leaves[0].leaves
+            ])
+        return boolean(match("[ -~]*$", str(leaves[0])))
+
+    def LetterQ(leaves, precision=10):
+        return boolean(match("\p{L}*$", str(leaves[0])))
+
+    def UpperCaseQ(leaves, precision=10):
+        return boolean(match("\p{Lu}*$", str(leaves[0])))
+
+    def LowerCaseQ(leaves, precision=10):
+        return boolean(match("\p{Ll}*$", str(leaves[0])))
+
+    def DigitQ(leaves, precision=10):
+        return boolean(match("\d*$", str(leaves[0])))
+
+    def CharacterRange(leaves, precision=10):
+        if isinstance(leaves[0], String):
+            start, end = ord(leaves[0]), ord(leaves[1])
+            return List(*map(chr, range(start, end)))
+        return List(*map(chr, range(leaves[0], leaves[1])))
+
+    date_pattern_lookup = {
+        "Second": "(?:[0-5]\d|60)",
+        "Minute": "(?:[0-5]\d|60)",
+        "Hour": "(?:[01]\d|2[0-4])",
+    }
+    # TODO: date pattern, need to test on mathematica e.g. feb 30 and hour 24
 
     ### Constants
 
@@ -914,12 +1299,16 @@ def functionify(head):
 iq = integerQ
 oq = oddQ
 eq = evenQ
+F = _False
+T = _True
+IC = IgnoreCase
 Pi = Wolfram.Pi
 E = Wolfram.E
 Deg = Degree = Wolfram.Degree
 Rt = Sqrt = functionify(Wolfram.Sqrt)
 UT = UpTo = functionify(Wolfram.UpTo)
 N = functionify(Wolfram.N)
+PT = PatternTest = functionify(Wolfram.PatternTest)
 SQ = StringQ = functionify(Wolfram.StringQ)
 NQ = NumberQ = functionify(Wolfram.NumberQ)
 IQ = IntegerQ = functionify(Wolfram.IntegerQ)
@@ -927,6 +1316,11 @@ OQ = OddQ = functionify(Wolfram.OddQ)
 EQ = EvenQ = functionify(Wolfram.EvenQ)
 TQ = TrueQ = functionify(Wolfram.TrueQ)
 FQ = FalseQ = functionify(Wolfram.FalseQ)
+PAQ = PrintableAsciiQ = functionify(Wolfram.PrintableAsciiQ)
+LQ = LetterQ = functionify(Wolfram.LetterQ)
+LCQ = LowerCaseQ = functionify(Wolfram.LowerCaseQ)
+UCQ = UpperCaseQ = functionify(Wolfram.UpperCaseQ)
+DQ = DigitQ = functionify(Wolfram.DigitQ)
 Flatten = functionify(Wolfram.Flatten)
 SJ = StringJoin = functionify(Wolfram.StringJoin)
 SL = StringLength = functionify(Wolfram.StringLength)
@@ -934,11 +1328,15 @@ SS = StringSplit = functionify(Wolfram.StringSplit)
 ST = StringTake = functionify(Wolfram.StringTake)
 SD = StringDrop = functionify(Wolfram.StringDrop)
 SP = StringPart = functionify(Wolfram.StringPart)
+SR = StringReplace = functionify(Wolfram.StringReplace)
+SC = StringCount = functionify(Wolfram.StringCount)
 SSQ = StringStartsQ = functionify(Wolfram.StringStartsQ)
+SEQ = StringEndsQ = functionify(Wolfram.StringEndsQ)
+SCQ = StringContainsQ = functionify(Wolfram.StringContainsQ)
 # TODO: make capital form arbitrary precision
 l2 = Log2 = log2
 la = Log10 = log10
-ln = log
+ln = Log = log
 rt = functionify(Wolfram.Sqrt)
 #Sin = sin
 #Cos = cos
@@ -946,3 +1344,11 @@ rt = functionify(Wolfram.Sqrt)
 #ArcSin = asin
 #ArcCos = acos
 #ArcTan = atan
+
+for key, value in (
+    (LetterQ, LetterCharacter),
+    (LowerCaseQ, Pattern(r"\p{Ll}")),
+    (UpperCaseQ, Pattern(r"\p{Lu}")),
+    (DigitQ, DigitCharacter)
+):
+    Wolfram.pattern_test_lookup[key] = value
