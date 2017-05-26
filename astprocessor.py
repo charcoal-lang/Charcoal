@@ -155,6 +155,8 @@ ASTProcessor = {
         lambda result: "Equals",
         lambda result: "Less than",
         lambda result: "Greater than",
+        lambda result: "Bitwise and",
+        lambda result: "Bitwise or",
         lambda result: "Inclusive range",
         lambda result: "Mold",
         lambda result: "Exponentiate",
@@ -227,14 +229,14 @@ ASTProcessor = {
         lambda result: ["Rotate transform"]
     ] +
     [lambda result: ["Reflect transform"] + result[1:]] * 3 +
-    [lambda result: ["Rotate prism"] + result[1:]] * 8 +
+    [lambda result: ["Rotate prism"] + result[1:]] * 6 +
     [lambda result: ["Reflect mirror"] + result[1:]] * 3 +
-    [lambda result: ["Rotate copy"] + result[1:]] * 8 +
+    [lambda result: ["Rotate copy"] + result[1:]] * 6 +
     [lambda result: ["Reflect copy"] + result[1:]] * 3 +
-    [lambda result: ["Rotate overlap overlap"] + result[1:]] * 8 +
-    [lambda result: ["Rotate overlap"] + result[1:]] * 8 +
-    [lambda result: ["Rotate shutter overlap"] + result[1:]] * 8 +
-    [lambda result: ["Rotate shutter"] + result[1:]] * 8 +
+    [lambda result: ["Rotate overlap overlap"] + result[1:]] * 6 +
+    [lambda result: ["Rotate overlap"] + result[1:]] * 6 +
+    [lambda result: ["Rotate shutter overlap"] + result[1:]] * 6 +
+    [lambda result: ["Rotate shutter"] + result[1:]] * 6 +
     [lambda result: ["Reflect overlap overlap"] + result[1:]] * 3 +
     [lambda result: ["Reflect overlap"] + result[1:]] * 3 +
     [lambda result: ["Reflect butterfly overlap"] + result[1:]] * 3 +

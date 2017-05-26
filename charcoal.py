@@ -256,7 +256,7 @@ class Cells(list):
 
         self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
 
-class Charcoal:
+class Charcoal(object):
     __slots__ = (
         "x", "y", "top", "lines", "indices", "lengths", "right_indices",
         "scope", "info", "original_input", "inputs", "original_inputs",
@@ -264,6 +264,29 @@ class Charcoal:
         "bg_line_number", "bg_line_length", "timeout_end", "dump_timeout_end",
         "background_inside", "trim", "print_at_end", "canvas_step"
     )
+
+    secret = {
+        "γ": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+        "β": "abcdefghijklmnopqrstuvwxyz",
+        "α": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        "ω": "",
+        "ψ": "\000",
+        "χ": 10,
+        "φ": 1000
+    }
+    wolfram = vars(__import__("wolfram"))
+    for key in wolfram:
+        if len(key) == 1 or key[1] != "_":
+            if key[:2] == "_p":
+                secret[key[2:]] = wolfram[key]
+            elif key[0] == "_":
+                secret[key[1:]] = wolfram[key]
+            secret[key] = wolfram[key]
+    extras = vars(__import__("extras"))
+    for key in extras:
+        if key[0] != "_":
+            secret[key] = extras[key]
 
     def __init__(
         self,
@@ -295,26 +318,8 @@ class Charcoal:
             "η": self.all_inputs[1],
             "ζ": self.all_inputs[2],
             "ε": self.all_inputs[3],
-            "δ": self.all_inputs[4],
-            "γ": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
-            "β": "abcdefghijklmnopqrstuvwxyz",
-            "α": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "ω": "",
-            "ψ": "\000",
-            "χ": 10,
-            "φ": 1000
+            "δ": self.all_inputs[4]
         }
-        wolfram = vars(__import__("wolfram"))
-        for key in wolfram:
-            if len(key) == 1 or key[1] != "_":
-                if key[0] == "_":
-                    self.hidden[key[1:]] = wolfram[key]
-                self.hidden[key] = wolfram[key]
-        extras = vars(__import__("extras"))
-        for key in extras:
-            if key[0] != "_":
-                self.hidden[key] = extras[key]
         self.direction = Direction.right
         self.background = " "
         self.bg_lines = []
@@ -2518,12 +2523,25 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
         elif isinstance(variable, list) or isinstance(variable, str):
             return random.choice(variable)
 
+    def Retrieve(self, key):
+        """
+        Retrieve(key)
+        Get the variable with the given name.
+
+        """
+        if key in self.scope:
+            return self.scope[key]
+        if key in self.hidden:
+            return self.hidden[key]
+        if key in Charcoal.secret:
+            return Charcoal.secret[key]
+
     def Assign(self, value, key, value2=None):
         """
         Assign(value, key, value2=None)
 
         If value2 is not None, set value[key] to value2, \
-else set the variable key to value.
+else set the variable with the given name to the given value.
 
         """
         if value2 is not None:
@@ -2736,15 +2754,11 @@ arguments.
         """
 
         if name in self.scope:
-            function = self.scope[name]
-            self.scope = Scope(self.scope)
-            for argument, key in zip(arguments, "ικλμνξπρςστυφχψωαβγδεζηθ"):
-                self.scope[key] = argument
-            result = function()
-            self.scope = self.scope.parent
-            return result
+            return self.scope[name](*arguments)
         elif name in self.hidden:
             return self.hidden[name](*arguments)
+        elif name in Charcoal.secret:
+            return Charcoal.secret[name](*arguments)
 
     def ExecuteVariable(self, name, arguments):
         """
@@ -2755,14 +2769,29 @@ arguments.
 
         """
         if name in self.scope:
-            function = self.scope[name]
+            self.scope[name](*arguments)
+        elif name in self.hidden:
+            self.hidden[name](*arguments)
+        elif name in Charcoal.secret:
+            Charcoal.secret[name](*arguments)
+
+    def Lambdafy(self, function):
+        """
+        Lambdafy(name, function) -> (*arguments -> Any)
+
+        Turns the given Charcoal function into a lambda accepting arguments
+
+        """
+
+        def run(function, arguments):
             self.scope = Scope(self.scope)
             for argument, key in zip(arguments, "ικλμνξπρςστυφχψωαβγδεζηθ"):
                 self.scope[key] = argument
-            function(self)
+            result = function(self)
             self.scope = self.scope.parent
-        elif name in self.hidden:
-            self.hidden[name](*arguments)
+            return result
+
+        return lambda *arguments: run(function, arguments)
 
     def CycleChop(self, iterable, length):
         """
@@ -3525,10 +3554,6 @@ else the result of parsing.
     if grammar == CharcoalToken.Program:
         return str(charcoal)
     return result
-
-from charcoalunicode import Grammar as UnicodeGrammar
-from nearley import Parser
-unicode_parser = Parser(UnicodeGrammar)
 
 
 def GetProgram(

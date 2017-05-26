@@ -70,6 +70,8 @@ def create_expression(value):
     value_type = type(value)
     if value is None:
         return None
+    elif callable(value):
+        return value
     elif isinstance(value, Expression):
         return value
     elif value_type == complex:
@@ -540,10 +542,9 @@ class Pattern(Expression):
         return repr(self.leaves[0])
 
     def __add__(self, other):
-        other_type = type(other)
-        if other_type == Pattern:
+        if isinstance(other, Pattern):
             return Pattern(self.leaves[0] + other.leaves[0])
-        if other_type == String:
+        if isinstance(other, String):
             return Pattern(self.leaves[0] + re_escape(other.leaves[0]))
 
     def __radd__(self, other):
@@ -556,22 +557,23 @@ class Pattern(Expression):
     def __eq__(self, other):
         return self.leaves[0] == other.leaves[0]
 
-_ = Pattern(r".")
-__ = Pattern(r".+")
-___ = Pattern(r".*")
-StartOfString = Pattern(r"^")
-EndOfString = Pattern(r"$")
-StartOfLine = Pattern(r"\A")
-EndOfLine = Pattern(r"\Z")
-Whitespace = Pattern(r"\s+")
-NumberString = Pattern(r"\d+.?\d*")
-WordCharacter = Pattern(r"(?:\p{L}|[0-9])")
-LetterCharacter = Pattern(r"\p{L}")
-DigitCharacter = Pattern(r"[0-9]")
-HexadecimalCharacter = Pattern(r"[0-9a-fA-F]")
-WhitespaceCharacter = Pattern(r"\s")
-PunctuationCharacter = Pattern(r"\p{P}")
-WordBoundary = Pattern(r"\b")
+# _p is stripped
+_p_ = Pattern(r".")
+_p__ = Pattern(r".+")
+_p___ = Pattern(r".*")
+SOS = StartOfString = Pattern(r"^")
+EOS = EndOfString = Pattern(r"$")
+SOL = StartOfLine = Pattern(r"\A")
+EOL = EndOfLine = Pattern(r"\Z")
+Ws = Whitespace = Pattern(r"\s+")
+NS = NumberString = Pattern(r"\d+.?\d*")
+WC = WordCharacter = Pattern(r"(?:\p{L}|[0-9])")
+LC = LetterCharacter = Pattern(r"\p{L}")
+DC = DigitCharacter = Pattern(r"[0-9]")
+HC = HexadecimalCharacter = Pattern(r"[0-9a-fA-F]")
+WsC = WhitespaceCharacter = Pattern(r"\s")
+PC = PunctuationCharacter = Pattern(r"\p{P}")
+WB = WordBoundary = Pattern(r"\b")
 
 # TODO: PatternTest (_ ? LetterQ)
 
@@ -744,13 +746,13 @@ class Wolfram(object):
     pattern_test_lookup = {}
 
     def PatternTest(leaves, precision=10):
-        if leaves[0] == _:
+        if leaves[0] == _p_:
             return Wolfram.pattern_test_lookup[leaves[1]]
-        if leaves[0] == __:
+        if leaves[0] == _p__:
             return Pattern(
                 "(?:%s)+" * str(pattern_test_lookup[leaves[1]])
             )
-        if leaves[0] == ___:
+        if leaves[0] == _p___:
             return Pattern(
                 "(?:%s)*" * str(pattern_test_lookup[leaves[1]])
             )
@@ -836,17 +838,19 @@ class Wolfram(object):
                 max(1, len(result) - (not(result[-1])))
             ])
         splitter = leaves[1]
+        if isinstance(splitter, Pattern):
+            result = split(ignorecase + str(splitter), string, maxsplit)
+            return create_expression(result[
+                not result[0]:
+                max(1, len(result) - (not(result[-1])))
+            ])
+        # if callable(splitter) and not isinstance(splitter, Expression):
+            # It's a lambda
         splitter_type = type(leaves[1])
         if splitter_type == String:
             result = (
                 split(ignorecase + re_escape(str(splitter)), string, maxsplit)
             )
-            return create_expression(result[
-                not result[0]:
-                max(1, len(result) - (not(result[-1])))
-            ])
-        if isinstance(splitter, Pattern):
-            result = split(ignorecase + str(splitter), string, maxsplit)
             return create_expression(result[
                 not result[0]:
                 max(1, len(result) - (not(result[-1])))

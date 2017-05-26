@@ -179,7 +179,7 @@ UnicodeGrammars = {
         ["⌈"],
         ["℅"],
         ["⮌"],
-        ["ＵＧ"],
+        ["≕"],
         ["″"],
         ["‴"]
     ],
@@ -193,6 +193,8 @@ UnicodeGrammars = {
         ["⁼"],
         ["‹"],
         ["›"],
+        ["＆"],
+        ["｜"],
         ["…·"],
         ["…"],
         ["Ｘ"],
@@ -223,7 +225,7 @@ UnicodeGrammars = {
     CharcoalToken.OtherOperator: [
         ["ＫＤ", CharcoalToken.Expression, CharcoalToken.Arrow],
         ["Ｅ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["ＵＶ", CharcoalToken.Expression, CharcoalToken.WolframList]
+        ["▷", CharcoalToken.Expression, CharcoalToken.WolframList]
     ],
 
     CharcoalToken.Program: [
@@ -295,22 +297,18 @@ UnicodeGrammars = {
         ["‖Ｔ", CharcoalToken.Arrow],
         ["‖Ｔ"],
         ["⟲Ｐ", CharcoalToken.Arrow, CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｐ", CharcoalToken.Arrow, CharcoalToken.List],
         ["⟲Ｐ", CharcoalToken.Arrow, CharcoalToken.Expression],
         ["⟲Ｐ", CharcoalToken.Arrow],
         ["⟲Ｐ", CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｐ", CharcoalToken.List],
         ["⟲Ｐ", CharcoalToken.Expression],
         ["⟲Ｐ"],
         ["‖Ｍ", CharcoalToken.ArrowList],
         ["‖Ｍ", CharcoalToken.Arrow],
         ["‖Ｍ"],
         ["⟲Ｃ", CharcoalToken.Arrow, CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｃ", CharcoalToken.Arrow, CharcoalToken.List],
         ["⟲Ｃ", CharcoalToken.Arrow, CharcoalToken.Expression],
         ["⟲Ｃ", CharcoalToken.Arrow],
         ["⟲Ｃ", CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｃ", CharcoalToken.List],
         ["⟲Ｃ", CharcoalToken.Expression],
         ["⟲Ｃ"],
         ["‖Ｃ", CharcoalToken.ArrowList],
@@ -326,12 +324,6 @@ UnicodeGrammars = {
         [
             "⟲ＯＯ",
             CharcoalToken.Arrow,
-            CharcoalToken.List,
-            CharcoalToken.Expression
-        ],
-        [
-            "⟲ＯＯ",
-            CharcoalToken.Arrow,
             CharcoalToken.Expression,
             CharcoalToken.Expression
         ],
@@ -342,7 +334,6 @@ UnicodeGrammars = {
             CharcoalToken.Separator,
             CharcoalToken.Expression
         ],
-        ["⟲ＯＯ", CharcoalToken.List, CharcoalToken.Expression],
         ["⟲ＯＯ", CharcoalToken.Expression, CharcoalToken.Expression],
         ["⟲ＯＯ", CharcoalToken.Expression],
         [
@@ -351,11 +342,9 @@ UnicodeGrammars = {
             CharcoalToken.Number,
             CharcoalToken.Separator
         ],
-        ["⟲Ｏ", CharcoalToken.Arrow, CharcoalToken.List],
         ["⟲Ｏ", CharcoalToken.Arrow, CharcoalToken.Expression],
         ["⟲Ｏ", CharcoalToken.Arrow],
         ["⟲Ｏ", CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｏ", CharcoalToken.List],
         ["⟲Ｏ", CharcoalToken.Expression],
         ["⟲Ｏ"],
         [
@@ -363,12 +352,6 @@ UnicodeGrammars = {
             CharcoalToken.Arrow,
             CharcoalToken.Number,
             CharcoalToken.Separator,
-            CharcoalToken.Expression
-        ],
-        [
-            "⟲ＳＯ",
-            CharcoalToken.Arrow,
-            CharcoalToken.List,
             CharcoalToken.Expression
         ],
         [
@@ -384,7 +367,6 @@ UnicodeGrammars = {
             CharcoalToken.Separator,
             CharcoalToken.Expression
         ],
-        ["⟲ＳＯ", CharcoalToken.List, CharcoalToken.Expression],
         ["⟲ＳＯ", CharcoalToken.Expression, CharcoalToken.Expression],
         ["⟲ＳＯ", CharcoalToken.Expression],
         [
@@ -393,11 +375,9 @@ UnicodeGrammars = {
             CharcoalToken.Number,
             CharcoalToken.Separator
         ],
-        ["⟲Ｓ", CharcoalToken.Arrow, CharcoalToken.List],
         ["⟲Ｓ", CharcoalToken.Arrow, CharcoalToken.Expression],
         ["⟲Ｓ", CharcoalToken.Arrow],
         ["⟲Ｓ", CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｓ", CharcoalToken.List],
         ["⟲Ｓ", CharcoalToken.Expression],
         ["⟲Ｓ"],
         ["‖ＯＯ", CharcoalToken.ArrowList, CharcoalToken.Expression],
@@ -455,8 +435,8 @@ UnicodeGrammars = {
         ["⊞", CharcoalToken.Expression, CharcoalToken.Expression],
         ["≡", CharcoalToken.Expression, CharcoalToken.Cases, CharcoalToken.Body],
         ["ＵＭ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["ＵＸ", CharcoalToken.Expression, CharcoalToken.WolframList],
-        ["ＵＳ", CharcoalToken.Expression, CharcoalToken.Expression]
+        ["▶", CharcoalToken.Expression, CharcoalToken.WolframList],
+        ["≔", CharcoalToken.Expression, CharcoalToken.Expression]
     ]
 }
 

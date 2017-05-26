@@ -31,13 +31,14 @@ for other, ascii_character in zip("¿‖´·¤¦⎚…§⎆⎈⌀", "?;`.o: _$,&
     # not sure about ;
     add_character(other, chr(ord(ascii_character) + 128))
 for replacement, replaced in zip(
-    "¶⎇‽；∧∨“”↧↥⌊⌈±⊞⊟➙⧴″‴",
-    "\n\x15\x16\x00\x01\x02\x03\x04\x17\x18\x19\x1A\x1B\x05\x06\x07\x08\x0A\x0B"
+    "¶⎇‽；∧∨“”↧↥⌊⌈±⊞⊟➙⧴″‴＆｜",
+    "\n\x15\x16\x00\x01\x02\x03\x04\x17\x18\x19\x1A\x1B\x05\x06\x07\x08\x0A\x0B\
+\x0C\x0D"
 ):
     add_character(replacement, replaced)
 for high, low in zip(
-    "？⪫⪪℅◧◨⮌⌕≡№",
-    "\x00\x01\x02\x03\x04\x05\x06\x1B\x07\x08"
+    "？⪫⪪℅◧◨⮌⌕≡№≔≕▷▶",
+    "\x00\x01\x02\x03\x04\x05\x06\x1B\x07\x08\x0C\x0D\x0E\x0F"
 ):
     add_character(high, chr(ord(low) + 128))
 #rule and rule delayed = ➙⧴
@@ -75,25 +76,18 @@ def InCodepage(character):
         (character <= "\xFF" and character != "\n") or
                 (character >= "α" and character <= "ω" and character != "ο") or
                 (character >= "Ａ" and character <= "Ｚ") or
-                character in "⁰¹²³⁴⁵⁶⁷⁸⁹\
-⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›\
-←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖´·¤¦“”⎚¶…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№"
+                character in "⁰¹²³⁴⁵⁶⁷⁸⁹⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›＆｜←↑→↓↖↗↘↙\
+↶↷⟲¿‽‖´·¤¦“”⎚¶…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№≔≕▷▶"
     )
 
-UnicodeCommands = "\
-ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ\
-⁰¹²³⁴⁵⁶⁷⁸⁹\
-αβγδεζηθικλμνξπρσςτυφχψω\
-⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›\
-←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№"
-UnicodeCommandRegex = "\
-Ａ-Ｚ⁰¹²³⁴-⁹αβγδεζηθικλμνξπρσςτυφχψω\
-⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›←-↓↖-↙\
-↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№"
+UnicodeCommands = "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ\
+⁰¹²³⁴⁵⁶⁷⁸⁹αβγδεζηθικλμνξπρσςτυφχψω⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›＆｜←↑→↓↖↗↘↙\
+↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№≔≕▷▶"
+UnicodeCommandRegex = "Ａ-Ｚ⁰¹²³⁴-⁹α-ξπ-ω⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›＆｜←-↓↖-↙\
+↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№≔≕▷▶"
 sCommand = "[%s]" % UnicodeCommandRegex
 sOperator = """\
-[ＳＮ‽¬Ｉ‽Ｖ⊟➙⧴″‴↧↥⌊⌈℅⮌⁺⁻×÷∕﹪⁼‹›…Ｘ§？⪫⪪⌕◧◨№⎇Ｅ∧∨]|Ｋ.|±Ｌ|⊞Ｏ|⌕Ａ"""
+[ＳＮ‽¬Ｉ‽Ｖ⊟➙⧴″‴↧↥⌊⌈℅⮌⁺⁻×÷∕﹪⁼‹›＆｜…Ｘ§？⪫⪪⌕◧◨№⎇Ｅ∧∨▷≕]\
+|Ｋ.|±Ｌ|⊞Ｏ|⌕Ａ"""
 rCommand = re.compile("(%s)" % sCommand)
 rOperator = re.compile("(%s)" % sOperator)

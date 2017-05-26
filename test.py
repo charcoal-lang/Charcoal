@@ -361,7 +361,7 @@ cbabc
         self.assertEqual(Run("Ｆ⁵a"), "aaaaa")
         self.assertEqual(Run("ＦabcιＦdefι"), "abcdef")
         self.assertEqual(Run("Ａ⁵ιＦＳκ", "foobar"), "foobar")
-        self.assertEqual(Run("ＵＳ«ικλ»iＵＸi⟦a¦bc¦d⟧"), "abcd")
+        self.assertEqual(Run("≔i«ικλ»▶i⟦a¦bc¦d⟧"), "abcd")
         self.assertEqual(Run("for(5)Print('a')", verbose=True), "aaaaa")
         self.assertEqual(
             Run(
@@ -1488,49 +1488,73 @@ foofoofoofoofoo""")
 
     def test_wolfram(self):
         # TODO: official examples for number things
-        self.assertEqual(Run("ＵＶIntegerQ⟦¹⟧"), "-")
-        self.assertEqual(Run("ＵＶIntegerQ⟦¹·¹⟧"), "")
-        self.assertEqual(Run("ＵＶOddQ⟦¹⟧"), "-")
-        self.assertEqual(Run("ＵＶOddQ⟦²⟧"), "")
-        self.assertEqual(Run("ＵＶEvenQ⟦²⟧"), "-")
-        self.assertEqual(Run("ＵＶEvenQ⟦¹⟧"), "")
-        self.assertEqual(Run("ＵＶLog10⟦¹²³⁸¹⁹⟧"), "-----")
-        self.assertEqual(Run("ＩＵＶN⟦ＵＧPiχ⟧"), "3.141592653")
-        self.assertEqual(Run("ＩＵＶN⟦ＵＧPi⟧"), "3.141592653")
-        self.assertEqual(Run("ＩＵＶN⟦ＵＧDegree⟧"), "0.01745329251")
-        self.assertEqual(Run("ＵＶStringJoin⟦⟦ab¦cd⟧xy⟧"), """\
+        self.assertEqual(Run("▷IntegerQ⟦¹⟧"), "-")
+        self.assertEqual(Run("▷IntegerQ⟦¹·¹⟧"), "")
+        self.assertEqual(Run("▷OddQ⟦¹⟧"), "-")
+        self.assertEqual(Run("▷OddQ⟦²⟧"), "")
+        self.assertEqual(Run("▷EvenQ⟦²⟧"), "-")
+        self.assertEqual(Run("▷EvenQ⟦¹⟧"), "")
+        self.assertEqual(Run("▷Log10⟦¹²³⁸¹⁹⟧"), "-----")
+        self.assertEqual(Run("Ｉ▷N⟦≕Piχ⟧"), "3.141592653")
+        self.assertEqual(Run("Ｉ▷N⟦≕Pi⟧"), "3.141592653")
+        self.assertEqual(Run("Ｉ▷N⟦≕Degree⟧"), "0.01745329251")
+        self.assertEqual(Run("▷StringJoin⟦⟦ab¦cd⟧xy⟧"), """\
 abcdxy""")
-        self.assertEqual(Run("ＵＶStringLength⟦tiger⟧"), "-----")
+        self.assertEqual(Run("▷StringLength⟦tiger⟧"), "-----")
         self.assertEqual(Run("""\
-ＵＶStringLength⟦⟦cat¦dog¦fish¦coelenterate⟧⟧"""), """\
+▷StringLength⟦⟦cat¦dog¦fish¦coelenterate⟧⟧"""), """\
 ---         
 ---         
 ----        
 ------------""")
-        self.assertEqual(Run("ＵＶStringLength⟦◆´α´β´γ⟷ℬ↵⟧"), "---------")
-        self.assertEqual(Run("ＵＶStringLength⟦ab¶cd⟧"), "-----")
-        self.assertEqual(Run("ＵＶStringLength⟦ω⟧"), "")
-        self.assertEqual(Run("ＵＶStringLength⟦´α´β´γ⟧"), "---")
-        self.assertEqual(Run("ＵＶStringSplit⟦a bbb cccc aa d⟧"), """\
+        self.assertEqual(Run("▷StringLength⟦◆´α´β´γ⟷ℬ↵⟧"), "---------")
+        self.assertEqual(Run("▷StringLength⟦ab¶cd⟧"), "-----")
+        self.assertEqual(Run("▷StringLength⟦ω⟧"), "")
+        self.assertEqual(Run("▷StringLength⟦´α´β´γ⟧"), "---")
+        self.assertEqual(Run("▷StringSplit⟦a bbb cccc aa d⟧"), """\
 a   \nbbb \ncccc\naa  \nd   """)
-        self.assertEqual(Run("ＵＶStringSplit⟦a--bbb--cccc--aa--d¦--⟧"), """\
-a   \nbbb \ncccc\naa  \nd   """)
-        self.assertEqual(Run("ＵＶStringSplit⟦the cat in the hat⟧"), """\
+        self.assertEqual(Run("▷StringSplit⟦a--bbb---ccc--dddd¦--⟧"), """\
+a   \nbbb \n-ccc\ndddd""")
+        self.assertEqual(Run("▷StringSplit⟦the cat in the hat⟧"), """\
 the\ncat\nin \nthe\nhat""")
-        self.assertEqual(Run("ＵＶStringSplit⟦192.168.0.1¦.⟧"), """\
+        self.assertEqual(Run("▷StringSplit⟦192.168.0.1¦.⟧"), """\
 192\n168\n0  \n1  """)
         self.assertEqual(Run("""\
-ＵＶStringSplit⟦123 2.3 4 6‴ＵＧWhitespaceCharacter⟧"""), """\
-123
-2.3
-4  
-6  """)
-        self.assertEqual(Run("ＵＶStringSplit⟦a-b:c-d:e-f-g¦⟦:¦-⟧⟧"), """\
-a\nb\nc\nd\ne\nf\ng""")
-        self.assertEqual(Run("ＵＶStringSplit⟦a b::c d::e f g➙::¦--⟧"), """\
-a b  \n--   \nc d  \n--   \ne f g""")
+▷StringSplit⟦123 2.3 4 6‴≕WhitespaceCharacter⟧"""), """\
+123\n2.3\n4  \n6  """)
         self.assertEqual(Run("""\
-ＵＶStringSplit⟦⟦a:b:c:d¦listable:element⟧:⟧"""), """\
+▷StringSplit⟦11a22b3？≕_≕LetterQ⟧"""), "11\n22\n3 ")
+        self.assertEqual(Run("""\
+▷StringSplit⟦A tree, an apple, four pears. And more: two sacks\
+▷RegularExpression⟦\W+⟧⟧"""), """\
+A    
+tree 
+an   
+apple
+four 
+pears
+And  
+more 
+two  
+sacks""")
+        self.assertEqual(Run("""\
+▷StringSplit⟦primes: 2 two 3 three 5 five ...\
+⁺⁺≕Whitespace▷RegularExpression⟦\d⟧≕Whitespace⟧"""), """\
+primes: 
+two     
+three   
+five ...""")
+        self.assertEqual(Run("▷StringSplit⟦a-b:c-d:e-f-g¦⟦:¦-⟧⟧"), """\
+a\nb\nc\nd\ne\nf\ng""")
+        self.assertEqual(Run("▷StringSplit⟦a-b:c-d:e-f-g¦｜:¦-⟧"), """\
+a\nb\nc\nd\ne\nf\ng""")
+        self.assertEqual(Run("▷StringSplit⟦a b::c d::e f g➙::¦--⟧"), """\
+a b  \n--   \nc d  \n--   \ne f g""")
+# TODO: DelayedRule, naming etc
+#         self.assertEqual(Run("▷StringSplit⟦a--b c--d e«➙--ι»⟧"), """\
+# a  \n-- \nb c\n-- \nd e""")
+        self.assertEqual(Run("""\
+▷StringSplit⟦⟦a:b:c:d¦listable:element⟧:⟧"""), """\
 a       
 b       
 c       
@@ -1539,85 +1563,85 @@ d
 listable
 element """)
         self.assertEqual(Run("""\
-ＵＶStringSplit⟦cat Cat hat CAT¦c➙ＵＧIgnoreCaseＵＧTrue⟧"""), """\
+▷StringSplit⟦cat Cat hat CAT¦c➙≕IgnoreCase≕True⟧"""), """\
 at     
 at hat 
 AT     """)
-        self.assertEqual(Run("ＵＶStringTake⟦abcdefghijklm⁶⟧"), "abcdef")
-        self.assertEqual(Run("ＵＶStringTake⟦abcdefghijklm±⁴⟧"), "jklm")
-        self.assertEqual(Run("ＵＶStringTake⟦abcdefghijklm⟦⁵¦¹⁰⟧⟧"), "efghij")
-        self.assertEqual(Run("ＵＶStringTake⟦abcdefghijklm⟦⁶⟧⟧"), "f")
-        self.assertEqual(Run("ＵＶStringTake⟦abcdefghijklm⟦¹±¹¦²⟧⟧"), "acegikm")
-        self.assertEqual(Run("ＵＶStringTake⟦⟦abcdef¦stuv¦xyzw⟧±²⟧"), """\
+        self.assertEqual(Run("▷StringTake⟦abcdefghijklm⁶⟧"), "abcdef")
+        self.assertEqual(Run("▷StringTake⟦abcdefghijklm±⁴⟧"), "jklm")
+        self.assertEqual(Run("▷StringTake⟦abcdefghijklm⟦⁵¦¹⁰⟧⟧"), "efghij")
+        self.assertEqual(Run("▷StringTake⟦abcdefghijklm⟦⁶⟧⟧"), "f")
+        self.assertEqual(Run("▷StringTake⟦abcdefghijklm⟦¹±¹¦²⟧⟧"), "acegikm")
+        self.assertEqual(Run("▷StringTake⟦⟦abcdef¦stuv¦xyzw⟧±²⟧"), """\
 ef\nuv\nzw""")
-        self.assertEqual(Run("ＵＶStringTake⟦◆´α´β´γ⟷ℬ↵±⁴⟧"), "ℬ↵")
-        self.assertEqual(Run("ＵＶStringTake⟦abcＵＶUpTo⟦⁴⟧⟧"), "abc")
-        self.assertEqual(Run("ＵＶStringDrop⟦abcdefghijklm⁴⟧"), "efghijklm")
-        self.assertEqual(Run("ＵＶStringDrop⟦abcdefghijklm±⁴⟧"), "abcdefghi")
-        self.assertEqual(Run("ＵＶStringDrop⟦abcdefghijklm⟦⁵¦¹⁰⟧⟧"), "abcdklm")
-        self.assertEqual(Run("ＵＶStringDrop⟦abcdefghijklm⟦³⟧⟧"), """\
+        self.assertEqual(Run("▷StringTake⟦◆´α´β´γ⟷ℬ↵±⁴⟧"), "ℬ↵")
+        self.assertEqual(Run("▷StringTake⟦abc▷UpTo⟦⁴⟧⟧"), "abc")
+        self.assertEqual(Run("▷StringDrop⟦abcdefghijklm⁴⟧"), "efghijklm")
+        self.assertEqual(Run("▷StringDrop⟦abcdefghijklm±⁴⟧"), "abcdefghi")
+        self.assertEqual(Run("▷StringDrop⟦abcdefghijklm⟦⁵¦¹⁰⟧⟧"), "abcdklm")
+        self.assertEqual(Run("▷StringDrop⟦abcdefghijklm⟦³⟧⟧"), """\
 abdefghijklm""")
-        self.assertEqual(Run("ＵＶStringDrop⟦abcdefghijklm⟦¹±¹¦²⟧⟧"), "bdfhjl")
-        self.assertEqual(Run("ＵＶStringDrop⟦⟦abcdef¦xyzw¦stuv⟧±²⟧"), """\
+        self.assertEqual(Run("▷StringDrop⟦abcdefghijklm⟦¹±¹¦²⟧⟧"), "bdfhjl")
+        self.assertEqual(Run("▷StringDrop⟦⟦abcdef¦xyzw¦stuv⟧±²⟧"), """\
 abcd\nxy  \nst  """)
-        self.assertEqual(Run("ＵＶStringDrop⟦◆´α´β´γ⟷ℬ↵±⁴⟧"), "◆αβγ⟷")
-        self.assertEqual(Run("ＵＶStringDrop⟦abcＵＶUpTo⟦⁴⟧⟧"), "")
-        self.assertEqual(Run("ＵＶStringPart⟦abcdefghijklm⁶⟧"), "f")
-        self.assertEqual(Run("ＵＶStringPart⟦abcdefghijklm⟦¹¦³¦⁵⟧⟧"), "a\nc\ne")
-        self.assertEqual(Run("ＵＶStringPart⟦abcdefghijklm±⁴⟧"), "j")
-        self.assertEqual(Run("ＵＶStringPart⟦abcdefghijklm¹；⁶⟧"), """\
+        self.assertEqual(Run("▷StringDrop⟦◆´α´β´γ⟷ℬ↵±⁴⟧"), "◆αβγ⟷")
+        self.assertEqual(Run("▷StringDrop⟦abc▷UpTo⟦⁴⟧⟧"), "")
+        self.assertEqual(Run("▷StringPart⟦abcdefghijklm⁶⟧"), "f")
+        self.assertEqual(Run("▷StringPart⟦abcdefghijklm⟦¹¦³¦⁵⟧⟧"), "a\nc\ne")
+        self.assertEqual(Run("▷StringPart⟦abcdefghijklm±⁴⟧"), "j")
+        self.assertEqual(Run("▷StringPart⟦abcdefghijklm¹；⁶⟧"), """\
 a\nb\nc\nd\ne\nf""")
-        self.assertEqual(Run("ＵＶStringPart⟦abcdefghijklm¹；±¹；²⟧"), """\
+        self.assertEqual(Run("▷StringPart⟦abcdefghijklm¹；±¹；²⟧"), """\
 a\nc\ne\ng\ni\nk\nm""")
-        self.assertEqual(Run("ＵＶStringPart⟦abcdefghijklm±¹；¹；±²⟧"), """\
+        self.assertEqual(Run("▷StringPart⟦abcdefghijklm±¹；¹；±²⟧"), """\
 m\nk\ni\ng\ne\nc\na""")
-        self.assertEqual(Run("ＵＶStringPart⟦⟦abcd¦efgh¦ijklm⟧¹⟧"), """\
+        self.assertEqual(Run("▷StringPart⟦⟦abcd¦efgh¦ijklm⟧¹⟧"), """\
 a\ne\ni""")
-        self.assertEqual(Run("ＵＶStringPart⟦◆´α´β´γ⟷ℬ↵±⁴⟧"), "")
-        self.assertEqual(Run("ＵＶStringReplace⟦abbaabbaa➙ab¦X⟧"), "XbaXbaa")
-        self.assertEqual(Run("ＵＶStringReplace⟦abcddbbcbbbacbbaa➙bb¦X²⟧"), """\
+        self.assertEqual(Run("▷StringPart⟦◆´α´β´γ⟷ℬ↵±⁴⟧"), "")
+        self.assertEqual(Run("▷StringReplace⟦abbaabbaa➙ab¦X⟧"), "XbaXbaa")
+        self.assertEqual(Run("▷StringReplace⟦abcddbbcbbbacbbaa➙bb¦X²⟧"), """\
 abcddXcXbacbbaa""")
         self.assertEqual(Run("""\
-ＵＶStringReplace⟦abcdabcdaabcabcd⟦➙abc¦Y➙d¦XXX⟧⟧"""), """\
+▷StringReplace⟦abcdabcdaabcabcd⟦➙abc¦Y➙d¦XXX⟧⟧"""), """\
 YXXXYXXXaYYXXX""")
-        self.assertEqual(Run("ＵＶStringReplace⟦product: A ⊕ B➙⊕¦x⟧"), """\
+        self.assertEqual(Run("▷StringReplace⟦product: A ⊕ B➙⊕¦x⟧"), """\
 product: A x B""")
         self.assertEqual(Run("""\
-ＵＶStringReplace⟦⟦aaabbbbaaaa¦bbbaaaab¦aaabab⟧➙ab¦X⟧"""), """\
+▷StringReplace⟦⟦aaabbbbaaaa¦bbbaaaab¦aaabab⟧➙ab¦X⟧"""), """\
 aaXbbbaaaa
 bbbaaaX   
 aaXX      """)
-        self.assertEqual(Run("ＵＶStringCount⟦abbaabbaa¦bb⟧"), "--")
-        self.assertEqual(Run("ＵＶStringStartsQ⟦abcd¦a⟧"), "-")
-        self.assertEqual(Run("ＵＶStringStartsQ⟦quickSort¦quick⟧"), "-")
-        self.assertEqual(Run("ＵＶStringStartsQ⟦United States¦United⟧"), "-")
+        self.assertEqual(Run("▷StringCount⟦abbaabbaa¦bb⟧"), "--")
+        self.assertEqual(Run("▷StringStartsQ⟦abcd¦a⟧"), "-")
+        self.assertEqual(Run("▷StringStartsQ⟦quickSort¦quick⟧"), "-")
+        self.assertEqual(Run("▷StringStartsQ⟦United States¦United⟧"), "-")
         self.assertEqual(Run("""\
-ＵＶStringStartsQ⟦⟦int1¦int2¦int3¦float1¦float2¦longint1⟧¦int⟧"""), """\
+▷StringStartsQ⟦⟦int1¦int2¦int3¦float1¦float2¦longint1⟧¦int⟧"""), """\
 -
 -
 -""")
         self.assertEqual(Run("""\
-ＵＶStringStartsQ⟦Abcd¦a➙ＵＧIgnoreCaseＵＧFalse⟧"""), "")
+▷StringStartsQ⟦Abcd¦a➙≕IgnoreCase≕False⟧"""), "")
         self.assertEqual(Run("""\
-ＵＶStringStartsQ⟦Abcd¦a➙ＵＧIgnoreCaseＵＧTrue⟧"""), "-")
-        self.assertEqual(Run("ＵＶStringEndsQ⟦abcd¦d⟧"), "-")
-        self.assertEqual(Run("ＵＶStringEndsQ⟦abcd¦a⟧"), "")
-        self.assertEqual(Run("ＵＶStringEndsQ⟦quickSort¦Sort⟧"), "-")
-        self.assertEqual(Run("ＵＶStringEndsQ⟦Great Dane¦Dane⟧"), "-")
+▷StringStartsQ⟦Abcd¦a➙≕IgnoreCase≕True⟧"""), "-")
+        self.assertEqual(Run("▷StringEndsQ⟦abcd¦d⟧"), "-")
+        self.assertEqual(Run("▷StringEndsQ⟦abcd¦a⟧"), "")
+        self.assertEqual(Run("▷StringEndsQ⟦quickSort¦Sort⟧"), "-")
+        self.assertEqual(Run("▷StringEndsQ⟦Great Dane¦Dane⟧"), "-")
         self.assertEqual(Run("""\
-ＵＶStringEndsQ⟦abcd¦D➙ＵＧIgnoreCaseＵＧFalse⟧"""), "")
+▷StringEndsQ⟦abcd¦D➙≕IgnoreCase≕False⟧"""), "")
         self.assertEqual(Run("""\
-ＵＶStringEndsQ⟦abcD¦d➙ＵＧIgnoreCaseＵＧTrue⟧"""), "-")
+▷StringEndsQ⟦abcD¦d➙≕IgnoreCase≕True⟧"""), "-")
         self.assertEqual(Run("""\
-ＵＶStringContainsQ⟦⟦a¦b¦ab¦abcd¦bcde⟧¦a⟧"""), """\
+▷StringContainsQ⟦⟦a¦b¦ab¦abcd¦bcde⟧¦a⟧"""), """\
 -
  
 -
 -""")
         self.assertEqual(Run("""\
-ＵＶStringContainsQ⟦abcd¦BC➙ＵＧIgnoreCaseＵＧFalse⟧"""), "")
+▷StringContainsQ⟦abcd¦BC➙≕IgnoreCase≕False⟧"""), "")
         self.assertEqual(Run("""\
-ＵＶStringContainsQ⟦abcd¦BC➙ＵＧIgnoreCaseＵＧTrue⟧"""), "-")
+▷StringContainsQ⟦abcd¦BC➙≕IgnoreCase≕True⟧"""), "-")
 
     def test_preinitialized(self):
         self.assertEqual(Run("θ", "a b c d e"), "a")
@@ -1740,7 +1764,7 @@ Fill('3.141592653589793238462643383279502884197169')""", verbose=True),
             pi_slice
         )
         self.assertEqual(Run("""\
-×⁶()↙↓¹⁰↖↖¹⁰↓↓²↘⁸Ｍ↑__↖←¤:↗¤ＵＧPi"""), pi_slice)
+×⁶()↙↓¹⁰↖↖¹⁰↓↓²↘⁸Ｍ↑__↖←¤:↗¤≕Pi"""), pi_slice)
         self.assertEqual(
             Run("__↗¹←↑¹↖²←_↘‖Ｍ←¤Ｓ", "#"), """\
   __  

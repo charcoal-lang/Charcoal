@@ -175,7 +175,7 @@ StringifierProcessor = {
         lambda result: "℅",
         lambda result: "℅",
         lambda result: "⮌",
-        lambda result: "ＵＧ",
+        lambda result: "≕",
         lambda result: "″",
         lambda result: "‴"
     ],
@@ -203,6 +203,10 @@ StringifierProcessor = {
         lambda result: "‹",
         lambda result: "›",
         lambda result: "›",
+        lambda reuslt: "＆",
+        lambda reuslt: "＆",
+        lambda reuslt: "｜",
+        lambda reuslt: "｜",
         lambda result: "…·",
         lambda result: "…",
         lambda result: "…",
@@ -242,8 +246,8 @@ StringifierProcessor = {
         lambda result: "Ｅ" + result[2] + result[3],
         lambda result: "ＵＰ" + result[2] + result[3],
         lambda result: "ＵＰ" + result[2],
-        lambda result: "ＵＶ" + result[2] + result[3],
-        lambda result: "ＵＶ" + result[2] + result[3]
+        lambda result: "▷" + result[2] + result[3],
+        lambda result: "▷" + result[2] + result[3]
     ],
 
     CharcoalToken.Program: [
@@ -370,8 +374,8 @@ StringifierProcessor = {
         lambda result: "≡" + result[2] + result[5] + result[8],
         lambda result: "≡" + result[2] + result[5],
         lambda result: "ＵＭ" + result[2] + result[3],
-        lambda result: "ＵＸ" + result[2] + result[3],
-        lambda result: "ＵＳ" + result[2] + result[3]
+        lambda result: "▶" + result[2] + result[3],
+        lambda result: "≔" + result[2] + result[3]
     ]
 }
 
