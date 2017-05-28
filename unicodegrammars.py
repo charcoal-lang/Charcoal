@@ -1,442 +1,255 @@
-from charcoaltoken import CharcoalToken
+from charcoaltoken import CharcoalToken as CT
 import re
 
 UnicodeGrammars = {
-    CharcoalToken.Arrow: [
-        ["←"],
-        ["↑"],
-        ["→"],
-        ["↓"],
-        ["↖"],
-        ["↗"],
-        ["↘"],
-        ["↙"]
+    CT.Arrow: [
+        ["←"], ["↑"], ["→"], ["↓"], ["↖"], ["↗"], ["↘"], ["↙"]
     ],
-    CharcoalToken.Multidirectional: [
-        [CharcoalToken.Arrows],
-        ["+", CharcoalToken.Multidirectional],
-        ["X", CharcoalToken.Multidirectional],
-        ["*", CharcoalToken.Multidirectional],
-        ["|", CharcoalToken.Multidirectional],
-        ["-", CharcoalToken.Multidirectional],
-        ["\\", CharcoalToken.Multidirectional],
-        ["/", CharcoalToken.Multidirectional],
-        ["<", CharcoalToken.Multidirectional],
-        [">", CharcoalToken.Multidirectional],
-        ["^", CharcoalToken.Multidirectional],
-        ["K", CharcoalToken.Multidirectional],
-        ["L", CharcoalToken.Multidirectional],
-        ["T", CharcoalToken.Multidirectional],
-        ["V", CharcoalToken.Multidirectional],
-        ["Y", CharcoalToken.Multidirectional],
-        ["7", CharcoalToken.Multidirectional],
-        ["¬", CharcoalToken.Multidirectional],
+    CT.Multidirectional: [
+        [CT.Arrows],
+        ["+", CT.Multidirectional],
+        ["X", CT.Multidirectional],
+        ["*", CT.Multidirectional],
+        ["|", CT.Multidirectional],
+        ["-", CT.Multidirectional],
+        ["\\", CT.Multidirectional],
+        ["/", CT.Multidirectional],
+        ["<", CT.Multidirectional],
+        [">", CT.Multidirectional],
+        ["^", CT.Multidirectional],
+        ["K", CT.Multidirectional],
+        ["L", CT.Multidirectional],
+        ["T", CT.Multidirectional],
+        ["V", CT.Multidirectional],
+        ["Y", CT.Multidirectional],
+        ["7", CT.Multidirectional],
+        ["¬", CT.Multidirectional],
         []
     ],
-    CharcoalToken.Side: [
-        [CharcoalToken.Arrow, CharcoalToken.Expression]
+    CT.Side: [
+        [CT.Arrow, CT.Expression]
     ],
-    CharcoalToken.Separator: [
-        ["¦"],
-        []
+    CT.Separator: [
+        ["¦"], []
     ],
-    CharcoalToken.Span: [
-        [
-            CharcoalToken.Expression,
-            "；",
-            CharcoalToken.Expression,
-            "；",
-            CharcoalToken.Expression
-        ],
-        [CharcoalToken.Expression, "；", "；", CharcoalToken.Expression],
-        [CharcoalToken.Expression, "；", CharcoalToken.Expression],
-        [CharcoalToken.Expression, "；"],
-        ["；", CharcoalToken.Expression, "；", CharcoalToken.Expression],
-        ["；", CharcoalToken.Expression],
-        ["；", "；", CharcoalToken.Expression],
+    CT.Span: [
+        [CT.Expression, "；", CT.Expression, "；", CT.Expression],
+        [CT.Expression, "；", "；", CT.Expression],
+        [CT.Expression, "；", CT.Expression],
+        [CT.Expression, "；"],
+        ["；", CT.Expression, "；", CT.Expression],
+        ["；", CT.Expression],
+        ["；", "；", CT.Expression],
         ["；", "；"]
     ],
 
-    CharcoalToken.Arrows: [
-        [CharcoalToken.Arrow, CharcoalToken.Arrows],
-        [CharcoalToken.Arrow]
+    CT.Arrows: [
+        [CT.Arrow, CT.Arrows],[CT.Arrow]
     ],
-    CharcoalToken.Sides: [
-        [CharcoalToken.Side, CharcoalToken.Sides],
-        [CharcoalToken.Side]
+    CT.Sides: [
+        [CT.Side, CT.Sides], [CT.Side]
     ],
-    CharcoalToken.Expressions: [
-        [
-            CharcoalToken.Expression,
-            CharcoalToken.Expressions
-        ],
-        [CharcoalToken.Expression]
+    CT.Expressions: [
+        [CT.Expression, CT.Expressions],
+        [CT.Expression]
     ],
-    CharcoalToken.WolframExpressions: [
-        [
-            CharcoalToken.WolframExpression,
-            CharcoalToken.WolframExpressions
-        ],
-        [CharcoalToken.WolframExpression]
+    CT.WolframExpressions: [
+        [CT.WolframExpression, CT.WolframExpressions],
+        [CT.WolframExpression]
     ],
-    CharcoalToken.PairExpressions: [
-        [
-            CharcoalToken.Expression,
-            CharcoalToken.Expression,
-            CharcoalToken.PairExpressions
-        ],
-        [CharcoalToken.Expression, CharcoalToken.Expression]
+    CT.PairExpressions: [
+        [CT.Expression, CT.Expression, CT.PairExpressions],
+        [CT.Expression, CT.Expression]
     ],
-    CharcoalToken.Cases: [
-        [CharcoalToken.Expression, CharcoalToken.Body, CharcoalToken.Cases],
-        []
+    CT.Cases: [
+        [CT.Expression, CT.Body, CT.Cases], []
     ],
 
-    CharcoalToken.WolframList: [
-        ["⟦", CharcoalToken.WolframExpressions, "⟧"],
-        ["⟦", "⟧"]
+    CT.WolframList: [
+        ["⟦", CT.WolframExpressions, "⟧"], ["⟦", "⟧"]
     ],
-    CharcoalToken.List: [
-        ["⟦", CharcoalToken.Expressions, "⟧"],
-        ["⟦", "⟧"]
+    CT.List: [
+        ["⟦", CT.Expressions, "⟧"], ["⟦", "⟧"]
     ],
-    CharcoalToken.ArrowList: [
-        ["⟦", CharcoalToken.Multidirectional, "⟧"],
-        ["⟦", "⟧"]
+    CT.ArrowList: [
+        ["⟦", CT.Multidirectional, "⟧"], ["⟦", "⟧"]
     ],
-    CharcoalToken.Dictionary: [
-        ["⦃", CharcoalToken.PairExpressions, "⦄"],
-        ["⦃", "⦄"]
+    CT.Dictionary: [
+        ["⦃", CT.PairExpressions, "⦄"], ["⦃", "⦄"]
     ],
 
-    CharcoalToken.WolframExpression: [
-        [CharcoalToken.Span, CharcoalToken.Separator],
-        [CharcoalToken.Expression]
+    CT.WolframExpression: [
+        [CT.Span, CT.Separator],
+        [CT.Expression]
     ],
-    CharcoalToken.Expression: [
-        [CharcoalToken.Number, CharcoalToken.Separator],
-        [CharcoalToken.String, CharcoalToken.Separator],
-        [CharcoalToken.Name, CharcoalToken.Separator],
-        [CharcoalToken.List, CharcoalToken.Separator],
-        [CharcoalToken.Dictionary, CharcoalToken.Separator],
-        ["«", CharcoalToken.Program, "»", CharcoalToken.Separator],
-        [
-            CharcoalToken.OtherOperator,
-            CharcoalToken.Separator
-        ],
-        [
-            CharcoalToken.LazyTernary,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        [
-            CharcoalToken.Ternary,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        [
-            CharcoalToken.LazyBinary,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        [
-            CharcoalToken.Binary,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        [
-            CharcoalToken.LazyUnary,
-            CharcoalToken.Expression
-        ],
-        [
-            CharcoalToken.Unary,
-            CharcoalToken.Expression
-        ],
-        [CharcoalToken.Nilary, CharcoalToken.Separator]
+    CT.Expression: [
+        [CT.Number, CT.Separator],
+        [CT.String, CT.Separator],
+        [CT.Name, CT.Separator],
+        [CT.List, CT.Separator],
+        [CT.Dictionary, CT.Separator],
+        ["«", CT.Program, "»", CT.Separator],
+        [CT.OtherOperator, CT.Separator],
+        [CT.LazyTernary, CT.Expression, CT.Expression, CT.Expression],
+        [CT.Ternary, CT.Expression, CT.Expression, CT.Expression],
+        [CT.LazyBinary, CT.Expression, CT.Expression],
+        [CT.Binary, CT.Expression, CT.Expression],
+        [CT.LazyUnary, CT.Expression],
+        [CT.Unary, CT.Expression],
+        [CT.Nilary, CT.Separator]
     ],
-    CharcoalToken.Nilary: [
-        ["Ｓ"],
-        ["Ｎ"],
-        ["‽"],
-        ["ＫＡ"],
-        ["ＫＭ"],
-        ["ＫＶ"],
-        ["ＫＫ"]
+    CT.Nilary: [
+        ["Ｓ"], ["Ｎ"], ["‽"], ["ＫＡ"], ["ＫＭ"], ["ＫＶ"], ["ＫＫ"]
     ],
-    CharcoalToken.Unary: [
-        ["±"],
-        ["Ｌ"],
-        ["¬"],
-        ["Ｉ"],
-        ["‽"],
-        ["Ｖ"],
-        ["⊟"],
-        ["↧"],
-        ["↥"],
-        ["⌊"],
-        ["⌈"],
-        ["℅"],
-        ["⮌"],
-        ["≕"],
-        ["″"],
-        ["‴"]
+    CT.Unary: [
+        ["±"], ["Ｌ"], ["¬"], ["Ｉ"], ["‽"], ["Ｖ"], ["⊟"], ["↧"], ["↥"], ["⌊"],
+        ["⌈"], ["℅"], ["⮌"], ["≕"], ["″"], ["‴"]
     ],
-    CharcoalToken.Binary: [
-        ["⁺"],
-        ["⁻"],
-        ["×"],
-        ["÷"],
-        ["∕"],
-        ["﹪"],
-        ["⁼"],
-        ["‹"],
-        ["›"],
-        ["＆"],
-        ["｜"],
-        ["…·"],
-        ["…"],
-        ["Ｘ"],
-        ["§"],
-        ["⊞Ｏ"],
-        ["⪫"],
-        ["⪪"],
-        ["⌕Ａ"],
-        ["⌕"],
-        ["◧"],
-        ["◨"],
-        ["№"],
-        ["➙"],
-        ["⧴"],
-        ["？"]
+    CT.Binary: [
+        ["⁺"], ["⁻"], ["×"], ["÷"], ["∕"], ["﹪"], ["⁼"], ["‹"], ["›"], ["＆"],
+        ["｜"], ["…·"], ["…"], ["Ｘ"], ["§"], ["⊞Ｏ"], ["⪫"], ["⪪"], ["⌕Ａ"],
+        ["⌕"], ["◧"], ["◨"], ["№"], ["➙"], ["⧴"], ["？"]
     ],
-    CharcoalToken.Ternary: [
+    CT.Ternary: [
     ],
-    CharcoalToken.LazyUnary: [
+    CT.LazyUnary: [
     ],
-    CharcoalToken.LazyBinary: [
-        ["∧"],
-        ["∨"]
+    CT.LazyBinary: [
+        ["∧"], ["∨"]
     ],
-    CharcoalToken.LazyTernary: [
+    CT.LazyTernary: [
         ["⎇"]
     ],
-    CharcoalToken.OtherOperator: [
-        ["ＫＤ", CharcoalToken.Expression, CharcoalToken.Arrow],
-        ["Ｅ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["▷", CharcoalToken.Expression, CharcoalToken.WolframList]
+    CT.OtherOperator: [
+        ["ＫＤ", CT.Expression, CT.Arrow],
+        ["Ｅ", CT.Expression, CT.Expression],
+        ["▷", CT.Expression, CT.WolframList]
     ],
 
-    CharcoalToken.Program: [
-        [CharcoalToken.Command, CharcoalToken.Separator, CharcoalToken.Program],
+    CT.Program: [
+        [CT.Command, CT.Separator, CT.Program],
         []
     ],
-    CharcoalToken.Body: [
-        ["«", CharcoalToken.Program, "»"],
-        [CharcoalToken.Command, CharcoalToken.Separator]
+    CT.Body: [
+        ["«", CT.Program, "»"],
+        [CT.Command, CT.Separator]
     ],
-    CharcoalToken.Command: [
-        ["Ｓ", CharcoalToken.Name],
-        ["Ｎ", CharcoalToken.Name],
-        ["Ｖ", CharcoalToken.Expression],
-        [CharcoalToken.Arrow, CharcoalToken.Expression],
-        [CharcoalToken.Expression],
-        ["Ｐ", CharcoalToken.Multidirectional, CharcoalToken.Expression],
-        ["Ｐ", CharcoalToken.Expression],
-        ["Ｇ", CharcoalToken.Sides, CharcoalToken.Expression],
-        [
-            "Ｇ",
-            CharcoalToken.Multidirectional,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        ["ＧＨ", CharcoalToken.Sides, CharcoalToken.Expression],
-        [
-            "ＧＨ",
-            CharcoalToken.Multidirectional,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        ["ＵＲ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["ＵＲ", CharcoalToken.Expression],
-        [
-            "ＵＯ",
-            CharcoalToken.Expression,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        [
-            "ＵＯ",
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        [
-            "Ｂ",
-            CharcoalToken.Expression,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        [
-            "Ｂ",
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        [CharcoalToken.Arrow],
-        ["Ｍ", CharcoalToken.Arrow],
-        ["Ｍ", CharcoalToken.Expression, CharcoalToken.Arrow],
-        ["Ｍ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["↶", CharcoalToken.Expression],
+    CT.Command: [
+        ["Ｓ", CT.Name],
+        ["Ｎ", CT.Name],
+        ["Ｖ", CT.Expression],
+        [CT.Arrow, CT.Expression],
+        [CT.Expression],
+        ["Ｐ", CT.Multidirectional, CT.Expression],
+        ["Ｐ", CT.Expression],
+        ["Ｇ", CT.Sides, CT.Expression],
+        ["Ｇ", CT.Multidirectional, CT.Expression, CT.Expression],
+        ["ＧＨ", CT.Sides, CT.Expression],
+        ["ＧＨ", CT.Multidirectional, CT.Expression, CT.Expression],
+        ["ＵＲ", CT.Expression, CT.Expression],
+        ["ＵＲ", CT.Expression],
+        ["ＵＯ", CT.Expression, CT.Expression, CT.Expression],
+        ["ＵＯ", CT.Expression, CT.Expression],
+        ["Ｂ", CT.Expression, CT.Expression, CT.Expression],
+        ["Ｂ", CT.Expression, CT.Expression],
+        [CT.Arrow],
+        ["Ｍ", CT.Arrow],
+        ["Ｍ", CT.Expression, CT.Arrow],
+        ["Ｍ", CT.Expression, CT.Expression],
+        ["↶", CT.Expression],
         ["↶"],
-        ["↷", CharcoalToken.Expression],
+        ["↷", CT.Expression],
         ["↷"],
-        ["Ｊ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["⟲Ｔ", CharcoalToken.Expression],
+        ["Ｊ", CT.Expression, CT.Expression],
+        ["⟲Ｔ", CT.Expression],
         ["⟲Ｔ"],
-        ["‖Ｔ", CharcoalToken.ArrowList],
-        ["‖Ｔ", CharcoalToken.Arrow],
+        ["‖Ｔ", CT.ArrowList],
+        ["‖Ｔ", CT.Arrow],
         ["‖Ｔ"],
-        ["⟲Ｐ", CharcoalToken.Arrow, CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｐ", CharcoalToken.Arrow, CharcoalToken.Expression],
-        ["⟲Ｐ", CharcoalToken.Arrow],
-        ["⟲Ｐ", CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｐ", CharcoalToken.Expression],
+        ["⟲Ｐ", CT.Arrow, CT.Number, CT.Separator],
+        ["⟲Ｐ", CT.Arrow, CT.Expression],
+        ["⟲Ｐ", CT.Arrow],
+        ["⟲Ｐ", CT.Number, CT.Separator],
+        ["⟲Ｐ", CT.Expression],
         ["⟲Ｐ"],
-        ["‖Ｍ", CharcoalToken.ArrowList],
-        ["‖Ｍ", CharcoalToken.Arrow],
+        ["‖Ｍ", CT.ArrowList],
+        ["‖Ｍ", CT.Arrow],
         ["‖Ｍ"],
-        ["⟲Ｃ", CharcoalToken.Arrow, CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｃ", CharcoalToken.Arrow, CharcoalToken.Expression],
-        ["⟲Ｃ", CharcoalToken.Arrow],
-        ["⟲Ｃ", CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｃ", CharcoalToken.Expression],
+        ["⟲Ｃ", CT.Arrow, CT.Number, CT.Separator],
+        ["⟲Ｃ", CT.Arrow, CT.Expression],
+        ["⟲Ｃ", CT.Arrow],
+        ["⟲Ｃ", CT.Number, CT.Separator],
+        ["⟲Ｃ", CT.Expression],
         ["⟲Ｃ"],
-        ["‖Ｃ", CharcoalToken.ArrowList],
-        ["‖Ｃ", CharcoalToken.Arrow],
+        ["‖Ｃ", CT.ArrowList],
+        ["‖Ｃ", CT.Arrow],
         ["‖Ｃ"],
-        [
-            "⟲ＯＯ",
-            CharcoalToken.Arrow,
-            CharcoalToken.Number,
-            CharcoalToken.Separator,
-            CharcoalToken.Expression
-        ],
-        [
-            "⟲ＯＯ",
-            CharcoalToken.Arrow,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        ["⟲ＯＯ", CharcoalToken.Arrow, CharcoalToken.Expression],
-        [
-            "⟲ＯＯ",
-            CharcoalToken.Number,
-            CharcoalToken.Separator,
-            CharcoalToken.Expression
-        ],
-        ["⟲ＯＯ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["⟲ＯＯ", CharcoalToken.Expression],
-        [
-            "⟲Ｏ",
-            CharcoalToken.Arrow,
-            CharcoalToken.Number,
-            CharcoalToken.Separator
-        ],
-        ["⟲Ｏ", CharcoalToken.Arrow, CharcoalToken.Expression],
-        ["⟲Ｏ", CharcoalToken.Arrow],
-        ["⟲Ｏ", CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｏ", CharcoalToken.Expression],
+        ["⟲ＯＯ", CT.Arrow, CT.Number, CT.Separator, CT.Expression],
+        ["⟲ＯＯ", CT.Arrow, CT.Expression, CT.Expression],
+        ["⟲ＯＯ", CT.Arrow, CT.Expression],
+        ["⟲ＯＯ", CT.Number, CT.Separator, CT.Expression],
+        ["⟲ＯＯ", CT.Expression, CT.Expression],
+        ["⟲ＯＯ", CT.Expression],
+        ["⟲Ｏ", CT.Arrow, CT.Number, CT.Separator ],
+        ["⟲Ｏ", CT.Arrow, CT.Expression],
+        ["⟲Ｏ", CT.Arrow],
+        ["⟲Ｏ", CT.Number, CT.Separator],
+        ["⟲Ｏ", CT.Expression],
         ["⟲Ｏ"],
-        [
-            "⟲ＳＯ",
-            CharcoalToken.Arrow,
-            CharcoalToken.Number,
-            CharcoalToken.Separator,
-            CharcoalToken.Expression
-        ],
-        [
-            "⟲ＳＯ",
-            CharcoalToken.Arrow,
-            CharcoalToken.Expression,
-            CharcoalToken.Expression
-        ],
-        ["⟲ＳＯ", CharcoalToken.Arrow, CharcoalToken.Expression],
-        [
-            "⟲ＳＯ",
-            CharcoalToken.Number,
-            CharcoalToken.Separator,
-            CharcoalToken.Expression
-        ],
-        ["⟲ＳＯ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["⟲ＳＯ", CharcoalToken.Expression],
-        [
-            "⟲Ｓ",
-            CharcoalToken.Arrow,
-            CharcoalToken.Number,
-            CharcoalToken.Separator
-        ],
-        ["⟲Ｓ", CharcoalToken.Arrow, CharcoalToken.Expression],
-        ["⟲Ｓ", CharcoalToken.Arrow],
-        ["⟲Ｓ", CharcoalToken.Number, CharcoalToken.Separator],
-        ["⟲Ｓ", CharcoalToken.Expression],
+        ["⟲ＳＯ", CT.Arrow, CT.Number, CT.Separator, CT.Expression],
+        ["⟲ＳＯ", CT.Arrow, CT.Expression, CT.Expression],
+        ["⟲ＳＯ", CT.Arrow, CT.Expression],
+        ["⟲ＳＯ", CT.Number, CT.Separator, CT.Expression],
+        ["⟲ＳＯ", CT.Expression, CT.Expression],
+        ["⟲ＳＯ", CT.Expression],
+        ["⟲Ｓ", CT.Arrow, CT.Number, CT.Separator],
+        ["⟲Ｓ", CT.Arrow, CT.Expression],
+        ["⟲Ｓ", CT.Arrow],
+        ["⟲Ｓ", CT.Number, CT.Separator],
+        ["⟲Ｓ", CT.Expression],
         ["⟲Ｓ"],
-        ["‖ＯＯ", CharcoalToken.ArrowList, CharcoalToken.Expression],
-        ["‖ＯＯ", CharcoalToken.Arrow, CharcoalToken.Expression],
-        ["‖ＯＯ", CharcoalToken.Expression],
-        ["‖Ｏ", CharcoalToken.ArrowList],
-        ["‖Ｏ", CharcoalToken.Arrow],
+        ["‖ＯＯ", CT.ArrowList, CT.Expression],
+        ["‖ＯＯ", CT.Arrow, CT.Expression],
+        ["‖ＯＯ", CT.Expression],
+        ["‖Ｏ", CT.ArrowList],
+        ["‖Ｏ", CT.Arrow],
         ["‖Ｏ"],
-        ["‖ＢＯ", CharcoalToken.ArrowList, CharcoalToken.Expression],
-        ["‖ＢＯ", CharcoalToken.Arrow, CharcoalToken.Expression],
-        ["‖ＢＯ", CharcoalToken.Expression],
-        ["‖Ｂ", CharcoalToken.ArrowList],
-        ["‖Ｂ", CharcoalToken.Arrow],
+        ["‖ＢＯ", CT.ArrowList, CT.Expression],
+        ["‖ＢＯ", CT.Arrow, CT.Expression],
+        ["‖ＢＯ", CT.Expression],
+        ["‖Ｂ", CT.ArrowList],
+        ["‖Ｂ", CT.Arrow],
         ["‖Ｂ"],
-        ["⟲", CharcoalToken.Expression],
+        ["⟲", CT.Expression],
         ["⟲"],
-        ["‖", CharcoalToken.Arrow],
+        ["‖", CT.Arrow],
         ["‖"],
-        ["Ｃ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["Ｆ", CharcoalToken.Expression, CharcoalToken.Body],
-        ["Ｗ", CharcoalToken.Expression, CharcoalToken.Body],
-        [
-            "¿",
-            CharcoalToken.Expression,
-            CharcoalToken.Body,
-            CharcoalToken.Body
-        ],
-        ["¿", CharcoalToken.Expression, CharcoalToken.Body],
-        ["Ａ§", CharcoalToken.Expression, CharcoalToken.Expression, CharcoalToken.Expression],
-        ["Ａ", CharcoalToken.Expression, CharcoalToken.Name],
-        ["Ａ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["¤", CharcoalToken.Expression],
-        ["ＵＢ", CharcoalToken.Expression],
+        ["Ｃ", CT.Expression, CT.Expression],
+        ["Ｆ", CT.Expression, CT.Body],
+        ["Ｗ", CT.Expression, CT.Body],
+        ["¿", CT.Expression, CT.Body, CT.Body],
+        ["¿", CT.Expression, CT.Body],
+        ["Ａ§", CT.Expression, CT.Expression, CT.Expression],
+        ["Ａ", CT.Expression, CT.Name],
+        ["Ａ", CT.Expression, CT.Expression],
+        ["¤", CT.Expression],
+        ["ＵＢ", CT.Expression],
         ["Ｄ"],
-        [
-            "ＲＦ",
-            CharcoalToken.Expression,
-            CharcoalToken.Expression,
-            CharcoalToken.Body
-        ],
-        [
-            "ＲＷ",
-            CharcoalToken.Expression,
-            CharcoalToken.Expression,
-            CharcoalToken.Body
-        ],
-        ["Ｒ", CharcoalToken.Expression],
+        ["ＲＦ", CT.Expression, CT.Expression, CT.Body],
+        ["ＲＷ", CT.Expression, CT.Expression, CT.Body],
+        ["Ｒ", CT.Expression],
         ["Ｒ"],
         ["ＵＴ"],
-        ["Ｔ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["Ｔ", CharcoalToken.Expression],
+        ["Ｔ", CT.Expression, CT.Expression],
+        ["Ｔ", CT.Expression],
         ["⎚"],
-        ["ＵＥ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["ＵＥ", CharcoalToken.Expression],
-        ["⊞", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["≡", CharcoalToken.Expression, CharcoalToken.Cases, CharcoalToken.Body],
-        ["ＵＭ", CharcoalToken.Expression, CharcoalToken.Expression],
-        ["▶", CharcoalToken.Expression, CharcoalToken.WolframList],
-        ["≔", CharcoalToken.Expression, CharcoalToken.Expression]
+        ["ＵＥ", CT.Expression, CT.Expression],
+        ["ＵＥ", CT.Expression],
+        ["⊞", CT.Expression, CT.Expression],
+        ["≡", CT.Expression, CT.Cases, CT.Body],
+        ["ＵＭ", CT.Expression, CT.Expression],
+        ["▶", CT.Expression, CT.WolframList],
+        ["≔", CT.Expression, CT.Expression]
     ]
 }
 

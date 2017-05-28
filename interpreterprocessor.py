@@ -306,7 +306,7 @@ InterpreterProcessor = {
         lambda result: lambda left, right, charcoal: DelayedRule(left, right),
         lambda result: lambda left, right, charcoal: PatternTest(
             left, right
-        ).run()
+        )
     ],
     CharcoalToken.Ternary: [
     ],

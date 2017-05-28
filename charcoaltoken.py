@@ -1,38 +1,45 @@
 from enum import Enum
 
-class CharcoalToken(Enum):
-    Arrow = 1
-    Multidirectional = 2
-    Side = 3
-    Separator = 4
-    String = 5
-    Number = 6
-    Name = 7
-    Span = 8
+i = -1
 
-    Arrows = 11
-    Sides = 12
-    Expressions = 13
-    WolframExpressions = 14
-    PairExpressions = 15
-    Cases = 16
+def _id():
+    global i
+    i += 1
+    return i
 
-    Expression = 21
-    WolframExpression = 22
-    Nilary = 23
-    Unary = 24
-    Binary = 25
-    Ternary = 26
-    LazyUnary = 27
-    LazyBinary = 28
-    LazyTernary = 29
-    OtherOperator = 30
+class CharcoalToken(object):
+    Arrow = _id()
+    Multidirectional = _id()
+    Side = _id()
+    Separator = _id()
+    String = _id()
+    Number = _id()
+    Name = _id()
+    Span = _id()
 
-    List = 31
-    WolframList = 32
-    ArrowList = 33
-    Dictionary = 34
+    Arrows = _id()
+    Sides = _id()
+    WolframExpressions = _id()
+    Expressions = _id()
+    PairExpressions = _id()
+    Cases = _id()
 
-    Program = 41
-    Command = 42
-    Body = 43
+    WolframExpression = _id()
+    Expression = _id()
+    Nilary = _id()
+    Unary = _id()
+    Binary = _id()
+    Ternary = _id()
+    LazyUnary = _id()
+    LazyBinary = _id()
+    LazyTernary = _id()
+    OtherOperator = _id()
+
+    WolframList = _id()
+    List = _id()
+    ArrowList = _id()
+    Dictionary = _id()
+
+    Program = _id()
+    Body = _id()
+    Command = _id()

@@ -1482,8 +1482,7 @@ foofoofoofoofoo""")
     def test_python(self):
         self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")
         self.assertEqual(
-            Run("ＵＰrandom.seed⟦⁰⟧ＩＵＰrandom.random"),
-            "0.8444218515250481"
+            Run("ＵＰrandom.seed⟦⁰⟧ＩＵＰrandom.random"), "0.8444218515250481"
         )
 
     def test_wolfram(self):
@@ -1501,147 +1500,172 @@ foofoofoofoofoo""")
         self.assertEqual(Run("▷StringJoin⟦⟦ab¦cd⟧xy⟧"), """\
 abcdxy""")
         self.assertEqual(Run("▷StringLength⟦tiger⟧"), "-----")
-        self.assertEqual(Run("""\
-▷StringLength⟦⟦cat¦dog¦fish¦coelenterate⟧⟧"""), """\
----         
----         
-----        
-------------""")
+        self.assertEqual(Run("\
+▷StringLength⟦⟦cat¦dog¦fish¦coelenterate⟧⟧"), "\
+---         \n---         \n----        \n------------")
         self.assertEqual(Run("▷StringLength⟦◆´α´β´γ⟷ℬ↵⟧"), "---------")
         self.assertEqual(Run("▷StringLength⟦ab¶cd⟧"), "-----")
         self.assertEqual(Run("▷StringLength⟦ω⟧"), "")
         self.assertEqual(Run("▷StringLength⟦´α´β´γ⟧"), "---")
-        self.assertEqual(Run("▷StringSplit⟦a bbb cccc aa d⟧"), """\
-a   \nbbb \ncccc\naa  \nd   """)
-        self.assertEqual(Run("▷StringSplit⟦a--bbb---ccc--dddd¦--⟧"), """\
-a   \nbbb \n-ccc\ndddd""")
-        self.assertEqual(Run("▷StringSplit⟦the cat in the hat⟧"), """\
-the\ncat\nin \nthe\nhat""")
-        self.assertEqual(Run("▷StringSplit⟦192.168.0.1¦.⟧"), """\
-192\n168\n0  \n1  """)
-        self.assertEqual(Run("""\
-▷StringSplit⟦123 2.3 4 6‴≕WhitespaceCharacter⟧"""), """\
-123\n2.3\n4  \n6  """)
-        self.assertEqual(Run("""\
-▷StringSplit⟦11a22b3？≕_≕LetterQ⟧"""), "11\n22\n3 ")
-        self.assertEqual(Run("""\
+        self.assertEqual(Run("▷StringSplit⟦a bbb cccc aa d⟧"), "\
+a   \nbbb \ncccc\naa  \nd   ")
+        self.assertEqual(Run("▷StringSplit⟦a--bbb---ccc--dddd¦--⟧"), "\
+a   \nbbb \n-ccc\ndddd")
+        self.assertEqual(Run("▷StringSplit⟦the cat in the hat⟧"), "\
+the\ncat\nin \nthe\nhat")
+        self.assertEqual(Run("▷StringSplit⟦192.168.0.1¦.⟧"), "\
+192\n168\n0  \n1  ")
+        self.assertEqual(Run("\
+▷StringSplit⟦123 2.3 4 6‴≕WhitespaceCharacter⟧"), "\
+123\n2.3\n4  \n6  ")
+        self.assertEqual(Run("\
+▷StringSplit⟦11a22b3？≕_≕LetterQ⟧"), "11\n22\n3 ")
+        self.assertEqual(Run("\
 ▷StringSplit⟦A tree, an apple, four pears. And more: two sacks\
-▷RegularExpression⟦\W+⟧⟧"""), """\
-A    
-tree 
-an   
-apple
-four 
-pears
-And  
-more 
-two  
-sacks""")
-        self.assertEqual(Run("""\
+▷RegularExpression⟦\W+⟧⟧"), "\
+A    \ntree \nan   \napple\nfour \npears\nAnd  \nmore \ntwo  \nsacks")
+        self.assertEqual(Run("\
 ▷StringSplit⟦primes: 2 two 3 three 5 five ...\
-⁺⁺≕Whitespace▷RegularExpression⟦\d⟧≕Whitespace⟧"""), """\
-primes: 
-two     
-three   
-five ...""")
-        self.assertEqual(Run("▷StringSplit⟦a-b:c-d:e-f-g¦⟦:¦-⟧⟧"), """\
-a\nb\nc\nd\ne\nf\ng""")
-        self.assertEqual(Run("▷StringSplit⟦a-b:c-d:e-f-g¦｜:¦-⟧"), """\
-a\nb\nc\nd\ne\nf\ng""")
-        self.assertEqual(Run("▷StringSplit⟦a b::c d::e f g➙::¦--⟧"), """\
-a b  \n--   \nc d  \n--   \ne f g""")
+⁺⁺≕Whitespace▷RegularExpression⟦\d⟧≕Whitespace⟧"), "\
+primes: \ntwo     \nthree   \nfive ...")
+        self.assertEqual(Run("▷StringSplit⟦a-b:c-d:e-f-g¦⟦:¦-⟧⟧"), "\
+a\nb\nc\nd\ne\nf\ng")
+        self.assertEqual(Run("▷StringSplit⟦a-b:c-d:e-f-g¦｜:¦-⟧"), "\
+a\nb\nc\nd\ne\nf\ng")
+        self.assertEqual(Run("▷StringSplit⟦a b::c d::e f g➙::¦--⟧"), "\
+a b  \n--   \nc d  \n--   \ne f g")
 # TODO: DelayedRule, naming etc
 #         self.assertEqual(Run("▷StringSplit⟦a--b c--d e«➙--ι»⟧"), """\
 # a  \n-- \nb c\n-- \nd e""")
-        self.assertEqual(Run("""\
-▷StringSplit⟦⟦a:b:c:d¦listable:element⟧:⟧"""), """\
-a       
-b       
-c       
-d       
-        
-listable
-element """)
-        self.assertEqual(Run("""\
-▷StringSplit⟦cat Cat hat CAT¦c➙≕IgnoreCase≕True⟧"""), """\
-at     
-at hat 
-AT     """)
+        self.assertEqual(Run("\
+▷StringSplit⟦⟦a:b:c:d¦listable:element⟧:⟧"), "\
+a       \nb       \nc       \nd       \n        \nlistable\nelement ")
+        self.assertEqual(Run("▷StringSplit⟦:a:b:c:¦:≕All⟧"), " \na\nb\nc")
+        self.assertEqual(Run("\
+▷StringSplit⟦▷StringSplit⟦11:12:13//21:22:23//31:32:33¦//⟧:⟧"), "\
+11\n12\n13\n  \n21\n22\n23\n  \n31\n32\n33")
         self.assertEqual(Run("▷StringTake⟦abcdefghijklm⁶⟧"), "abcdef")
         self.assertEqual(Run("▷StringTake⟦abcdefghijklm±⁴⟧"), "jklm")
         self.assertEqual(Run("▷StringTake⟦abcdefghijklm⟦⁵¦¹⁰⟧⟧"), "efghij")
         self.assertEqual(Run("▷StringTake⟦abcdefghijklm⟦⁶⟧⟧"), "f")
         self.assertEqual(Run("▷StringTake⟦abcdefghijklm⟦¹±¹¦²⟧⟧"), "acegikm")
-        self.assertEqual(Run("▷StringTake⟦⟦abcdef¦stuv¦xyzw⟧±²⟧"), """\
-ef\nuv\nzw""")
+        self.assertEqual(Run("▷StringTake⟦⟦abcdef¦stuv¦xyzw⟧±²⟧"), "\
+ef\nuv\nzw")
         self.assertEqual(Run("▷StringTake⟦◆´α´β´γ⟷ℬ↵±⁴⟧"), "ℬ↵")
         self.assertEqual(Run("▷StringTake⟦abc▷UpTo⟦⁴⟧⟧"), "abc")
+        self.assertEqual(Run("▷StringTake⟦abc¶def⁵⟧"), "abc\nd  ")
         self.assertEqual(Run("▷StringDrop⟦abcdefghijklm⁴⟧"), "efghijklm")
         self.assertEqual(Run("▷StringDrop⟦abcdefghijklm±⁴⟧"), "abcdefghi")
         self.assertEqual(Run("▷StringDrop⟦abcdefghijklm⟦⁵¦¹⁰⟧⟧"), "abcdklm")
-        self.assertEqual(Run("▷StringDrop⟦abcdefghijklm⟦³⟧⟧"), """\
-abdefghijklm""")
+        self.assertEqual(Run("▷StringDrop⟦abcdefghijklm⟦³⟧⟧"), "\
+abdefghijklm")
         self.assertEqual(Run("▷StringDrop⟦abcdefghijklm⟦¹±¹¦²⟧⟧"), "bdfhjl")
-        self.assertEqual(Run("▷StringDrop⟦⟦abcdef¦xyzw¦stuv⟧±²⟧"), """\
-abcd\nxy  \nst  """)
+        self.assertEqual(Run("▷StringDrop⟦⟦abcdef¦xyzw¦stuv⟧±²⟧"), "\
+abcd\nxy  \nst  ")
         self.assertEqual(Run("▷StringDrop⟦◆´α´β´γ⟷ℬ↵±⁴⟧"), "◆αβγ⟷")
         self.assertEqual(Run("▷StringDrop⟦abc▷UpTo⟦⁴⟧⟧"), "")
+        self.assertEqual(Run("▷StringDrop⟦abc¶def⁴⟧"), "def")
         self.assertEqual(Run("▷StringPart⟦abcdefghijklm⁶⟧"), "f")
         self.assertEqual(Run("▷StringPart⟦abcdefghijklm⟦¹¦³¦⁵⟧⟧"), "a\nc\ne")
         self.assertEqual(Run("▷StringPart⟦abcdefghijklm±⁴⟧"), "j")
-        self.assertEqual(Run("▷StringPart⟦abcdefghijklm¹；⁶⟧"), """\
-a\nb\nc\nd\ne\nf""")
-        self.assertEqual(Run("▷StringPart⟦abcdefghijklm¹；±¹；²⟧"), """\
-a\nc\ne\ng\ni\nk\nm""")
-        self.assertEqual(Run("▷StringPart⟦abcdefghijklm±¹；¹；±²⟧"), """\
-m\nk\ni\ng\ne\nc\na""")
-        self.assertEqual(Run("▷StringPart⟦⟦abcd¦efgh¦ijklm⟧¹⟧"), """\
-a\ne\ni""")
+        self.assertEqual(Run("▷StringPart⟦abcdefghijklm¹；⁶⟧"), "\
+a\nb\nc\nd\ne\nf")
+        self.assertEqual(Run("▷StringPart⟦abcdefghijklm¹；±¹；²⟧"), "\
+a\nc\ne\ng\ni\nk\nm")
+        self.assertEqual(Run("▷StringPart⟦abcdefghijklm±¹；¹；±²⟧"), "\
+m\nk\ni\ng\ne\nc\na")
+        self.assertEqual(Run("▷StringPart⟦⟦abcd¦efgh¦ijklm⟧¹⟧"), "\
+a\ne\ni")
         self.assertEqual(Run("▷StringPart⟦◆´α´β´γ⟷ℬ↵±⁴⟧"), "")
+        self.assertEqual(Run("▷StringPart⟦abcde⟦⟧⟧"), "")
         self.assertEqual(Run("▷StringReplace⟦abbaabbaa➙ab¦X⟧"), "XbaXbaa")
-        self.assertEqual(Run("▷StringReplace⟦abcddbbcbbbacbbaa➙bb¦X²⟧"), """\
-abcddXcXbacbbaa""")
-        self.assertEqual(Run("""\
-▷StringReplace⟦abcdabcdaabcabcd⟦➙abc¦Y➙d¦XXX⟧⟧"""), """\
-YXXXYXXXaYYXXX""")
-        self.assertEqual(Run("▷StringReplace⟦product: A ⊕ B➙⊕¦x⟧"), """\
-product: A x B""")
-        self.assertEqual(Run("""\
-▷StringReplace⟦⟦aaabbbbaaaa¦bbbaaaab¦aaabab⟧➙ab¦X⟧"""), """\
-aaXbbbaaaa
-bbbaaaX   
-aaXX      """)
+        self.assertEqual(Run("▷StringReplace⟦ababbabbaaababa➙″ab¦X⟧"), "\
+XbXbaaXa")
+        self.assertEqual(Run("▷▷StringReplace⟦➙″ab¦X⟧⟦ababbabbaaababa⟧"), "\
+XbXbaaXa")
+        self.assertEqual(Run("▷StringReplace⟦abc abcb abdc➙⁺ab≕_¦X⟧"), "\
+X Xb Xc")
+        self.assertEqual(Run("\
+▷StringReplace⟦abc abcd abcd➙⁺⁺≕WordBoundary¦abc≕WordBoundary¦XX⟧"), "\
+XX abcd abcd")
+        self.assertEqual(Run("\
+▷StringReplace⟦abcd acbd➙▷RegularExpression⟦[ab]⟧¦XX⟧"), "\
+XXXXcd XXcXXd")
+# TODO: datepattern but i need mathematica for that
+        self.assertEqual(Run("\
+▷StringReplace⟦abcd acbd➙⁺▷RegularExpression⟦[ab]⟧≕_¦YY⟧"), "\
+YYcd YYYY")
+# TODO: delayedrule
+        self.assertEqual(Run("▷StringReplace⟦abcddbbcbbbacbbaa➙bb¦X²⟧"), "\
+abcddXcXbacbbaa")
+        self.assertEqual(Run("\
+▷StringReplace⟦abcdabcdaabcabcd⟦➙abc¦Y➙d¦XXX⟧⟧"), "\
+YXXXYXXXaYYXXX")
+        self.assertEqual(Run("▷StringReplace⟦product: A ⊕ B➙⊕¦x⟧"), "\
+product: A x B")
+        self.assertEqual(Run("\
+▷StringReplace⟦The cat in the hat.➙the¦a➙≕IgnoreCase≕True⟧"), "\
+a cat in a hat.")
+        self.assertEqual(Run("▷StringReplace⟦ Have a nice day. \
+➙｜⁺≕StartOfString≕Whitespace⁺≕Whitespace≕EndOfStringω⟧"), "\
+Have a nice day.")
+        self.assertEqual(Run("\
+▷StringReplace⟦this (*comment1*) is a test (*comment2*)\
+➙⁺⁺(*▷Shortest⟦≕___⟧¦*)ω⟧"), "this  is a test ")
+        self.assertEqual(Run("\
+▷StringReplace⟦<title>The Title</title>¶<h1>The <a href='link'>head</a></h1>\
+¶<p>Some text follows here...</p>➙⁺⁺<″▷Except⟦>⟧>ω⟧"), """\
+The Title                
+The head                 
+Some text follows here...""")
+        self.assertEqual(Run("▷StringCases⟦abcadcacb⁺⁺a≕_¦c⟧"), "abc\nadc")
+        self.assertEqual(Run("▷▷StringCases⟦⁺⁺a≕_¦c⟧⟦abcadcacb⟧"), "abc\nadc")
+        self.assertEqual(Run("\
+▷StringCases⟦the cat in the hat⁺⁺a≕__¦e⟧"), "at in the")
+        self.assertEqual(Run("\
+▷StringCases⟦11a22b3″≕DigitCharacter⟧"), "11\n22\n3 ")
+        self.assertEqual(Run("\
+▷StringCases⟦11a22b3？≕_≕LetterQ⟧"), "a\nb")
+        self.assertEqual(Run("\
+▷StringCases⟦a1b22c333▷RegularExpression⟦..2⟧⟧"), "1b2")
+        self.assertEqual(Run("\
+▷StringCases⟦On 31/12/2003 we left, and on 5/3/2004 we came back\
+▷DatePattern⟦⟦Day¦Month¦Year⟧⟧⟧"), "31/12/2003\n5/3/2004  ")
+        self.assertEqual(Run("\
+▷StringCases⟦the cat in the hat\
+⁺▷RegularExpression⟦(?<=the )⟧″≕WordCharacter⟧"), "cat\nhat")
+        self.assertEqual(Run("▷StringCases⟦abcddbbbacbbaa″｜a¦bb²⟧"), "a \nbb")
+        self.assertEqual(Run("\
+▷StringCases⟦abcdabcdcd⟦abc¦cd⟧⟧"), "abc\nabc\ncd ")
+        self.assertEqual(Run("\
+▷StringCases⟦abcdabcdcd｜abc¦cd⟧"), "abc\nabc\ncd ")
+        self.assertEqual(Run("\
+▷StringCases⟦⟦ability¦argument¦listable⟧⁺⁺a≕___¦l⟧"), "abil\n    \n    \nabl ")
+        self.assertEqual(Run("\
+▷StringCases⟦cat Cat hat CAT¦cat➙≕IgnoreCase≕True⟧"), "cat\nCat\nCAT")
+        self.assertEqual(Run("\
+▷StringReplace⟦⟦aaabbbbaaaa¦bbbaaaab¦aaabab⟧➙ab¦X⟧"), "\
+aaXbbbaaaa\nbbbaaaX   \naaXX      ")
         self.assertEqual(Run("▷StringCount⟦abbaabbaa¦bb⟧"), "--")
         self.assertEqual(Run("▷StringStartsQ⟦abcd¦a⟧"), "-")
         self.assertEqual(Run("▷StringStartsQ⟦quickSort¦quick⟧"), "-")
         self.assertEqual(Run("▷StringStartsQ⟦United States¦United⟧"), "-")
-        self.assertEqual(Run("""\
-▷StringStartsQ⟦⟦int1¦int2¦int3¦float1¦float2¦longint1⟧¦int⟧"""), """\
--
--
--""")
-        self.assertEqual(Run("""\
-▷StringStartsQ⟦Abcd¦a➙≕IgnoreCase≕False⟧"""), "")
-        self.assertEqual(Run("""\
-▷StringStartsQ⟦Abcd¦a➙≕IgnoreCase≕True⟧"""), "-")
+        self.assertEqual(Run("\
+▷StringStartsQ⟦⟦int1¦int2¦int3¦float1¦float2¦longint1⟧¦int⟧"), "-\n-\n-")
+        self.assertEqual(Run("▷StringStartsQ⟦Abcd¦a➙≕IgnoreCase≕False⟧"), "")
+        self.assertEqual(Run("▷StringStartsQ⟦Abcd¦a➙≕IgnoreCase≕True⟧"), "-")
         self.assertEqual(Run("▷StringEndsQ⟦abcd¦d⟧"), "-")
         self.assertEqual(Run("▷StringEndsQ⟦abcd¦a⟧"), "")
         self.assertEqual(Run("▷StringEndsQ⟦quickSort¦Sort⟧"), "-")
         self.assertEqual(Run("▷StringEndsQ⟦Great Dane¦Dane⟧"), "-")
-        self.assertEqual(Run("""\
-▷StringEndsQ⟦abcd¦D➙≕IgnoreCase≕False⟧"""), "")
-        self.assertEqual(Run("""\
-▷StringEndsQ⟦abcD¦d➙≕IgnoreCase≕True⟧"""), "-")
-        self.assertEqual(Run("""\
-▷StringContainsQ⟦⟦a¦b¦ab¦abcd¦bcde⟧¦a⟧"""), """\
--
- 
--
--""")
-        self.assertEqual(Run("""\
-▷StringContainsQ⟦abcd¦BC➙≕IgnoreCase≕False⟧"""), "")
-        self.assertEqual(Run("""\
-▷StringContainsQ⟦abcd¦BC➙≕IgnoreCase≕True⟧"""), "-")
+        self.assertEqual(Run("▷StringEndsQ⟦abcd¦D➙≕IgnoreCase≕False⟧"), "")
+        self.assertEqual(Run("▷StringEndsQ⟦abcD¦d➙≕IgnoreCase≕True⟧"), "-")
+        self.assertEqual(Run("\
+▷StringContainsQ⟦⟦a¦b¦ab¦abcd¦bcde⟧¦a⟧"), "-\n \n-\n-")
+        self.assertEqual(Run("\
+▷StringContainsQ⟦abcd¦BC➙≕IgnoreCase≕False⟧"), "")
+        self.assertEqual(Run("\
+▷StringContainsQ⟦abcd¦BC➙≕IgnoreCase≕True⟧"), "-")
 
     def test_preinitialized(self):
         self.assertEqual(Run("θ", "a b c d e"), "a")

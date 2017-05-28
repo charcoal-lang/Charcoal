@@ -41,7 +41,6 @@ for high, low in zip(
     "\x00\x01\x02\x03\x04\x05\x06\x1B\x07\x08\x0C\x0D\x0E\x0F"
 ):
     add_character(high, chr(ord(low) + 128))
-#rule and rule delayed = ➙⧴
 keys = list(UnicodeLookup.keys())
 values = list(UnicodeLookup.values())
 for character in range(0, 257):

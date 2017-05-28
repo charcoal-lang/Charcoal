@@ -161,7 +161,65 @@ class Info(Enum):
     dump_canvas = 5
 
 
-class Coordinates:
+class Whatever(object):
+    def __add__(self, other):
+        return other
+
+    def __radd__(self, other):
+        return other
+
+    def __sub__(self, other):
+        return -other
+
+    def __rsub__(self, other):
+        return other
+
+    def __mul__(self, other):
+        return other
+
+    def __rmul__(self, other):
+        return other
+
+    def __truediv__(self, other):
+        return 1 / other
+
+    def __rtruediv__(self, other):
+        return other
+
+    def __floordiv__(self, other):
+        return 1 // other
+
+    def __rfloordiv__(self, other):
+        return other // 1
+
+    def __or__(self, other):
+        return other
+
+    def __ror__(self, other):
+        return other
+
+    def __and__(self, other):
+        return other
+
+    def __rand__(self, other):
+        return other
+
+    def __xor__(self, other):
+        return other
+
+    def __rxor__(self, other):
+        return other
+
+    def __mod__(self, other):
+        return other
+
+    def __rmod__(self, other):
+        return other
+
+whatever = Whatever()
+
+
+class Coordinates(object):
     __slots__ = ("top", "coordinates")
 
     def __init__(self):
@@ -182,7 +240,7 @@ class Coordinates:
         self.coordinates[y - self.top] += [x]
 
 
-class Scope:
+class Scope(object):
     __slots__ = ("parent", "lookup")
 
     def __init__(self, parent={}):
@@ -556,6 +614,28 @@ class Charcoal(object):
         ):
             return ""
         return self.lines[y_index][self.x - self.indices[y_index]]
+
+    def HasCharAt(self, x, y):
+        """
+        Get() -> str
+
+        Returns value of cell under cursor.
+
+        """
+        x0, y0, self.x, self.y = self.x, self.y, x, y
+        y_index = self.y - self.top
+        result = True
+        if (
+            y_index < len(self.lines) and
+            y_index >= 0 and
+            self.x - self.indices[y_index] < self.lengths[y_index] and
+            self.x - self.indices[y_index] >= 0
+        ):
+            result = (
+                self.lines[y_index][self.x - self.indices[y_index]] != "\000"
+            )
+        self.x, self.y = x0, y0
+        return result
 
     def PutAt(self, string, x, y):
         """
@@ -1114,38 +1194,91 @@ be used for the sides and + for the corners.
 with the specified string, repeating it if needed.
 
         """
-        try:
-            if self.Get() != "\000":
-                return
-            initial_x = self.x
-            initial_y = self.y
-            points = set()
-            queue = [(self.y, self.x)]
-            while len(queue):
-                self.y, self.x = queue[0]
-                while self.Get() == "\000":
-                    self.y -= 1
-                self.y += 1
-                queue = queue[1:]
-                value = self.Get()
-                while value == "\000":
-                    points.add((self.y, self.x))
-                    if (self.y, self.x - 1) not in points:
-                        self.x -= 1
-                        if self.Get() == "\000":
-                            queue += [(self.y, self.x)]
-                        self.x += 1
-                    if (self.y, self.x + 1) not in points:
-                        self.x += 1
-                        if self.Get() == "\000":
-                            queue += [(self.y, self.x)]
-                        self.x -= 1
-                    self.y += 1
-                    value = self.Get()
-        except IndexError as e:
-            print("RuntimeError: Attempting to fill open area")
-            if Info.is_repl not in self.info:
-                sys.exit(1)
+        left, top, bottom = min(self.indices), self.top, len(self.lines)
+        points = set()
+        stack = []
+        x0, y0 = self.x, self.y
+        y, x = self.y, self.x
+
+        class Segment(object):
+            __slots__ = (
+                "start_x", "end_x", "y", "direction", "scan_left", "scan_right"
+            )
+        
+            def __init__(
+                self, start_x, end_x, y, direction, scan_left, scan_right
+            ):
+                self.start_x = start_x
+                self.end_x = end_x
+                self.y = y
+                self.direction = direction
+                self.scan_left = scan_left
+                self.scan_right = scan_right
+
+        def add_line(
+            start_x, end_x, y, ignore_start, ignore_end, direction,
+            is_next_in_dir
+        ):
+            nonlocal stack
+            region_start, x = left - 1, start_x
+            while x < end_x:
+                if (
+                    (is_next_in_dir or x < ignore_start or x >= ignore_end) and
+                    not self.HasCharAt(x, y) and
+                    not (y, x) in points
+                ):
+                    points.add((y, x))
+                    if region_start < left:
+                        region_start = x
+                elif region_start >= left:
+                    stack += [Segment(
+                        region_start, x, y, direction, region_start == start_x,
+                        False
+                    )]
+                    region_start = -1
+                if not is_next_in_dir and x < ignore_end and x >= ignore_start:
+                    x = ignore_end - 1
+                x += 1
+            if region_start >= left:
+                stack += [Segment(
+                    region_start, x, y, direction, region_start == start_x,
+                    True
+                )]
+
+        if self.HasCharAt(x, y):
+            return
+        points.add((y, x))
+        stack += [Segment(x, x + 1, y, 0, True, True)]
+        while len(stack):
+            r = stack.pop()
+            start_x, end_x = r.start_x, r.end_x
+            if r.scan_left:
+                while (
+                    start_x > left and
+                    not self.HasCharAt(start_x - 1, r.y) and
+                    not (r.y, start_x - 1) in points
+                ):
+                    start_x -= 1
+                    points.add((r.y, start_x))
+            if r.scan_right:
+                while (
+                    not self.HasCharAt(end_x, r.y) and
+                    not (r.y, end_x) in points
+                ):
+                    points.add((r.y, end_x))
+                    end_x += 1
+            r.start_x -= 1
+            r.end_x += 1
+            if r.y > top:
+                add_line(
+                    start_x, end_x, r.y - 1, r.start_x, r.end_x, -1,
+                    r.direction <= 0
+                )
+            if r.y < bottom:
+                add_line(
+                    start_x, end_x, r.y + 1, r.start_x, r.end_x, 1,
+                    r.direction >= 0
+                )
         points = sorted(points)
         n_points = len(points)
         if isinstance(string, int) or isinstance(string, float):
@@ -1159,7 +1292,7 @@ with the specified string, repeating it if needed.
             character = string[i % length]
             if character != "\000":
                 self.Put(character)
-        self.x, self.y = initial_x, initial_y
+        self.x, self.y = x0, x0
         if Info.step_canvas in self.info:
             self.RefreshFastText("Fill", self.canvas_step)
         elif Info.dump_canvas in self.info:
@@ -2535,6 +2668,7 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
             return self.hidden[key]
         if key in Charcoal.secret:
             return Charcoal.secret[key]
+        return whatever
 
     def Assign(self, value, key, value2=None):
         """
@@ -2752,12 +2886,15 @@ arguments.
         Returns the result.
 
         """
-
+        if isinstance(name, String):
+            name = str(name)
+        if isinstance(name, Expression):
+            return name.run()(*arguments)
         if name in self.scope:
             return self.scope[name](*arguments)
-        elif name in self.hidden:
+        if name in self.hidden:
             return self.hidden[name](*arguments)
-        elif name in Charcoal.secret:
+        if name in Charcoal.secret:
             return Charcoal.secret[name](*arguments)
 
     def ExecuteVariable(self, name, arguments):
@@ -2768,7 +2905,11 @@ arguments.
 arguments.
 
         """
-        if name in self.scope:
+        if isinstance(name, String):
+            name = str(name)
+        if isinstance(name, Expression):
+            name.run()(*arguments)
+        elif name in self.scope:
             self.scope[name](*arguments)
         elif name in self.hidden:
             self.hidden[name](*arguments)
@@ -3040,6 +3181,8 @@ iterable, else it returns the iterable.
         right_is_iterable = (
             hasattr(left, "__iter__") and not isinstance(left, str)
         )
+        if isinstance(left, Pattern) or isinstance(right, Pattern):
+            return left + right
         if left_is_iterable ^ right_is_iterable:
             if left_is_iterable:
                 return left + [right]
@@ -3063,6 +3206,8 @@ iterable, else it returns the iterable.
             hasattr(left, "__iter__") and
             not isinstance(left, str)
         )
+        if isinstance(left, Pattern) or isinstance(right, Pattern):
+            return left - right
         if left_is_iterable ^ right_is_iterable:
             if left_is_iterable:
                 return left - [right]
@@ -3143,7 +3288,7 @@ starting from the token given as grammar.
                     while index < len(code) and code[index] in "\r\n\t ":
                         index += 1
                     next_chars = code[index:index + 2]
-            if isinstance(token, CharcoalToken):
+            if isinstance(token, int):
                 if verbose:
                     if token == CharcoalToken.String:
                         quote = code[index]
