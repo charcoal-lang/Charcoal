@@ -32,13 +32,13 @@ for other, ascii_character in zip("¿‖´·¤¦⎚…§⎆⎈⌀", "?;`.o: _$,&
     add_character(other, chr(ord(ascii_character) + 128))
 for replacement, replaced in zip(
     "¶⎇‽；∧∨“”↧↥⌊⌈±⊞⊟➙⧴″‴＆｜",
-    "\n\x15\x16\x00\x01\x02\x03\x04\x17\x18\x19\x1A\x1B\x05\x06\x07\x08\x0A\x0B\
+    "\n\x15\x16\x00\x01\x02\x03\x04\x17\x18\x19\x1A\x1B\x05\x06\x07\x08\x09\x0B\
 \x0C\x0D"
 ):
     add_character(replacement, replaced)
 for high, low in zip(
-    "？⪫⪪℅◧◨⮌⌕≡№≔≕▷▶",
-    "\x00\x01\x02\x03\x04\x05\x06\x1B\x07\x08\x0C\x0D\x0E\x0F"
+    "⸿？⪫⪪℅◧◨⮌⌕≡№≔≕▷▶",
+    "\n\x00\x01\x02\x03\x04\x05\x06\x1B\x07\x08\x0C\x0D\x0E\x0F"
 ):
     add_character(high, chr(ord(low) + 128))
 keys = list(UnicodeLookup.keys())
@@ -72,7 +72,7 @@ Codepage = [UnicodeLookup.get(chr(code), chr(code)) for code in range(0, 256)]
 
 def InCodepage(character):
     return (
-        (character <= "\xFF" and character != "\n") or
+        (character >= " " and character <= "~" and character != "\n") or
                 (character >= "α" and character <= "ω" and character != "ο") or
                 (character >= "Ａ" and character <= "Ｚ") or
                 character in "⁰¹²³⁴⁵⁶⁷⁸⁹⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›＆｜←↑→↓↖↗↘↙\

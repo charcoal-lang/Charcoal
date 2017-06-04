@@ -880,16 +880,24 @@ with a character automatically selected from -|/\\.
         If multiprint is true, the cursor will not be moved.
 
         """
-        if isinstance(string, Expression):
-            string = string.run()
-            if isinstance(string, String):
-                string = str(string)
-            elif isinstance(string, List):
-                string = string.leaves
-            elif type(string) in [Rule, DelayedRule, Pattern]:
-                string = "" # TODO
-            else:
-                string = string.to_number()
+        def grid(matrix):
+            #matrix = [[str(item) for item in row] for row in matrix]
+            #maximum = max(max(len(item) for item in row) for row in matrix)
+            return matrix
+        def simplify(string):
+            if isinstance(string, Expression):
+                string = string.run()
+                if isinstance(string, String):
+                    return str(string)
+                if isinstance(string, List):
+                    #if isinstance(string[0], List):
+                    #    return grid(string)
+                    return [simplify(leaf) for leaf in string.leaves]
+                if type(string) in [Rule, DelayedRule, Pattern]:
+                    return "" # TODO
+                return string.to_number()
+            return string
+        string = simplify(string)
         if isinstance(string, float):
             string = int(string)
         if isinstance(string, int):
@@ -908,15 +916,20 @@ with a character automatically selected from -|/\\.
         if length and "\n" not in string:
             self.PrintLine(directions, length, string, multiprint=multiprint)
             return
-        lines = string.split("\n")
+        lines = re.split("[\n\r]", string)
+        seps = re.findall("[\n\r]", string)
+        r_index = seps.index("\r") if "\r" in seps else -1
         for direction in directions:
             self.x = old_x
             self.y = old_y
             if direction == Direction.right:
                 initial_x = self.x
-                for line in lines:
+                for i in range(len(lines)):
+                    line = lines[i]
                     if not re.match("^\000*$", line):
                         self.PrintLine({Direction.right}, len(line), line)
+                    if i == r_index:
+                        initial_x = 0
                     self.x = initial_x
                     self.y += 1
                 self.y -= 1
@@ -924,9 +937,12 @@ with a character automatically selected from -|/\\.
                     self.Move(Direction.right, len(lines[-1]))
             elif direction == Direction.left:
                 initial_x = self.x
-                for line in lines:
+                for i in range(len(lines)):
+                    line = lines[i]
                     if not re.match("^\000*$", line):
                         self.PrintLine({Direction.left}, len(line), line)
+                    if i == r_index:
+                        initial_x = 0
                     self.x = initial_x
                     self.y -= 1
                 self.y += 1
@@ -2609,13 +2625,21 @@ or into a number if it was a string.
         if isinstance(variable, list):
             return [self.Cast(item) for item in variable]
         if isinstance(variable, str):
-            return int(variable or "0")
+            return float(variable) if "." in variable else int(variable or "0")
         if isinstance(variable, int) or isinstance(variable, float):
             return str(variable)
         if isinstance(variable, String):
             return int(str(variable) or "0")
         if isinstance(variable, Expression):
-            return str(variable.run())
+            variable = variable.run()
+            if isinstance(variable, String):
+                variable = str(variable)
+                return (
+                    float(variable) if "." in variable else int(variable or "0")
+                )
+            if isinstance(variable, List):
+                return List(self.Cast(item) for item in variable)
+            return str(variable.to_number())
 
     def ChrOrd(self, variable):
         """
@@ -3158,11 +3182,17 @@ iterable, else it returns the iterable.
         self.scope[loop_variable] = 1
         index_variable = self.GetFreeVariable()
         result = []
+        if isinstance(iterable, Expression):
+            iterable = iterable.run()
         for i in range(len(iterable)):
             self.scope[loop_variable] = iterable[i]
             self.scope[index_variable] = i
             result += [function(self)]
-        if not is_command:
+        if (
+            not is_command and
+            not isinstance(iterable, str) and
+            not isinstance(iterable, String)
+        ):
             iterable[:] = result
         self.scope = self.scope.parent
         if Info.step_canvas in self.info and isinstance(iterable, Cells):
@@ -3357,7 +3387,7 @@ starting from the token given as grammar.
                             break
                         character = code[index]
                         if (
-                            character in "abgdezhciklmnxprstufko" and not
+                            character in "abgdezhqiklmnxprsvtufcyw" and not
                             code[index + 1] in "abcdefghijklmnopqrstuvwxyz"
                         ):
                             tokens += processor[token][0]([character])
@@ -3415,7 +3445,13 @@ starting from the token given as grammar.
                                 r"(^|[^´])¶", r"\1\n",
                                 re.sub(
                                     r"(^|[^´])¶", r"\1\n",
-                                    code[old_index:index]
+                                    re.sub(
+                                        r"(^|[^´])⸿", r"\1\r",
+                                        re.sub(
+                                            r"(^|[^´])⸿", r"\1\r",
+                                            code[old_index:index]
+                                        )
+                                    )
                                 )
                             )
                         )])
@@ -4169,7 +4205,7 @@ non-raw file input and file output."""
             if InCodepage(character):
                 length += 1
             else:
-                length += len(bytes(character, 'utf-8'))
+                length += len(bytes(ReverseLookup[character], 'utf-8'))
         print("Charcoal, %i bytes: `%s`" % (length, re.sub("`", "\`", code)))
     if argv.hexdump:
         print_xxd(code)

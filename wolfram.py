@@ -2,7 +2,7 @@ from math import (
     exp, log, log2, log10, sqrt, sin, cos, tan, asin, acos, atan, floor, ceil
 )
 from functools import reduce, lru_cache
-
+import unicodedata as ud
 try:
     from regex import (
         match, search, split, sub, findall, finditer,
@@ -30,8 +30,18 @@ except:
 # TODO: tests for rational ops
 # TODO: feature parity for stringsplit, stringreplace and stringcases
 
+generator = type(i for i in [])
 r_whitespace = re_compile("\s+")
 prime_cache = [2, 3]
+
+
+def take(generator, n):
+    if n:
+        for i in range(n):
+            yield next(generator)
+    else:
+        while True:
+            yield next(generator)
 
 
 def prime_gen():
@@ -49,10 +59,17 @@ def prime_gen():
 def flatten(iterable):
     return [item for element in iterable for item in (
         flatten(element)
-        if hasattr(element, '__iter__') and not isinstance(element, str) else
+        if hasattr(element, "__iter__") and not isinstance(element, str) else
         [element]
     )]
 
+
+def remove_diacritics(string):
+    return ''.join(
+        (c for c in ud.normalize("NFD", string) if ud.category(c) != "Mn")
+    )
+
+rd = remove_diacritics
 heads = []
 headifies = []
 
@@ -80,7 +97,7 @@ def create_expression(value):
         return Complex(value)
     elif value_type == str:
         return String(value)
-    elif value_type == list:
+    elif value_type == list or value_type == tuple or value_type == generator:
         return List(*[create_expression(item) for item in value])
     elif value_type != int and value % 1:
         exponent = 0
@@ -180,8 +197,9 @@ class Symbol(Expression):
     pass
 
 # Options
-IgnoreCase = Symbol()
-All = Symbol()
+IC = IgnoreCase = Symbol()
+A = All = Symbol()
+O = Overlaps = Symbol()
 
 class Number(Expression):
     def __init__(self, head=None):
@@ -329,7 +347,14 @@ class Real(Number):
             pass # TODO
 
     def to_number(self):
-        return self.leaves[0] * 10 ** self.leaves[1]
+        result = (
+            self.leaves[0] * 10 ** self.leaves[1]
+            if self.leaves[1] >= 0 else
+            self.leaves[0] / 10 ** -self.leaves[1]
+        )
+        if not result % 1:
+            return int(result)
+        return result
 
     def is_integer(self):
         return boolean(self.is_int or self.leaves[1] >= 0)
@@ -357,7 +382,7 @@ class Integer(Real):
         )
         self.head = headify(Integer)
         actual_precision = floor(log10(abs(value) or 1))
-        self.run = lambda precision=10: Real(
+        self.run = lambda precision=None: Real(
             (
                 value * 10 ** (precision - actual_precision - 1)
                 if precision - actual_precision > 1 else
@@ -365,7 +390,7 @@ class Integer(Real):
             ),
             self.leaves[1] - precision + actual_precision + 1,
             precision=precision
-        )
+        ) if precision else self
 
     def __str__(self):
         string = str(self.leaves[0])
@@ -427,8 +452,8 @@ class Rational(Number):
         self.leaves = [numerator, denominator, exponent]
         # TODO: make it create integer directly somehow
         if denominator == 1:
-            self.run = lambda precision=10: (
-                Integer(self.leaves[0], self.leaves[3])
+            self.run = lambda precision=10: Integer(
+                self.leaves[0], self.leaves[3]
             )
 
     def __str__(self):
@@ -449,11 +474,21 @@ class Rational(Number):
                 self.leaves[0] * other.leaves[0],
                 self.leaves[1] * other.leaves[1]
             )
+        if isinstance(other, Integer):
+            return Rational(
+                self.leaves[0] * other.leaves[0],
+                self.leaves[1] * other.leaves[1]
+            )
 
     def __truediv__(self, other):
         if isinstance(other, Rational):
             return Rational(
                 self.leaves[0] * other.leaves[1],
+                self.leaves[1] * other.leaves[0]
+            )
+        if isinstance(other, Integer):
+            return Rational(
+                self.leaves[0],
                 self.leaves[1] * other.leaves[0]
             )
 
@@ -489,11 +524,14 @@ class List(Expression):
         super().__init__(head=headify(List))
         self.leaves = list(filter(lambda x: x is not None, items))
 
+    def __len__(self):
+        return len(self.leaves)
+
     def __getitem__(self, i):
-        return self.leaves.__getitem__(i)
+        return self.leaves[i]
 
     def __setitem__(self, i, value):
-        self.leaves.__setitem__(i, value)
+        self.leaves[i] = value
 
     def __iter__(self):
         return iter(self.leaves)
@@ -508,6 +546,9 @@ class String(Expression):
 
     def __repr__(self):
         return repr(self.leaves[0])
+
+    def __len__(self):
+        return len(self.leaves[0])
 
     def __getitem__(self, i):
         return self.leaves[0].__getitem__(i)
@@ -929,11 +970,9 @@ class Wolfram(object):
         for leaf in leaves[2:]:
             if leaf == All:
                 dont_return_all = False
-                continue
-            if isinstance(leaf, Rule):
-                if leaf.leaves == [IgnoreCase, _True]:
-                    ignorecase = "(?i)"
-            if isinstance(leaf, Number):
+            elif isinstance(leaf, Rule) and leaf.leaves == [IgnoreCase, _True]:
+                ignorecase = "(?i)"
+            elif isinstance(leaf, Number):
                 maxsplit = leaves[2].to_number()
         string = str(leaves[0])
         if len(leaves) == 1:
@@ -1122,10 +1161,9 @@ class Wolfram(object):
             ])
         ignorecase, maxreplace = "", 0
         for leaf in leaves[2:]:
-            if isinstance(leaf, Rule):
-                if leaf.leaves == [IgnoreCase, _True]:
-                    ignorecase = "(?i)"
-            if isinstance(leaf, Number):
+            if isinstance(leaf, Rule) and leaf.leaves == [IgnoreCase, _True]:
+                ignorecase = "(?i)"
+            elif isinstance(leaf, Number):
                 maxreplace = leaves[2].to_number()
         string = str(leaves[0])
         if len(leaves) == 1:
@@ -1167,7 +1205,6 @@ class Wolfram(object):
             result += [string, replacer.leaves[1]]
         return String("".join(result[:-1]))
 
-    # TODO
     def StringCases(leaves, precision=10):
         if isinstance(leaves[0], List):
             other_leaves = leaves[1:]
@@ -1175,11 +1212,13 @@ class Wolfram(object):
                 Wolfram.StringCases([item] + other_leaves)
                 for item in leaves[0].leaves
             ])
-        ignorecase, maxcase = "", 0
+        ignorecase, maxcase, overlap = "", 0, False
         for leaf in leaves[2:]:
             if isinstance(leaf, Rule):
                 if leaf.leaves == [IgnoreCase, _True]:
                     ignorecase = "(?i)"
+                elif leaf.leaves == [Overlaps, _True]:
+                    overlap = True
             if isinstance(leaf, Number):
                 maxcase = leaves[2].to_number()
         string = str(leaves[0])
@@ -1188,87 +1227,53 @@ class Wolfram(object):
             return lambda items: Wolfram.StringCases([items, leaves[0]])
         caser = leaves[1]
         if isinstance(caser, Pattern):
-            if not maxcase:
-                return create_expression(findall(
-                    ignorecase + str(caser), string
-                ))
-            gen = finditer(ignorecase + str(caser), string)
             return create_expression(
-                list(next(gen).group(0) for _ in range(maxcase))
+                item.group()
+                for item in take(finditer(
+                    ignorecase + str(caser), string, overlapped=overlap
+                ), maxcase)
             )
         caser_type = type(leaves[1])
         if caser_type == String:
-            if not maxcase:
-                return create_expression(findall(
-                    ignorecase + re_escape(str(caser)), string
-                ))
-            gen = finditer(ignorecase + re_escape(str(caser)), string)
             return create_expression(
-                list(next(gen).group(0) for _ in range(maxcase))
+                item.group()
+                for item in take(finditer(
+                    ignorecase + re_escape(str(caser)), string,
+                    overlapped=overlap
+                ), maxcase)
             )
         if caser_type == List:
             if isinstance(caser.leaves[0], str):
                 caser.leaves = list(map(String, caser.leaves))
             if isinstance(caser.leaves[0], String):
-                if not maxcase:
-                    return create_expression(findall(
+                return create_expression(
+                    item.group()
+                    for item in take(finditer(
                         ignorecase + "(" + "|".join(list(map(
                             lambda l: re_escape(str(l)), caser.leaves
-                        ))) + ")",
-                        string
-                    ))
-                gen = finditer(
-                    ignorecase + "(" + "|".join(list(map(
-                        lambda l: re_escape(str(l)), caser.leaves
-                    ))) + ")",
-                    string
-                )
-                return create_expression(
-                    list(next(gen).group(0) for _ in range(maxcase))
+                        ))) + ")", string, overlapped=overlap
+                    ), maxcase)
                 )
             # Assume Rule
             lookup = {}
             for rule in caser.leaves:
                 lookup[rule.leaves[0]] = rule.leaves[1]
-            if not maxcase:
-                return create_expression(findall(
-                    ignorecase + "(" + "|".join(list(map(
-                        lambda l: re_escape(str(l.leaves[0])),
-                        caser.leaves
-                    ))) + ")",
-                    string
-                ))
-            gen = finditer(
-                ignorecase + "(" + "|".join(list(map(
+            return create_expression(
+                item.group()
+                for item in take(finditer(ignorecase + "(" + "|".join(list(map(
                     lambda l: re_escape(str(l.leaves[0])),
                     caser.leaves
-                ))) + ")",
-                string
-            )
-            return create_expression(
-                list(lookup[next(gen).group(0)] for _ in range(maxcase))
+                ))) + ")", string, overlapped=overlap), maxcase)
             )
         # Assume Rule
-        if not maxcase:
-            return [caser.leaves[1]] * len(findall(
-                ignorecase + (
-                    str(caser.leaves[0])
-                    if isinstance(caser.leaves[0], Pattern) else
-                    re_escape(str(caser.leaves[0]))
-                ),
-                string
-            ))
         result = []
-        gen = finditer(
-            ignorecase + (
+        return create_expression(
+            item and caser.leaves[1]
+            for item in take(finditer(ignorecase + (
                 str(caser.leaves[0])
                 if isinstance(caser.leaves[0], Pattern) else
                 re_escape(str(caser.leaves[0]))
-            ), string
-        )
-        # TODO: whut
-        return create_expression(
-            list(next(gen) and caser.leaves[1] for _ in range(maxcase))
+            ), string, overlapped=overlap), maxcase)
         )
 
     def StringCount(leaves, precision=10):
@@ -1278,13 +1283,185 @@ class Wolfram(object):
                 Wolfram.StringCount([item] + other_leaves)
                 for item in leaves[0].leaves
             ])
-        if isinstance(leaves[1], List):
-            return Integer(len(findall("|".join(list(map(
-                lambda l: re_escape(str(l.leaves[0])),
-                leaves[1].leaves
-            ))))))
-        # assume String
+        ignorecase, overlap = "", False
+        for leaf in leaves[2:]:
+            if isinstance(leaf, Rule):
+                if leaf.leaves == [IgnoreCase, _True]:
+                    ignorecase = "(?i)"
+                elif leaf.leaves == [Overlaps, _True]:
+                    overlap = True
+        string = str(leaves[0])
+        if len(leaves) == 1:
+            # TODO: does this accept options, check on mmca
+            return lambda items: Wolfram.StringCount([items, leaves[0]])
+        caser = leaves[1]
+        if isinstance(caser, Pattern):
+            return Integer(len(findall(
+                ignorecase + str(caser), string, overlapped=overlap
+            )))
+        caser_type = type(leaves[1])
+        if caser_type == String:
+            return Integer(len(findall(
+                ignorecase + re_escape(str(caser)), string, overlapped=overlap
+            )))
+        if caser_type == List:
+            if isinstance(caser.leaves[0], str):
+                caser.leaves = list(map(String, caser.leaves))
+            return Integer(len(findall(
+                ignorecase + "(" + "|".join(list(map(
+                    lambda l: re_escape(str(l)), caser.leaves
+                ))) + ")",
+                string, overlapped=overlap
+            )))
+        # Assume Rule
         return Integer(str(leaves[0]).count(str(leaves[1])))
+
+    def StringPosition(leaves, precision=10):
+        # TODO: Lists of string patterns in StringPosition are sometimes 
+        # not the same as pattern alternatives
+        if isinstance(leaves[0], List):
+            other_leaves = leaves[1:]
+            return List(*[
+                Wolfram.StringPosition([item] + other_leaves)
+                for item in leaves[0].leaves
+            ])
+        ignorecase, maxposition, overlap = "", 0, True
+        for leaf in leaves[2:]:
+            if isinstance(leaf, Rule):
+                if leaf.leaves == [IgnoreCase, _True]:
+                    ignorecase = "(?i)"
+                elif leaf.leaves == [Overlaps, _False]:
+                    overlap = False
+            elif isinstance(leaf, Number):
+                maxposition = leaves[2].to_number()
+        string = str(leaves[0])
+        if len(leaves) == 1:
+            # TODO: does this accept options, check on mmca
+            return lambda items: Wolfram.StringPosition([items, leaves[0]])
+        positioner = leaves[1]
+        if isinstance(positioner, Pattern):
+            return create_expression(
+                (item.start() + 1, item.end())
+                for item in take(finditer(
+                    ignorecase + str(positioner), string, overlapped=overlap
+                ), maxposition)
+            )
+        positioner_type = type(leaves[1])
+        if positioner_type == List:
+            if isinstance(positioner.leaves[0], str):
+                caser.leaves = list(map(String, positioner.leaves))
+            # Assume String
+            return create_expression(
+                (item.start() + 1, item.end())
+                for item in take(finditer(
+                    ignorecase + "(" + "|".join(list(map(
+                        lambda l: re_escape(str(l)), positioner.leaves
+                    ))) + ")", string, overlapped=overlap
+                ), maxposition)
+            )
+        # Assume String
+        return create_expression(
+            (item.start() + 1, item.end())
+            for item in take(finditer(
+                ignorecase + str(positioner), string, overlapped=overlap
+            ), maxposition)
+        )
+
+    def StringRepeat(leaves, precision=10):
+        if len(leaves) == 3:
+            string = str(leaves[0])
+            length = min(
+                len(string) * leaves[1].to_number(), leaves[2].to_number()
+            )
+            times = length // len(string) + 1
+            return String((str(leaves[0]) * times)[:length])
+        return String(str(leaves[0]) * leaves[1].to_number())
+
+    def StringDelete(leaves, precision=10):
+        if isinstance(leaves[0], List):
+            other_leaves = leaves[1:]
+            return List(*[
+                Wolfram.StringDelete([item] + other_leaves)
+                for item in leaves[0].leaves
+            ])
+        ignorecase = ""
+        for leaf in leaves[2:]:
+            if isinstance(leaf, Rule) and leaf.leaves == [IgnoreCase, _True]:
+                ignorecase = "(?i)"
+        string = str(leaves[0])
+        if len(leaves) == 1:
+            return lambda items: Wolfram.StringDelete([items, leaves[0]])
+        deleter = leaves[1]
+        deleter_type = type(leaves[1])
+        if deleter_type == List:
+            #Assume String
+            lookup = {}
+            for rule in deleter.leaves:
+                lookup[rule.leaves[0]] = rule.leaves[1]
+            return String(sub(
+                ignorecase + "(?:" + "|".join(list(map(
+                    lambda l: str(l) if isinstance(l, Pattern) else (str(l)),
+                    deleter.leaves
+                ))) + ")", "", string
+            ))
+        if deleter_type == String:
+            return create_expression(sub(
+                ignorecase + re_escape(str(deleter)), "", string
+            ))
+        # Assume String or Pattern
+        return String(sub(
+            ignorecase + (
+                str(deleter)
+                if isinstance(deleter, Pattern) else
+                re_escape(str(deleter))
+            ), "", string
+        ))
+
+    def StringRiffle(leaves, precision=10, count=0):
+        if count or len(leaves) == 1:
+            if not count:
+                current = leaves[0].leaves[0]
+                if isinstance(current, List):
+                    count += 1
+                    current = current.leaves[0]
+            if count:
+                return String(("\n" * count).join(
+                    str(Wolfram.StringRiffle(List(row), precision, count - 1))
+                    for row in leaves[0].leaves
+                ))
+            # Assume List
+            return String(" ".join(map(str, leaves[0].leaves)))
+        if isinstance(leaves[0], String):
+            # Weird nested list, will happen during recursion
+            return leaves[0]
+        riffler_type = type(leaves[1])
+        if riffler_type == List:
+            # Assume String[3]
+            rifflers = leaves[1].leaves
+            if len(leaves) > 2:
+                return String(str(rifflers[0]) + str(rifflers[1]).join(map(
+                    lambda l: str(Wolfram.StringRiffle([l] + leaves[2:])),
+                    leaves[0].leaves
+                )) + str(rifflers[2]))
+            return String(str(rifflers[0]) + str(rifflers[1]).join(
+                map(str, leaves[0].leaves)
+            ) + str(rifflers[2]))
+        if len(leaves) > 2:
+            return String(str(leaves[1]).join(map(
+                lambda l: str(Wolfram.StringRiffle([l] + leaves[2:])),
+                leaves[0].leaves
+            )))
+        return String(str(leaves[1]).join(map(str, leaves[0].leaves)))
+
+    def RemoveDiacritics(leaves, precision=10):
+        if isinstance(leaves[0], List):
+            other_leaves = leaves[1:]
+            return List(*[
+                Wolfram.RemoveDiacritics([item] + other_leaves)
+                for item in leaves[0].leaves
+            ])
+        # Assume String
+        return String(remove_diacritics(str(leaves[0])))
 
     def StringStartsQ(leaves, precision=10):
         if len(leaves) == 1:
@@ -1331,15 +1508,19 @@ class Wolfram(object):
                 Wolfram.StringContainsQ([item] + other_leaves)
                 for item in leaves[0].leaves
             ])
-        if (
-            len(leaves) > 2 and
-            type(leaves[2]) == Rule and
-            leaves[2].leaves == [IgnoreCase, _True]
-        ):
+        ignorecase = ""
+        for leaf in leaves[2:]:
+            if isinstance(leaf, Rule):
+                if leaf.leaves == [IgnoreCase, _True]:
+                    ignorecase = "(?i)"
+        string = str(leaves[0])
+        if isinstance(leaves[1], Pattern):
             return boolean(
-                search("(?i)" + re_escape(str(leaves[1])), str(leaves[0]))
+                search(ignorecase + str(leaves[1]), str(leaves[0]))
             )
-        return boolean(str(leaves[1]) in str(leaves[0]))
+        return boolean(
+            search(ignorecase + re_escape(str(leaves[1])), str(leaves[0]))
+        )
 
     def PrintableAsciiQ(leaves, precision=10):
         if isinstance(leaves[0], List):
@@ -1366,6 +1547,10 @@ class Wolfram(object):
             start, end = ord(leaves[0]), ord(leaves[1])
             return List(*map(chr, range(start, end)))
         return List(*map(chr, range(leaves[0], leaves[1])))
+
+    def Predict(leaves, precision=10):
+        #Assume List<Rule>
+        pass
 
     ### Constants
 
@@ -1555,14 +1740,20 @@ SP = StringPart = functionify(Wolfram.StringPart)
 SR = StringReplace = functionify(Wolfram.StringReplace)
 SCa = StringCases = functionify(Wolfram.StringCases)
 SC = StringCount = functionify(Wolfram.StringCount)
+SRf = StringRiffle = functionify(Wolfram.StringRiffle)
+SPo = StringPosition = functionify(Wolfram.StringPosition)
+SRe = StringRepeat = functionify(Wolfram.StringRepeat)
+SDe = StringDelete = functionify(Wolfram.StringDelete)
 SSQ = StringStartsQ = functionify(Wolfram.StringStartsQ)
 SEQ = StringEndsQ = functionify(Wolfram.StringEndsQ)
 SCQ = StringContainsQ = functionify(Wolfram.StringContainsQ)
+RD = RemoveDiacritics = functionify(Wolfram.RemoveDiacritics)
+Pr = Predict = functionify(Wolfram.Predict)
 # TODO: make capital form arbitrary precision
 l2 = Log2 = log2
 la = Log10 = log10
 ln = Log = log
-rt = functionify(Wolfram.Sqrt)
+rt = Rt = Sqrt = functionify(Wolfram.Sqrt)
 #Sin = sin
 #Cos = cos
 #Tan = tan

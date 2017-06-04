@@ -7,6 +7,8 @@ Contains unit tests, and runs them when invoked.
 
 """
 
+# TODO: test capitalum (crlf)
+
 from charcoal import Run
 import unittest
 import sys
@@ -1644,9 +1646,98 @@ Some text follows here...""")
         self.assertEqual(Run("\
 ▷StringCases⟦cat Cat hat CAT¦cat➙≕IgnoreCase≕True⟧"), "cat\nCat\nCAT")
         self.assertEqual(Run("\
+▷StringCases⟦ab bac adaf⁺a″≕LetterCharacter⟧"), "ab  \nac  \nadaf")
+        self.assertEqual(Run("▷StringCases⟦ab bac adaf\
+⁺a″≕LetterCharacter➙≕Overlaps≕True⟧⟧"), "ab  \nac  \nadaf\naf  ")
+        # TODO Overlaps -> All
+        self.assertEqual(Run("≔message¦This is a text with 3 phones numbers: \
+(800)965-3726, (217)398-6500 and (217)398-5151.\
+▷StringCases⟦≕message⁺⁺⁺⁺⁺\
+(″≕DigitCharacter¦)″≕DigitCharacter¦-″≕DigitCharacter⟧"), """\
+(800)965-3726
+(217)398-6500
+(217)398-5151""")
+        self.assertEqual(Run("\
 ▷StringReplace⟦⟦aaabbbbaaaa¦bbbaaaab¦aaabab⟧➙ab¦X⟧"), "\
 aaXbbbaaaa\nbbbaaaX   \naaXX      ")
         self.assertEqual(Run("▷StringCount⟦abbaabbaa¦bb⟧"), "--")
+        self.assertEqual(Run("▷StringCount⟦abcadcadcbaac⁺⁺a≕_¦c⟧"), "----")
+        self.assertEqual(Run("▷StringCount⟦the cat in the hat¦cat⟧"), "-")
+        self.assertEqual(Run("▷StringCount⟦the cat in the hat⁺⁺a≕__¦e⟧"), "-")
+        self.assertEqual(Run("▷StringCount⟦11a22b3″≕DigitCharacter⟧"), "---")
+        self.assertEqual(Run("▷StringCount⟦11a22b3？≕_≕LetterQ⟧"), "--")
+        self.assertEqual(Run("\
+▷StringCount⟦a1b22c333▷RegularExpression⟦..2⟧⟧"), "-")
+        self.assertEqual(Run("\
+▷StringCount⟦the cat in the hat\
+⁺▷RegularExpression⟦(?<=the )⟧″≕WordCharacter⟧"), "--")
+        self.assertEqual(Run("▷StringCount⟦abcdabcdcd⟦abc¦cd⟧⟧"), "---")
+        self.assertEqual(Run("▷StringCount⟦abcdabcdcd｜abc¦cd⟧"), "---")
+        self.assertEqual(Run("\
+▷StringCount⟦⟦ability¦argument¦listable⟧⁺⁺a≕___¦l⟧"), "-\n \n-")
+        self.assertEqual(Run("▷StringCount⟦abAB¦a⟧"), "-")
+        self.assertEqual(Run("▷StringCount⟦abAB¦a➙≕IgnoreCase≕True⟧"), "--")
+        self.assertEqual(Run("▷StringCount⟦the cat in the hat⁺⁺t≕__¦t⟧"), "-")
+        self.assertEqual(Run("\
+▷StringCount⟦the cat in the hat⁺⁺t≕__¦t➙≕Overlaps≕True⟧"), "---")
+        self.assertEqual(Run("\
+Ｅ▷StringPosition⟦abXYZaaabXYZaaaaXYZXYZ¦XYZ⟧ＥιＩλ"), "\
+3 \n5 \n  \n10\n12\n  \n17\n19\n  \n20\n22")
+        self.assertEqual(Run("\
+Ｅ▷▷StringPosition⟦XYZ⟧⟦abXYZaaabXYZaaaaXYZXYZ⟧ＥιＩλ"), "\
+3 \n5 \n  \n10\n12\n  \n17\n19\n  \n20\n22")
+        self.assertEqual(Run("Ｅ▷StringPosition⟦XYZabc¦XYZ⟧ＥιＩλ"), "1\n3")
+        self.assertEqual(Run("\
+Ｅ▷StringPosition⟦abXYZaaabXYZaaaaXYZXYZ¦XYZ¹⟧ＥιＩλ"), "3\n5")
+        self.assertEqual(Run("\
+Ｅ▷StringPosition⟦AAAAA¦AA⟧ＥιＩλ"), "1\n2\n \n2\n3\n \n3\n4\n \n4\n5")
+        self.assertEqual(Run("\
+Ｅ▷StringPosition⟦AAAAA¦AA➙≕Overlaps≕False⟧ＥιＩλ"), "1\n2\n \n3\n4")
+        self.assertEqual(Run("Ｅ▷StringPosition⟦ABAABBAABABB⟦ABA¦AA⟧⟧ＥιＩλ"), "\
+1 \n3 \n  \n3 \n4 \n  \n7 \n8 \n  \n8 \n10")
+        self.assertEqual(Run("\
+Ｅ▷StringPosition⟦ABAABBAABABB⟦ABA¦AA⟧➙≕Overlaps≕False⟧ＥιＩλ"), "\
+1\n3\n \n7\n8")
+        self.assertEqual(Run("\
+Ｅ▷StringPosition⟦abAB¦a➙≕IgnoreCase≕True⟧ＥιＩλ"), "1\n1\n \n3\n3")
+        self.assertEqual(Run("\
+Ｅ▷StringPosition⟦abAB¦a➙≕IgnoreCase≕False⟧ＥιＩλ"), "1\n1")
+        self.assertEqual(Run("▷StringRepeat⟦a⁵⁰⟧"), "a" * 50)
+        self.assertEqual(Run("▷StringRepeat⟦abc¹⁰⟧"), "abc" * 10)
+        self.assertEqual(Run("▷StringRepeat⟦TTAGGG¹⁰⁰⟧"), "TTAGGG" * 100)
+        self.assertEqual(Run("▷StringRepeat⟦ab¹⁰¦¹⁹⟧"), ("ab" * 10)[:19])
+        self.assertEqual(Run("▷StringDelete⟦1 2 3 4 5 6 7 8 9¦ ⟧"), "\
+123456789")
+        self.assertEqual(Run("▷StringDelete⟦CACACGTCGACT¦CAC⟧"), "\
+ACGTCGACT")
+        self.assertEqual(Run("\
+▷StringDelete⟦abcde12345abcde″≕DigitCharacter⟧"), "abcdeabcde")
+        self.assertEqual(Run("▷▷StringDelete⟦ ⟧⟦1 2 3 4 5 6 7 8 9⟧"), "\
+123456789")
+        self.assertEqual(Run("\
+▷StringDelete⟦ABCDE12345abcde¦AB➙≕IgnoreCase≕False⟧⟧"), "\
+CDE12345abcde")
+        self.assertEqual(Run("\
+▷StringDelete⟦ABCDE12345abcde¦AB➙≕IgnoreCase≕True⟧⟧"), "\
+CDE12345cde")
+        self.assertEqual(Run("▷RemoveDiacritics⟦ḥ⟧"), "h")
+        self.assertEqual(Run("▷RemoveDiacritics⟦ā⟧"), "a")
+        self.assertEqual(Run("▷RemoveDiacritics⟦ï⟧"), "i")
+        self.assertEqual(Run("▷RemoveDiacritics⟦naïve⟧"), "naive")
+        self.assertEqual(Run("▷RemoveDiacritics⟦haček⟧"), "hacek")
+        self.assertEqual(Run("▷RemoveDiacritics⟦⟦ā¦ḥ¦ï⟧⟧"), "a\nh\ni")
+        self.assertEqual(Run("▷RemoveDiacritics⟦Ε´υ´ρώ´π´η⟧"), "Ευρωπη")
+        # TODO: break ligatures
+        # TODO: StringTemplate
+        self.assertEqual(Run("▷StringRiffle⟦⟦a¦b¦c¦d¦e⟧⟧"), "a b c d e")
+        self.assertEqual(Run("▷StringRiffle⟦⟦a¦b¦c¦d¦e⟧, ⟧"), "a, b, c, d, e")
+        self.assertEqual(Run("▷StringRiffle⟦⟦a¦b¦c¦d¦e⟧⟦(¦, ¦)⟧⟧"), "\
+(a, b, c, d, e)")
+        self.assertEqual(Run("▷StringRiffle⟦⟦⟦a¦b¦c⟧⟦d¦e¦f⟧⟧⟧"), "a b c\nd e f")
+        self.assertEqual(Run("▷StringRiffle⟦⟦⟦a¦b¦c⟧⟦d¦e¦f⟧⟧¶¦	⟧"), "\
+a	b	c\nd	e	f")
+        self.assertEqual(Run("▷StringRiffle⟦⟦⟦a¦27⟧⟦b¦28⟧⟦c¦29⟧⟧⟦{¦, ¦}⟧: ⟧"), "\
+{a: 27, b: 28, c: 29}")
         self.assertEqual(Run("▷StringStartsQ⟦abcd¦a⟧"), "-")
         self.assertEqual(Run("▷StringStartsQ⟦quickSort¦quick⟧"), "-")
         self.assertEqual(Run("▷StringStartsQ⟦United States¦United⟧"), "-")
@@ -1660,6 +1751,10 @@ aaXbbbaaaa\nbbbaaaX   \naaXX      ")
         self.assertEqual(Run("▷StringEndsQ⟦Great Dane¦Dane⟧"), "-")
         self.assertEqual(Run("▷StringEndsQ⟦abcd¦D➙≕IgnoreCase≕False⟧"), "")
         self.assertEqual(Run("▷StringEndsQ⟦abcD¦d➙≕IgnoreCase≕True⟧"), "-")
+        self.assertEqual(Run("▷StringContainsQ⟦bcde⁺⁺c≕__¦t⟧"), "")
+        self.assertEqual(Run("▷StringContainsQ⟦bcde⁺⁺b≕__¦e⟧"), "-")
+        self.assertEqual(Run("\
+▷StringContainsQ⟦⟦a¦b¦ab¦abcd¦bcde⟧¦a⟧"), "-\n \n-\n-")
         self.assertEqual(Run("\
 ▷StringContainsQ⟦⟦a¦b¦ab¦abcd¦bcde⟧¦a⟧"), "-\n \n-\n-")
         self.assertEqual(Run("\

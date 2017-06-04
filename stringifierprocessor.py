@@ -49,26 +49,18 @@ StringifierProcessor = {
     ],
     CharcoalToken.String: [
         lambda result: [Compressed(re.sub(
-            "\n",
-            "¶",
-            rCommand.sub(
-                r"´\1",
-                result[0]
-            )
+            "\n", "¶", rCommand.sub(r"´\1", result[0])
         ))]
     ],
     CharcoalToken.Number: [
         lambda result: ["".join(
-            (
-                "·"
-                if n == "." else
-                SuperscriptToNormal[int(n)]
-            ) for n in str(result[0])
+            ("·" if n == "." else SuperscriptToNormal[int(n)])
+            for n in str(result[0])
         )]
     ],
     CharcoalToken.Name: [
         lambda result: "αβγδεζηθικλμνξπρσςτυφχψω"[
-            "abgdezhciklmnxprstufko".index(result[0])
+            "abgdezhqiklmnxprsvtufcyw".index(result[0])
         ]
     ],
     CharcoalToken.Span: [
@@ -134,7 +126,7 @@ StringifierProcessor = {
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
         lambda result: result[0] + result[1],
-        lambda result: result[1] + result[3],
+        lambda result: "«" + result[1] + "»" + result[3],
         lambda result: result[0] + result[1],
         lambda result: (
             result[0] + result[2] + result[3] + result[4] + result[6]
@@ -309,38 +301,34 @@ StringifierProcessor = {
         lambda result: "‖Ｃ" + result[2],
         lambda result: "‖Ｃ" + result[2],
         lambda result: "‖Ｃ",
+        lambda result: (
+            "⟲ＯＯ" + result[2] + result[3] + result[4] + result[5] + result[6]
+        ),
         lambda result: "⟲ＯＯ" + result[2] + result[4] + result[5],
-        lambda result: "⟲ＯＯ" + result[2] + result[4] + result[5],
-        lambda result: "⟲ＯＯ" + result[2] + result[3],
-        lambda result: "⟲ＯＯ" + result[2] + result[3],
         lambda result: "⟲ＯＯ" + result[2] + result[3],
         lambda result: "⟲ＯＯ" + result[2],
-        lambda result: "⟲Ｏ" + result[2] + result[4],
-        lambda result: "⟲Ｏ" + result[2] + result[4],
-        lambda result: "⟲Ｏ" + result[2],
+        lambda result: "⟲Ｏ" + result[2] +  result[4],
         lambda result: "⟲Ｏ" + result[2],
         lambda result: "⟲Ｏ" + result[2],
         lambda result: "⟲Ｏ",
+        lambda result: (
+            "⟲ＳＯ" + result[2] + result[3] + result[4] + result[5] + result[6]
+        ),
         lambda result: "⟲ＳＯ" + result[2] + result[4] + result[5],
-        lambda result: "⟲ＳＯ" + result[2] + result[4] + result[5],
-        lambda result: "⟲ＳＯ" + result[2] + result[3],
-        lambda result: "⟲ＳＯ" + result[2] + result[3],
         lambda result: "⟲ＳＯ" + result[2] + result[3],
         lambda result: "⟲ＳＯ" + result[2],
         lambda result: "⟲Ｓ" + result[2] + result[4],
-        lambda result: "⟲Ｓ" + result[2] + result[4],
-        lambda result: "⟲Ｓ" + result[2],
         lambda result: "⟲Ｓ" + result[2],
         lambda result: "⟲Ｓ" + result[2],
         lambda result: "⟲Ｓ",
-        lambda result: "‖ＯＯ" + result[2] + result[3],
-        lambda result: "‖ＯＯ" + result[2] + result[3],
+        lambda result: "‖ＯＯ" + result[2] + result[3] + result[4],
+        lambda result: "‖ＯＯ" + result[2] + result[4],
         lambda result: "‖ＯＯ" + result[2],
         lambda result: "‖Ｏ" + result[2],
         lambda result: "‖Ｏ" + result[2],
         lambda result: "‖Ｏ",
-        lambda result: "‖ＢＯ" + result[2] + result[3],
-        lambda result: "‖ＢＯ" + result[2] + result[3],
+        lambda result: "‖ＢＯ" + result[2] + result[3] + result[4],
+        lambda result: "‖ＢＯ" + result[2] + result[4],
         lambda result: "‖ＢＯ" + result[2],
         lambda result: "‖Ｂ" + result[2],
         lambda result: "‖Ｂ" + result[2],
