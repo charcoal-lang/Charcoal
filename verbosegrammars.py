@@ -12,7 +12,7 @@ VerboseGrammars = {
         [":Down"]
     ],
     CT.Multidirectional: [
-        [CT.Arrows],
+        [CT.Arrows, CT.Separator, CT.Multidirectional],
         [":+", CT.Separator, CT.Multidirectional],
         [":X", CT.Separator, CT.Multidirectional],
         [":All", CT.Separator, CT.Multidirectional],

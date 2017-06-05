@@ -47,7 +47,7 @@ InterpreterProcessor = {
         lambda result: Direction.down_left
     ],
     CharcoalToken.Multidirectional: [
-        lambda result: result[0],
+        lambda result: result[0] + result[1],
         lambda result: [
             Direction.right, Direction.down, Direction.left, Direction.up
         ] + result[1],

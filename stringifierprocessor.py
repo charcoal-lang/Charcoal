@@ -18,7 +18,7 @@ StringifierProcessor = {
         lambda result: "↓"
     ],
     CharcoalToken.Multidirectional: [
-        lambda result: result[0],
+        lambda result: result[0] + result[2],
         lambda result: "+" + result[2],
         lambda result: "X" + result[2],
         lambda result: "*" + result[2],

@@ -6,7 +6,7 @@ UnicodeGrammars = {
         ["←"], ["↑"], ["→"], ["↓"], ["↖"], ["↗"], ["↘"], ["↙"]
     ],
     CT.Multidirectional: [
-        [CT.Arrows],
+        [CT.Arrows, CT.Multidirectional],
         ["+", CT.Multidirectional],
         ["X", CT.Multidirectional],
         ["*", CT.Multidirectional],
