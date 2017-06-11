@@ -17,7 +17,7 @@ ASTProcessor = {
         lambda result: "Down Left"
     ],
     CharcoalToken.Multidirectional: [
-        lambda result: ["Multidirectional", result[0] + result[1]]
+        lambda result: ["Multidirectional"] + result[0][1:] + result[1][1:]
     ] + [
         lambda result: [result[1][0], result[0]] + result[1][1:]
     ] * (len(UnicodeGrammars[CharcoalToken.Multidirectional]) - 2) + [
@@ -88,10 +88,6 @@ ASTProcessor = {
     CharcoalToken.WolframList: [
         lambda result: ["Wolfram list"] + result[1][1:],
         lambda result: ["Wolfram list"]
-    ],
-    CharcoalToken.ArrowList: [
-        lambda result: ["Arrow list"] + result[1][1:],
-        lambda result: ["Arrow list"]
     ],
     CharcoalToken.Dictionary: [
         lambda result: ["Dictionary"] + result[1][1:],

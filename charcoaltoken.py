@@ -37,7 +37,6 @@ class CharcoalToken(object):
 
     WolframList = _id()
     List = _id()
-    ArrowList = _id()
     Dictionary = _id()
 
     Program = _id()

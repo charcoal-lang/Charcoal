@@ -63,7 +63,6 @@ VerboseGrammars = {
     ],
     CT.List: [["[", CT.Expressions, "]"], ["[", "]"]],
     CT.WolframList: [["[", CT.WolframExpressions, "]"], ["[", "]"]],
-    CT.ArrowList: [["[", CT.Multidirectional, "]"], ["[", "]"]],
     CT.Dictionary: [["{", CT.PairExpressions, "}"], ["{", "}"]],
     CT.WolframExpression: [[CT.Span, CT.Separator], [CT.Expression]],
     CT.Expression: [
@@ -203,7 +202,7 @@ VerboseGrammars = {
         ["JumpTo", "(", CT.Expression, CT.Expression, ")"],
         ["RotateTransform", "(", CT.Expression, ")"],
         ["RotateTransform", "(", ")"],
-        ["ReflectTransform", "(", CT.ArrowList, ")"],
+        ["ReflectTransform", "(", CT.Multidirectional, ")"],
         ["ReflectTransform", "(", CT.Arrow, ")"],
         ["ReflectTransform", "(", ")"],
         [
@@ -217,7 +216,7 @@ VerboseGrammars = {
         ["RotatePrism", "(", CT.Arrow, ")"],
         ["RotatePrism", "(", CT.Expression, ")"],
         ["RotatePrism", "(", ")"],
-        ["ReflectMirror", "(", CT.ArrowList, ")"],
+        ["ReflectMirror", "(", CT.Multidirectional, ")"],
         ["ReflectMirror", "(", CT.Arrow, ")"],
         ["ReflectMirror", "(", ")"],
         [
@@ -233,7 +232,7 @@ VerboseGrammars = {
         ["RotateCopy", "(", CT.Arrow, ")"],
         ["RotateCopy", "(", CT.Expression, ")"],
         ["RotateCopy", "(", ")"],
-        ["ReflectCopy", "(", CT.ArrowList, ")"],
+        ["ReflectCopy", "(", CT.Multidirectional, ")"],
         ["ReflectCopy", "(", CT.Arrow, ")"],
         ["ReflectCopy", "(", ")"],
         [
@@ -313,7 +312,7 @@ VerboseGrammars = {
         [
             "ReflectOverlapOverlap",
             "(",
-            CT.ArrowList,
+            CT.Multidirectional,
             CT.Separator,
             CT.Expression,
             ")"
@@ -327,13 +326,13 @@ VerboseGrammars = {
             ")"
         ],
         ["ReflectOverlapOverlap", "(", CT.Expression, ")"],
-        ["ReflectOverlap", "(", CT.ArrowList, ")"],
+        ["ReflectOverlap", "(", CT.Multidirectional, ")"],
         ["ReflectOverlap", "(", CT.Arrow, ")"],
         ["ReflectOverlap", "(", ")"],
         [
             "ReflectButterflyOverlap",
             "(",
-            CT.ArrowList,
+            CT.Multidirectional,
             CT.Separator,
             CT.Expression,
             ")"
@@ -347,7 +346,7 @@ VerboseGrammars = {
             ")"
         ],
         ["ReflectButterflyOverlap", "(", CT.Expression, ")"],
-        ["ReflectButterfly", "(", CT.ArrowList, ")"],
+        ["ReflectButterfly", "(", CT.Multidirectional, ")"],
         ["ReflectButterfly", "(", CT.Arrow, ")"],
         ["ReflectButterfly", "(", ")"],
         ["Rotate", "(", CT.Expression, ")"],

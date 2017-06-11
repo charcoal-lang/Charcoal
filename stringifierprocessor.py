@@ -107,10 +107,6 @@ StringifierProcessor = {
         lambda result: "⟦" + result[1] + "⟧",
         lambda result: "⟦⟧"
     ],
-    CharcoalToken.ArrowList: [
-        lambda result: "⟦" + result[1] + "⟧",
-        lambda result: "⟦⟧"
-    ],
     CharcoalToken.Dictionary: [
         lambda result: "⦃" + result[1] + "⦄",
         lambda result: "⦃⦄"

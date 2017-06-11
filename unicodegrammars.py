@@ -71,9 +71,6 @@ UnicodeGrammars = {
     CT.List: [
         ["⟦", CT.Expressions, "⟧"], ["⟦", "⟧"]
     ],
-    CT.ArrowList: [
-        ["⟦", CT.Multidirectional, "⟧"], ["⟦", "⟧"]
-    ],
     CT.Dictionary: [
         ["⦃", CT.PairExpressions, "⦄"], ["⦃", "⦄"]
     ],
@@ -163,7 +160,7 @@ UnicodeGrammars = {
         ["Ｊ", CT.Expression, CT.Expression],
         ["⟲Ｔ", CT.Expression],
         ["⟲Ｔ"],
-        ["‖Ｔ", CT.ArrowList],
+        ["‖Ｔ", CT.Multidirectional],
         ["‖Ｔ", CT.Arrow],
         ["‖Ｔ"],
         ["⟲Ｐ", CT.Arrow, CT.Number, CT.Separator],
@@ -172,7 +169,7 @@ UnicodeGrammars = {
         ["⟲Ｐ", CT.Number, CT.Separator],
         ["⟲Ｐ", CT.Expression],
         ["⟲Ｐ"],
-        ["‖Ｍ", CT.ArrowList],
+        ["‖Ｍ", CT.Multidirectional],
         ["‖Ｍ", CT.Arrow],
         ["‖Ｍ"],
         ["⟲Ｃ", CT.Arrow, CT.Number, CT.Separator],
@@ -181,7 +178,7 @@ UnicodeGrammars = {
         ["⟲Ｃ", CT.Number, CT.Separator],
         ["⟲Ｃ", CT.Expression],
         ["⟲Ｃ"],
-        ["‖Ｃ", CT.ArrowList],
+        ["‖Ｃ", CT.Multidirectional],
         ["‖Ｃ", CT.Arrow],
         ["‖Ｃ"],
         ["⟲ＯＯ", CT.Arrow, CT.Number, CT.Separator, CT.Expression],
@@ -208,16 +205,16 @@ UnicodeGrammars = {
         ["⟲Ｓ", CT.Number, CT.Separator],
         ["⟲Ｓ", CT.Expression],
         ["⟲Ｓ"],
-        ["‖ＯＯ", CT.ArrowList, CT.Expression],
+        ["‖ＯＯ", CT.Multidirectional, CT.Expression],
         ["‖ＯＯ", CT.Arrow, CT.Expression],
         ["‖ＯＯ", CT.Expression],
-        ["‖Ｏ", CT.ArrowList],
+        ["‖Ｏ", CT.Multidirectional],
         ["‖Ｏ", CT.Arrow],
         ["‖Ｏ"],
-        ["‖ＢＯ", CT.ArrowList, CT.Expression],
+        ["‖ＢＯ", CT.Multidirectional, CT.Expression],
         ["‖ＢＯ", CT.Arrow, CT.Expression],
         ["‖ＢＯ", CT.Expression],
-        ["‖Ｂ", CT.ArrowList],
+        ["‖Ｂ", CT.Multidirectional],
         ["‖Ｂ", CT.Arrow],
         ["‖Ｂ"],
         ["⟲", CT.Expression],

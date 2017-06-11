@@ -1396,8 +1396,11 @@ characters to the axis are next to the axis.
 
         """
         if isinstance(direction, list):
-            for direction_ in direction:
-                self.ReflectCopy(direction_, transform)
+            if not len(direction):
+                self.ReflectCopy(Direction.right, transform)
+            else:
+                for direction_ in direction:
+                    self.ReflectCopy(direction_, transform)
             return
         finished = True
         if direction == Direction.left:
@@ -1656,9 +1659,11 @@ but not if it overwrites the original.
 
         """
         if isinstance(direction, list):
-
-            for direction_ in direction:
-                self.ReflectOverlap(direction_)
+            if not len(direction):
+                self.ReflectOverlap(Direction.right, transform, overlap)
+            else:
+                for direction_ in direction:
+                    self.ReflectOverlap(direction_, transform, overlap)
             return
         finished = True
         if direction == Direction.left:
@@ -1932,6 +1937,13 @@ but not if it overwrites the original.
         If transform is true, reflect characters if possible.
 
         """
+        if isinstance(direction, list):
+            if not len(direction):
+                self.Reflect(Direction.right, transform)
+            else:
+                for direction_ in direction:
+                    self.Reflect(direction_, transform)
+            return
         if direction == Direction.left or direction == Direction.right:
             self.indices, self.right_indices = [
                 1 - right_index
@@ -2069,7 +2081,7 @@ make a copy for each of the digits in rotations.
         )
         if isinstance(rotations, list):
             for rotation in rotations:
-                self.RotateCopy(rotation, anchor)
+                self.RotateCopy(rotation, anchor, transform, number)
             return
         if rotations % 2:
             print("RuntimeError: Cannot rotate an odd number of times")
@@ -2237,7 +2249,7 @@ make a copy for each of the digits in rotations.
         )
         if isinstance(rotations, list):
             for rotation in rotations:
-                self.RotateOverlap(rotation, anchor)
+                self.RotateOverlap(rotation, anchor, transform, number, overlap)
             return
         if rotations % 2:
             print("RuntimeError: Cannot rotate an odd number of times")

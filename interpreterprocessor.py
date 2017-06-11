@@ -165,10 +165,6 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: result[1](charcoal),
         lambda result: lambda charcoal: []
     ],
-    CharcoalToken.ArrowList: [
-        lambda result: result[1],
-        lambda result: []
-    ],
     CharcoalToken.Dictionary: [
         lambda result: lambda charcoal: dict(result[1](charcoal)),
         lambda result: lambda charcoal: {}
