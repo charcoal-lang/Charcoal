@@ -48,9 +48,11 @@ StringifierProcessor = {
         lambda result: ""
     ],
     CharcoalToken.String: [
-        lambda result: [Compressed(re.sub(
-            "\n", "¶", rCommand.sub(r"´\1", result[0])
-        ))]
+        lambda result: [Compressed(
+            rCommand.sub(r"´\1", result[0])
+                .replace("\n", "¶")
+                .replace("\r", "⸿")
+        )]
     ],
     CharcoalToken.Number: [
         lambda result: ["".join(
