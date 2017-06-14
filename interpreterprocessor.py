@@ -81,6 +81,7 @@ InterpreterProcessor = {
         ] + result[1],
         lambda result: [Direction.down_left, Direction.left] + result[1],
         lambda result: [Direction.down, Direction.left] + result[1],
+        lambda result: result[1],
         lambda result: []
     ],
     CharcoalToken.Side: [

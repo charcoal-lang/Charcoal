@@ -69,6 +69,16 @@ Print('abc');Move(:Left);Move(:Left);Move(:Left);Print('abc')""",
         self.assertEqual(Run("Ｐ↑abc"), "c\nb\na")
         self.assertEqual(Run("Ｐ→↓abc"), "abc\nb  \nc  ")
         self.assertEqual(Run("Ｐ+abc"), "  c  \n  b  \ncbabc\n  b  \n  c  ")
+        self.assertEqual(Run("ＰK¦*****"), """\
+*   *
+*  * 
+* *  
+**   
+*    
+**   
+* *  
+*  * 
+*   *""")
         self.assertEqual(Run("Multiprint('abc')", verbose=True), "abc")
         self.assertEqual(Run("Multiprint(:Right, 'abc')", verbose=True), "abc")
         self.assertEqual(
@@ -203,6 +213,20 @@ aaaaa
 aaaaa
 aaaaa
 aaaaa""")
+        self.assertEqual(Run("\
+ＮθＮηＮζＵＯθ#Ｍ÷⁻θη²↘ＵＯη*Ｍ÷⁻ηζ²↘ＵＯζ@", "[12,6,2]"), """\
+############
+############
+############
+###******###
+###******###
+###**@@**###
+###**@@**###
+###******###
+###******###
+############
+############
+############""")
 
     def test_background(self):
         self.assertEqual(Run("Ｐ+abcＵＢ*"), """\

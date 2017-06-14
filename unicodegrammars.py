@@ -24,7 +24,8 @@ UnicodeGrammars = {
         ["Y", CT.Multidirectional],
         ["7", CT.Multidirectional],
         ["¬", CT.Multidirectional],
-        []
+        ["⟦", CT.Multidirectional, "⟧"],
+        [CT.Separator]
     ],
     CT.Side: [
         [CT.Arrow, CT.Expression]

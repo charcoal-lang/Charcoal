@@ -30,7 +30,8 @@ VerboseGrammars = {
         [":Y", CT.Separator, CT.Multidirectional],
         [":7", CT.Separator, CT.Multidirectional],
         [":¬", CT.Separator, CT.Multidirectional],
-        []
+        ["[", CT.Multidirectional, "]"],
+        [CT.Separator]
     ],
     CT.Side: [
         [CT.Arrow, CT.Separator, CT.Expression]

@@ -21,6 +21,7 @@ ASTProcessor = {
     ] + [
         lambda result: [result[1][0], result[0]] + result[1][1:]
     ] * (len(UnicodeGrammars[CharcoalToken.Multidirectional]) - 2) + [
+        lambda result: result[1],
         lambda result: ["Multidirectional"]
     ],
     CharcoalToken.Side: [

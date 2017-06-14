@@ -228,11 +228,13 @@ class Coordinates(object):
 
     def FillLines(self, y):
         if y > self.top + len(self.coordinates) - 1:
-            self.coordinates += [[]] * (
+            self.coordinates += [[] for _ in range(
                 y - self.top - len(self.coordinates) + 1
-            )
+            )]
         elif y < self.top:
-            self.coordinates = [[]] * (self.top - y) + self.coordinates
+            self.coordinates = [
+                [] for _ in range(self.top - y)
+            ] + self.coordinates
             self.top = y
 
     def Add(self, x, y):
@@ -3825,8 +3827,6 @@ def Golf(code):
             ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),
             ("¦((?:^|[^´])[α-ξπ-ω])", "\\1"),
             ("Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´¶])" % sOperator, "\\1"),
-            ("(?:Ｍ[←-↓↖-↙])+$", ""),
-            ("[←-↓↖-↙]+$", ""),
             ("»+$", "")
         ):
             codes[i] = re.sub(regex, replacement, codes[i])
