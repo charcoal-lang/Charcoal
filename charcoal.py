@@ -2529,6 +2529,19 @@ make a copy for each of the digits in rotations.
                 5: Direction.down_left,
                 7: Direction.down_right
             }[rotations]})
+            transformer = ({
+                1: RotateHalfLeft,
+                3: RotateThreeHalvesLeft,
+                5: RotateThreeHalvesRight,
+                7: RotateHalfRight
+            })[rotations]
+            if transform:
+                self.lines = [
+                    "".join(
+                        transformer.get(character, character)
+                        for character in line
+                    ) for line in self.lines
+                ]
         if Info.step_canvas in self.info:
             self.RefreshFastText((
                 "Rotate transform"
