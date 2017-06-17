@@ -1265,7 +1265,7 @@ with the specified string, repeating it if needed.
                         region_start, x, y, direction, region_start == start_x,
                         False
                     )]
-                    region_start = -1
+                    region_start = left - 1
                 if not is_next_in_dir and x < ignore_end and x >= ignore_start:
                     x = ignore_end - 1
                 x += 1
@@ -2790,7 +2790,7 @@ else set the variable with the given name to the given value.
             self.inputs = self.inputs[1:]
         elif Info.prompt in self.info:
             try:
-                inp = input("Enter number:")
+                inp = input("Enter number: ")
                 result = float(inp) if "." in inp else int(inp)
             except:
                 result = 0
