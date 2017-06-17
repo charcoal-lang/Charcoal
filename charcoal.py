@@ -38,6 +38,7 @@ from codepage import (
 )
 from compression import Decompressed, Compressed
 from wolfram import *
+from extras import *
 from enum import Enum
 from ast import literal_eval
 from time import sleep, clock
@@ -47,6 +48,13 @@ import argparse
 import os
 import sys
 import builtins
+
+for alias, builtin in [
+    ('a', abs), ('b', bin), ('c', complex), ('e', enumerate), ('f', format),
+    ('g', range), ('h', hex), ('i', __import__), ('n', min), ('o', oct),
+    ('p', repr), ('r', reversed), ('s', sorted), ('x', max), ('z', zip)
+]:
+    setattr(builtins, alias, builtin)
 
 imports = {}
 python_function_is_command = {}
@@ -333,8 +341,12 @@ class Charcoal(object):
         "ω": "",
         "ψ": "\000",
         "χ": 10,
-        "φ": 1000
+        "φ": 1000,
+        "υ": []
     }
+    for key in dir(builtins):
+        if key[0] != "_":
+            secret[key] = getattr(builtins, key)
     wolfram = vars(__import__("wolfram"))
     for key in wolfram:
         if len(key) == 1 or key[1] != "_":
@@ -2950,7 +2962,7 @@ arguments.
 
     def ExecuteVariable(self, name, arguments):
         """
-        EvaluateVariable(name, arguments)
+        ExecuteVariable(name, arguments)
 
         Executes the function with the specified name with the specified
 arguments.
@@ -3934,6 +3946,7 @@ and processors.
     if is_operator:
         UnicodeGrammars[CharcoalToken.OtherOperator] += [
             ["ＵＰ" + _name, CharcoalToken.Separator, CharcoalToken.List],
+            ["ＵＰ" + _name, CharcoalToken.Separator, CharcoalToken.Expression],
             ["ＵＰ" + _name, CharcoalToken.Separator]
         ]
         VerboseGrammars[CharcoalToken.OtherOperator] += [
@@ -3942,26 +3955,38 @@ and processors.
                 "(",
                 _name,
                 CharcoalToken.Separator,
-                CharcoalToken.List,
+                CharcoalToken.WolframList,
+                ")"
+            ],
+            [
+                "PythonFunction",
+                "(",
+                _name,
+                CharcoalToken.Separator,
+                CharcoalToken.WolframExpression,
                 ")"
             ],
             ["PythonFunction", "(", _name, CharcoalToken.Separator, ")"]
         ]
         ASTProcessor[CharcoalToken.OtherOperator] += [
             lambda result: ["Python function: \"%s\"" % name, result[2]],
+            lambda result: ["Python function: \"%s\"" % name, result[2]],
             lambda result: ["Python function: \"%s\"" % name]
         ]
         StringifierProcessor[CharcoalToken.OtherOperator] += [
+            lambda result: "ＵＰ" + "".join(result[2:-1]),
             lambda result: "ＵＰ" + "".join(result[2:-1]),
             lambda result: "ＵＰ" + "".join(result[2:-1])
         ]
         InterpreterProcessor[CharcoalToken.OtherOperator] += [
             lambda result: lambda charcoal: function(*result[2](charcoal)),
+            lambda result: lambda charcoal: function(result[2](charcoal)),
             lambda result: lambda charcoal: function()
         ]
     else:
         UnicodeGrammars[CharcoalToken.Command] += [
             ["ＵＰ" + _name, CharcoalToken.Separator, CharcoalToken.List],
+            ["ＵＰ" + _name, CharcoalToken.Separator, CharcoalToken.Expression],
             ["ＵＰ" + _name, CharcoalToken.Separator]
         ]
         VerboseGrammars[CharcoalToken.Command] += [
@@ -3970,21 +3995,32 @@ and processors.
                 "(",
                 _name,
                 CharcoalToken.Separator,
-                CharcoalToken.List,
+                CharcoalToken.WolframList,
+                ")"
+            ],
+            [
+                "PythonFunction",
+                "(",
+                _name,
+                CharcoalToken.Separator,
+                CharcoalToken.WolframExpression,
                 ")"
             ],
             ["PythonFunction", "(", _name, CharcoalToken.Separator,")"]
         ]
         ASTProcessor[CharcoalToken.Command] += [
             lambda result: ["Python function: \"%s\"" % name, result[2]],
+            lambda result: ["Python function: \"%s\"" % name, result[2]],
             lambda result: ["Python function: \"%s\"" % name]
         ]
         StringifierProcessor[CharcoalToken.Command] += [
+            lambda result: "ＵＰ" + "".join(result[2:-1]),
             lambda result: "ＵＰ" + "".join(result[2:-1]),
             lambda result: "ＵＰ" + "".join(result[2:-1])
         ]
         InterpreterProcessor[CharcoalToken.Command] += [
             lambda result: lambda charcoal: function(*result[2](charcoal)),
+            lambda result: lambda charcoal: function(result[2](charcoal)),
             lambda result: lambda charcoal: function()
         ]
 

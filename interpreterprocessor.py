@@ -331,6 +331,9 @@ InterpreterProcessor = {
         ),
         lambda result: lambda charcoal: charcoal.EvaluateVariable(
             result[1](charcoal), result[2](charcoal)
+        ),
+        lambda result: lambda charcoal: charcoal.EvaluateVariable(
+            result[1](charcoal), [result[2](charcoal)]
         )
     ],
 
@@ -613,6 +616,9 @@ InterpreterProcessor = {
         ),
         lambda result: lambda charcoal: charcoal.ExecuteVariable(
             result[1](charcoal), result[2](charcoal)
+        ),
+        lambda result: lambda charcoal: charcoal.ExecuteVariable(
+            result[1](charcoal), [result[2](charcoal)]
         ),
         lambda result: lambda charcoal: charcoal.Assign(
             result[2](charcoal), result[1](charcoal)

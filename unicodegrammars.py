@@ -121,7 +121,8 @@ UnicodeGrammars = {
     CT.OtherOperator: [
         ["ＫＤ", CT.Expression, CT.Arrow],
         ["Ｅ", CT.Expression, CT.Expression],
-        ["▷", CT.Expression, CT.WolframList]
+        ["▷", CT.Expression, CT.WolframList],
+        ["▷", CT.Expression, CT.WolframExpression]
     ],
 
     CT.Program: [
@@ -247,6 +248,7 @@ UnicodeGrammars = {
         ["≡", CT.Expression, CT.Cases, CT.Body],
         ["ＵＭ", CT.Expression, CT.Expression],
         ["▶", CT.Expression, CT.WolframList],
+        ["▶", CT.Expression, CT.WolframExpression],
         ["≔", CT.Expression, CT.Expression]
     ]
 }

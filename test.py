@@ -1510,6 +1510,8 @@ foofoofoofoofoo""")
         self.assertEqual(
             Run("ＵＰrandom.seed⟦⁰⟧ＩＵＰrandom.random"), "0.8444218515250481"
         )
+        self.assertEqual(Run("Ａ⟦³¦²¦¹⟧βＵＰsβ"), "-  \n-- \n---")
+        self.assertEqual(Run("Ａ⟦³¦²¦¹⟧β▷sβ"), "-  \n-- \n---")
 
     def test_wolfram(self):
         # TODO: official examples for number things
