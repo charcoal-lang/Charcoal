@@ -1863,6 +1863,7 @@ a a a
 a a a
 a a a
 a a a""")
+        self.assertEqual(Run("\xFF\xA4\xEC", normal_encoding=True), "╬")
 
     def test_challenges(self):
         self.assertEqual(Run("Ａp....Pβrnbkqbnr↙↷²×⁺β¶⁷β↶²RNBKQBNR"), """\

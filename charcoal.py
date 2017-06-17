@@ -3623,13 +3623,39 @@ symbols they represent.
     Returns the processed program.
 
     """
+
     if normal_encoding:
-        code = "".join([
-            UnicodeLookup[character]
-            if character in UnicodeLookup else
-            character
-            for character in code
-        ])
+        result = ""
+        for i in range(len(code)):
+            character = code[i]
+            ordinal = ord(character)
+            if ordinal == 0xFF:
+                i += 1
+                ordinal = ord(code[i])
+                if ordinal & 0b11000000 == 0b10000000: # 2 bytes
+                    result += chr(((ordinal & 63) << 8) + ord(code[i + 1]) + 128)
+                    i += 1
+                elif ordinal & 0b11100000 == 0b11000000: # 3 bytes
+                    print(code[i], code[i + 1], code[i + 2])
+                    result += chr(
+                        ((ordinal & 31) << 16) +
+                        (ord(code[i + 1]) << 8) +
+                        ord(code[i + 2]) +
+                        16512
+                    )
+                    i += 2
+                elif ordinal & 0b11110000 == 0b11100000: # 4 bytes
+                    result += chr(
+                        ((ordinal & 15) << 24) +
+                        (ord(code[i + 1]) << 16) +
+                        (ord(code[i + 2]) << 8) +
+                        ord(code[i + 3]) +
+                        2113664
+                    )
+                    i += 3
+            else:
+                result += UnicodeLookup.get(character, character)
+        code = result
     if whitespace:
         code = re.sub(
             r"(´\s)?\s*",
@@ -4261,15 +4287,26 @@ non-raw file input and file output."""
         if argv.degrave:
             print(code)
     if argv.showlength:
+
+        def charcoal_length(character):
+            ordinal = ord(character)
+            if ordinal < 256:
+                return 2
+            if ordinal < 16512:
+                return 3
+            if ordinal < 2113664:
+                return 4
+            if ordinal < 270549120:
+                return 5
+
         length = 0
         for character in code:
             if InCodepage(character):
                 length += 1
             else:
-                length += len(bytes(
-                    ReverseLookup.get(character, character),
-                    'utf-8'
-                ))
+                length += charcoal_length(
+                    ReverseLookup.get(character, character)
+                )
         print("Charcoal, %i bytes: `%s`" % (length, re.sub("`", "\`", code)))
     if argv.hexdump:
         print_xxd(code)
