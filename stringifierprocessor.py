@@ -242,7 +242,7 @@ StringifierProcessor = {
     ],
 
     CharcoalToken.Program: [
-        lambda result: result[0] + result[2],
+        lambda result: result[0] + ("¦" if result[2] else "") + result[3],
         lambda result: ""
     ],
     CharcoalToken.Body: [

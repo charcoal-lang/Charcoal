@@ -3880,7 +3880,7 @@ def Golf(code):
             ("([^·⁰¹²³⁴-⁹])¦([·⁰¹²³⁴-⁹])", "\\1\\2"),
             ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
             ("([^´].|[^ -~´¶])¦([ -~´¶])", "\\1\\2"),
-            ("([ -~´¶])¦([^´])", "\\1\\2"),
+            ("([ -~´¶])¦([^ -~´¶])", "\\1\\2"),
             ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),
             ("¦((?:^|[^´])[α-ξπ-ω])", "\\1"),
             (
@@ -4069,7 +4069,28 @@ def print_xxd(data):
 given data in UTF-8.
 
     """
-    data, counter = list(map(lambda c: ord(ReverseLookup.get(c, c)), data)), 0
+    array = []
+    for original in data:
+        character = ReverseLookup.get(original, original)
+        ordinal = ord(character)
+        if InCodepage(original) or ordinal < 256:
+            array.append(ordinal)
+        elif ordinal < 16512:
+            code = ordinal - 128
+            array.append(0b10000000 | (code >> 8))
+            array.append(code & 0xFF)
+        elif ordinal < 2113664:
+            code = ordinal - 16512
+            array.append(0b11000000 | (code >> 16))
+            array.append((code >> 8) & 0xFF)
+            array.append(code & 0xFF)
+        else:
+            code = ordinal - 2113664
+            array.append(0b11100000 | (code >> 24))
+            array.append((code >> 16) & 0xFF)
+            array.append((code >> 8) & 0xFF)
+            array.append(code & 0xFF)
+    data, counter = array, 0
     buf = [1]
     while buf:
         buf = data[counter << 4:(counter + 1) << 4]
@@ -4081,11 +4102,7 @@ given data in UTF-8.
             " ".join(
                 ["".join(buf2[i:i + 2]) for i in range(0, len(buf2), 2)]
             ),
-            "".join([
-                chr(c) if
-                chr(c) in __import__("string").printable[:-5] else
-                "." for c in buf
-            ])
+            "".join([chr(c) if c >= 32 and c <= 126 else "." for c in buf])
         ))
         counter += 1
 
@@ -4299,18 +4316,15 @@ non-raw file input and file output."""
 
         def charcoal_length(character):
             ordinal = ord(character)
-            if ordinal < 256:
-                return 2
             if ordinal < 16512:
-                return 3
+                return 2
             if ordinal < 2113664:
-                return 4
-            if ordinal < 270549120:
-                return 5
+                return 3
+            return 4
 
         length = 0
         for character in code:
-            if InCodepage(character):
+            if InCodepage(character) or ord(character) < 256:
                 length += 1
             else:
                 length += charcoal_length(

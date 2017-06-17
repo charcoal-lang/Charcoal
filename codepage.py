@@ -72,11 +72,11 @@ Codepage = [UnicodeLookup.get(chr(code), chr(code)) for code in range(0, 256)]
 
 def InCodepage(character):
     return (
-        (character >= " " and character <= "~" and character != "\n") or
-                (character >= "α" and character <= "ω" and character != "ο") or
-                (character >= "Ａ" and character <= "Ｚ") or
-                character in "⁰¹²³⁴⁵⁶⁷⁸⁹⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›＆｜←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖´·¤¦“”⎚¶…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№≔≕▷▶"
+        (character >= " " and character <= "~") or
+        (character >= "α" and character <= "ω" and character != "ο") or
+        (character >= "Ａ" and character <= "Ｚ") or
+        character in "⸿¶⁰¹²³⁴⁵⁶⁷⁸⁹⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›＆｜←↑→↓↖↗↘↙\
+↶↷⟲¿‽‖´·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№≔≕▷▶"
     )
 
 UnicodeCommands = "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ\
