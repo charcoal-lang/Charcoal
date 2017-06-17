@@ -4266,7 +4266,10 @@ non-raw file input and file output."""
             if InCodepage(character):
                 length += 1
             else:
-                length += len(bytes(ReverseLookup[character], 'utf-8'))
+                length += len(bytes(
+                    ReverseLookup.get(character, character),
+                    'utf-8'
+                ))
         print("Charcoal, %i bytes: `%s`" % (length, re.sub("`", "\`", code)))
     if argv.hexdump:
         print_xxd(code)
