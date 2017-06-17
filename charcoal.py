@@ -1672,6 +1672,9 @@ but not if it overwrites the original.
         Leaves out the specified overlap of characters closest to the axis. 
 
         """
+        if not overlap:
+            self.Reflect(direction, transform)
+            return
         if isinstance(direction, list):
             if not len(direction):
                 self.ReflectOverlap(Direction.right, transform, overlap)
@@ -2256,6 +2259,9 @@ make a copy for each of the digits in rotations.
         If transform is true, rotate characters if possible.
 
         """
+        if not overlap:
+            self.Rotate(rotations, anchor, transform, number)
+            return
         _lines, lengths, indices = (
             self.lines[::-1],
             self.lengths[::-1],
@@ -3877,7 +3883,10 @@ def Golf(code):
             ("([ -~´¶])¦([^´])", "\\1\\2"),
             ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),
             ("¦((?:^|[^´])[α-ξπ-ω])", "\\1"),
-            ("Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´¶])" % sOperator, "\\1"),
+            (
+                "(^|[^‖])Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´¶])" % sOperator,
+                "\\1\\2"
+            ),
             ("»+$", "")
         ):
             codes[i] = re.sub(regex, replacement, codes[i])
