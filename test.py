@@ -437,6 +437,14 @@ if (0) {
             Run("PivotLeft(2);Print('asdf')", verbose=True),
             "f\nd\ns\na"
         )
+        self.assertEqual(
+            Run("PivotLeft(2);Print('asdf\\rghjk')", verbose=True),
+            "fk\ndj\nsh\nag"
+        )
+        self.assertEqual(
+            Run("PivotLeft(1);Print('asdf\\rghjk')", verbose=True),
+            "   f \n  d k\n s j \na h  \n g   "
+        )
 
     def test_reflect_transform(self):
         self.assertEqual(Run("(({{[[<<‖Ｔ→"), ">>]]}}))")

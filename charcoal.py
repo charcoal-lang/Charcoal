@@ -966,7 +966,8 @@ with a character automatically selected from -|/\\.
                 newline_direction = NewlineDirection[direction]
                 delta_x = XMovement[direction]
                 delta_y = YMovement[direction]
-                for line in lines[:-1]:
+                for i in range(len(lines) - 1):
+                    line = lines[i]
                     line_start_x = self.x
                     line_start_y = self.y
                     for character in line:
@@ -977,6 +978,16 @@ with a character automatically selected from -|/\\.
                     self.x = line_start_x
                     self.y = line_start_y
                     self.Move(newline_direction)
+                    if i == r_index:
+                        if delta_x:
+                            if delta_y:
+                                n = (self.x * delta_x + self.y * delta_y) // 2
+                                self.x += n * delta_x
+                                self.y += n * delta_y
+                            else:
+                                self.x = 0
+                        else:
+                            self.y = 0
                 for character in lines[-1]:
                     self.FillLines()
                     self.Put(character)
