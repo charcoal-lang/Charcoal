@@ -30,9 +30,11 @@ class CharcoalToken(object):
     Unary = _id()
     Binary = _id()
     Ternary = _id()
+    Quarternary = _id()
     LazyUnary = _id()
     LazyBinary = _id()
     LazyTernary = _id()
+    LazyQuarternary = _id()
     OtherOperator = _id()
 
     WolframList = _id()

@@ -88,6 +88,14 @@ UnicodeGrammars = {
         [CT.Dictionary, CT.Separator],
         ["«", CT.Program, "»", CT.Separator],
         [CT.OtherOperator, CT.Separator],
+        [
+            CT.LazyQuarternary, CT.Expression, CT.Expression, CT.Expression,
+            CT.Expression
+        ],
+        [
+            CT.Quarternary, CT.Expression, CT.Expression, CT.Expression,
+            CT.Expression
+        ],
         [CT.LazyTernary, CT.Expression, CT.Expression, CT.Expression],
         [CT.Ternary, CT.Expression, CT.Expression, CT.Expression],
         [CT.LazyBinary, CT.Expression, CT.Expression],
@@ -101,14 +109,18 @@ UnicodeGrammars = {
     ],
     CT.Unary: [
         ["±"], ["Ｌ"], ["¬"], ["Ｉ"], ["‽"], ["Ｖ"], ["⊟"], ["↧"], ["↥"], ["⌊"],
-        ["⌈"], ["℅"], ["⮌"], ["≕"], ["″"], ["‴"]
+        ["⌈"], ["℅"], ["⮌"], ["≕"], ["″"], ["‴"], ["✂"]
     ],
     CT.Binary: [
         ["⁺"], ["⁻"], ["×"], ["÷"], ["∕"], ["﹪"], ["⁼"], ["‹"], ["›"], ["＆"],
         ["｜"], ["…·"], ["…"], ["Ｘ"], ["§"], ["⊞Ｏ"], ["⪫"], ["⪪"], ["⌕Ａ"],
-        ["⌕"], ["◧"], ["◨"], ["№"], ["➙"], ["⧴"], ["？"]
+        ["⌕"], ["◧"], ["◨"], ["№"], ["➙"], ["⧴"], ["？"], ["✂"]
     ],
     CT.Ternary: [
+        ["✂"]
+    ],
+    CT.Quarternary: [
+        ["✂"]
     ],
     CT.LazyUnary: [
     ],
@@ -117,6 +129,8 @@ UnicodeGrammars = {
     ],
     CT.LazyTernary: [
         ["⎇"]
+    ],
+    CT.LazyQuarternary: [
     ],
     CT.OtherOperator: [
         ["ＫＤ", CT.Expression, CT.Arrow],

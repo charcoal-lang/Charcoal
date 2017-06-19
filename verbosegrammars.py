@@ -75,21 +75,19 @@ VerboseGrammars = {
         ["{", CT.Program, "}", CT.Separator],
         [CT.OtherOperator, CT.Separator],
         [
-            CT.LazyTernary,
-            "(",
-            CT.Expression,
-            CT.Expression,
-            CT.Expression,
-            ")",
-            CT.Separator
+            CT.LazyQuarternary, "(", CT.Expression, CT.Expression,
+            CT.Expression, CT.Expression, ")", CT.Separator
         ],
         [
-            CT.Ternary,
-            "(",
-            CT.Expression,
-            CT.Expression,
-            CT.Expression,
-            ")",
+            CT.Quarternary, "(", CT.Expression, CT.Expression, CT.Expression,
+            CT.Expression, ")", CT.Separator
+        ],
+        [
+            CT.LazyTernary, "(", CT.Expression, CT.Expression, CT.Expression,
+            ")", CT.Separator
+        ],
+        [
+            CT.Ternary, "(", CT.Expression, CT.Expression, CT.Expression, ")",
             CT.Separator
         ],
         [CT.LazyBinary, "(", CT.Expression, CT.Expression, ")", CT.Separator],
@@ -106,7 +104,7 @@ VerboseGrammars = {
         ["Negate"], ["Length"], ["Not"], ["Cast"], ["Random"], ["Evaluate"],
         ["eval"], ["Pop"], ["Lowercase"], ["Uppercase"], ["Minimum"],
         ["Maximum"], ["Character"], ["Ordinal"], ["chr"], ["ord"], ["Reverse"],
-        ["GetVariable"], ["Repeated"], ["RepeatedNull"]
+        ["GetVariable"], ["Repeated"], ["RepeatedNull"], ["Slice"]
     ],
     CT.Binary: [
         ["**"], ["+"], ["Add"], ["Plus"], ["-"], ["Subtract"], ["Minus"], ["*"],
@@ -117,12 +115,14 @@ VerboseGrammars = {
         ["Exponentiate"], ["Exponent"], ["Power"], ["AtIndex"],
         ["PushOperator"], ["Join"], ["Split"], ["FindAll"], ["Find"],
         ["PadLeft"], ["PadRight"], ["Count"], ["Rule"], ["DelayedRule"],
-        ["PatternTest"]
+        ["PatternTest"], ["Slice"]
     ],
-    CT.Ternary: [],
+    CT.Ternary: [["Slice"]],
+    CT.Quarternary: [["Slice"]],
     CT.LazyUnary: [],
     CT.LazyBinary: [["And"], ["Or"], ["and"], ["or"]],
     CT.LazyTernary: [["Ternary"]],
+    CT.LazyQuarternary: [],
     CT.OtherOperator: [
         ["PeekDirection", "(", CT.Expression, CT.Arrow, ")"],
         ["Each", "(", CT.Expression, CT.Expression, ")"],

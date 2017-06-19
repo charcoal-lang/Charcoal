@@ -424,7 +424,12 @@ if (0) {
 
     def test_switch(self):
         self.assertEqual(Run("≡§abc⁰⁺¹¦¹ω§abc⁰"), "a")
-        pass
+
+    def test_slice(self):
+        self.assertEqual(Run("✂abc"), "abc")
+        self.assertEqual(Run("✂abcd²"), "cd")
+        self.assertEqual(Run("✂abc⁰¦²"), "ab")
+        self.assertEqual(Run("✂abcdefg⁰¦⁹¦²"), "aceg")
 
     def test_pivot(self):
         self.assertEqual(Run("↶¹asdf"), "   f\n  d \n s  \na   ")

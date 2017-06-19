@@ -113,6 +113,8 @@ ASTProcessor = {
         lambda result: result,
         lambda result: result,
         lambda result: result,
+        lambda result: result,
+        lambda result: result,
         lambda result: result[0]
     ],
     CharcoalToken.Nilary: [
@@ -131,7 +133,7 @@ ASTProcessor = {
         lambda result: result[0] + ": Cast",
         lambda result: result[0] + ": Random",
         lambda result: result[0] + ": Evaluate",
-        lambda reuslt: "Pop",
+        lambda result: result[0] + ": Pop",
         lambda result: result[0] + ": To lowercase",
         lambda result: result[0] + ": To uppercase",
         lambda result: result[0] + ": Minimum",
@@ -140,7 +142,8 @@ ASTProcessor = {
         lambda result: result[0] + ": Reverse",
         lambda result: result[0] + ": Get variable",
         lambda result: result[0] + ": Repeated",
-        lambda result: result[0] + ": Repeated null"
+        lambda result: result[0] + ": Repeated null",
+        lambda result: result[0] + ": Slice"
     ],
     CharcoalToken.Binary: [
         lambda result: result[0] + ": Sum",
@@ -168,9 +171,14 @@ ASTProcessor = {
         lambda result: result[0] + ": Count",
         lambda result: result[0] + ": Rule",
         lambda result: result[0] + ": Delayed rule",
-        lambda result: result[0] + ": Pattern test"
+        lambda result: result[0] + ": Pattern test",
+        lambda result: result[0] + ": Slice"
     ],
     CharcoalToken.Ternary: [
+        lambda result: result[0] + ": Slice"
+    ],
+    CharcoalToken.Quarternary: [
+        lambda result: result[0] + ": Slice"
     ],
     CharcoalToken.LazyUnary: [
     ],
@@ -180,6 +188,8 @@ ASTProcessor = {
     ],
     CharcoalToken.LazyTernary: [
         lambda result: result[0] + ": Ternary"
+    ],
+    CharcoalToken.LazyQuarternary: [
     ],
     CharcoalToken.OtherOperator: [
         lambda result: [result[0] + ": Peek direction"] + result[1:],
@@ -201,7 +211,7 @@ ASTProcessor = {
         lambda result: [result[0] + ": Input Number", result[1]],
         lambda result: [result[0] + ": Evaluate", result[1]],
         lambda result: ["Print"] + result,
-        lambda result: [result[0] + ": Print"] + result,
+        lambda result: ["Print"] + result,
         lambda result: [result[0] + ": Multiprint"] + result[1:],
         lambda result: [result[0] + ": Multiprint"] + result[1:],
         lambda result: [result[0] + ": Polygon"] + result[1:],

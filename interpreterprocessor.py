@@ -184,6 +184,13 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: charcoal.Lambdafy(result[1]),
         lambda result: lambda charcoal: result[0](charcoal),
         lambda result: lambda charcoal: result[0](
+            result[1], result[2], result[3], result[4], charcoal
+        ),
+        lambda result: lambda charcoal: result[0](
+            result[1](charcoal), result[2](charcoal), result[3](charcoal),
+            result[4](charcoal), charcoal
+        ),
+        lambda result: lambda charcoal: result[0](
             result[1], result[2], result[3], charcoal
         ),
         lambda result: lambda charcoal: result[0](
@@ -229,7 +236,8 @@ InterpreterProcessor = {
         lambda result: lambda item, charcoal: item[::-1],
         lambda result: lambda item, charcoal: charcoal.Retrieve(item),
         lambda result: lambda item, charcoal: Repeated(item),
-        lambda result: lambda item, charcoal: RepeatedNull(item)
+        lambda result: lambda item, charcoal: RepeatedNull(item),
+        lambda result: lambda item, charcoal: item[:]
     ],
     CharcoalToken.Binary: [
         lambda result: lambda left, right, charcoal: charcoal.Add(left, right),
@@ -303,9 +311,18 @@ InterpreterProcessor = {
         lambda result: lambda left, right, charcoal: DelayedRule(left, right),
         lambda result: lambda left, right, charcoal: PatternTest(
             left, right
-        )
+        ),
+        lambda result: lambda left, right, charcoal: left[right:]
     ],
     CharcoalToken.Ternary: [
+        lambda result: lambda first, second, third, charcoal: first[
+            second:third
+        ]
+    ],
+    CharcoalToken.Quarternary: [
+        lambda result: lambda first, second, third, fourth, charcoal: first[
+            second:third:fourth
+        ]
     ],
     CharcoalToken.LazyUnary: [
     ],
@@ -321,6 +338,8 @@ InterpreterProcessor = {
         lambda result: lambda first, second, third, charcoal: charcoal.Ternary(
             first, second, third
         )
+    ],
+    CharcoalToken.LazyQuarternary: [
     ],
     CharcoalToken.OtherOperator: [
         lambda result: lambda charcoal: charcoal.PeekDirection(

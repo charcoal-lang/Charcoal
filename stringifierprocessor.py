@@ -128,6 +128,14 @@ StringifierProcessor = {
         lambda result: "«" + result[1] + "»" + result[3],
         lambda result: result[0] + result[1],
         lambda result: (
+            result[0] + result[2] + result[3] + result[4] + result[5] +
+            result[6]
+        ),
+        lambda result: (
+            result[0] + result[2] + result[3] + result[4] + result[5] +
+            result[6]
+        ),
+        lambda result: (
             result[0] + result[2] + result[3] + result[4] + result[6]
         ),
         lambda result: (
@@ -168,7 +176,8 @@ StringifierProcessor = {
         lambda result: "⮌",
         lambda result: "≕",
         lambda result: "″",
-        lambda result: "‴"
+        lambda result: "‴",
+        lambda result: "✂"
     ],
     CharcoalToken.Binary: [
         lambda result: "Ｘ",
@@ -181,11 +190,11 @@ StringifierProcessor = {
         lambda result: "×",
         lambda result: "×",
         lambda result: "×",
-        lambda result: "∕",
-        lambda result: "÷",
         lambda result: "÷",
         lambda result: "∕",
         lambda result: "∕",
+        lambda result: "÷",
+        lambda result: "÷",
         lambda result: "﹪",
         lambda result: "﹪",
         lambda result: "⁼",
@@ -216,9 +225,14 @@ StringifierProcessor = {
         lambda result: "№",
         lambda result: "➙",
         lambda result: "⧴",
-        lambda result: "？"
+        lambda result: "？",
+        lambda result: "✂"
     ],
     CharcoalToken.Ternary: [
+        lambda result: "✂"
+    ],
+    CharcoalToken.Quarternary: [
+        lambda result: "✂"
     ],
     CharcoalToken.LazyUnary: [
     ],
@@ -230,6 +244,8 @@ StringifierProcessor = {
     ],
     CharcoalToken.LazyTernary: [
         lambda result: "⎇"
+    ],
+    CharcoalToken.LazyQuarternary: [
     ],
     CharcoalToken.OtherOperator: [
         lambda result: "ＫＤ" + result[2] + result[3],
