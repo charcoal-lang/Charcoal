@@ -1960,6 +1960,12 @@ Congratulations on your new baby! :D⟲²""",
  ***** 
 *******
    *   """)
+        self.assertEqual(Run("Ｅ…⁰⁻Ｌθ¹⪫θ× ι‖Ｏ←↑", "star"), """\
+r  a  t  s  t  a  r
+   r a t s t a r   
+      ratstar      
+   r a t s t a r   
+r  a  t  s  t  a  r""")
 
 CharcoalTests = unittest.TestLoader().loadTestsFromTestCase(CharcoalTest)
 

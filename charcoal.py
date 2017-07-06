@@ -3242,6 +3242,10 @@ iterable, else it returns the iterable.
         result = []
         if isinstance(iterable, Expression):
             iterable = iterable.run()
+        if isinstance(iterable, float):
+            iterable = int(iterable)
+        if isinstance(iterable, int):
+            iterable = list(range(iterable))
         for i in range(len(iterable)):
             self.scope[loop_variable] = iterable[i]
             self.scope[index_variable] = i
@@ -4411,7 +4415,7 @@ Parse trace:
             normal_encoding=argv.normalencoding
         )
         if not argv.stepcanvas and global_charcoal.print_at_end:
-            print(result)
+            sys.stdout.write(result)
     else:
         successes = failures = 0
         argv.input = [ProcessInput(inp) for inp in argv.input]
