@@ -104,7 +104,8 @@ VerboseGrammars = {
         ["Negate"], ["Length"], ["Not"], ["Cast"], ["Random"], ["Evaluate"],
         ["eval"], ["Pop"], ["Lowercase"], ["Uppercase"], ["Minimum"],
         ["Maximum"], ["Character"], ["Ordinal"], ["chr"], ["ord"], ["Reverse"],
-        ["GetVariable"], ["Repeated"], ["RepeatedNull"], ["Slice"]
+        ["GetVariable"], ["Repeated"], ["RepeatedNull"], ["Slice"],
+        ["InclusiveRange"], ["Range"], ["~"], ["BitwiseNot"]
     ],
     CT.Binary: [
         ["**"], ["+"], ["Add"], ["Plus"], ["-"], ["Subtract"], ["Minus"], ["*"],

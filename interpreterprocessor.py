@@ -237,7 +237,18 @@ InterpreterProcessor = {
         lambda result: lambda item, charcoal: charcoal.Retrieve(item),
         lambda result: lambda item, charcoal: Repeated(item),
         lambda result: lambda item, charcoal: RepeatedNull(item),
-        lambda result: lambda item, charcoal: item[:]
+        lambda result: lambda item, charcoal: item[:],
+        lambda result: lambda item, charcoal: (
+            list(range(int(item) + 1))
+            if isinstance(item, int) or isinstance(item, float) else
+            list(map(chr, range(ord(item) + 1)))
+        ),
+        lambda result: lambda item, charcoal: (
+            list(range(int(item)))
+            if isinstance(item, int) or isinstance(item, float) else
+            list(map(chr, range(ord(item))))
+        ),
+        lambda result: lambda item, charcoal: ~item
     ],
     CharcoalToken.Binary: [
         lambda result: lambda left, right, charcoal: charcoal.Add(left, right),

@@ -51,8 +51,9 @@ import builtins
 
 for alias, builtin in [
     ('a', abs), ('b', bin), ('c', complex), ('e', enumerate), ('f', format),
-    ('g', range), ('h', hex), ('i', __import__), ('n', min), ('o', oct),
-    ('p', repr), ('r', reversed), ('s', sorted), ('x', max), ('z', zip)
+    ('g', range), ('h', hex), ('i', __import__), ('m', sum), ('n', min),
+    ('o', oct), ('p', repr), ('r', reversed), ('s', sorted), ('x', max),
+    ('z', zip)
 ]:
     setattr(builtins, alias, builtin)
 
@@ -347,6 +348,10 @@ class Charcoal(object):
     for key in dir(builtins):
         if key[0] != "_":
             secret[key] = getattr(builtins, key)
+    globs = globals()
+    for key in globs:
+        if key[0] != "_":
+            secret[key] = globs[key]
     wolfram = vars(__import__("wolfram"))
     for key in wolfram:
         if len(key) == 1 or key[1] != "_":
