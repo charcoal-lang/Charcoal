@@ -129,11 +129,11 @@ StringifierProcessor = {
         lambda result: result[0] + result[1],
         lambda result: (
             result[0] + result[2] + result[3] + result[4] + result[5] +
-            result[6]
+            result[7]
         ),
         lambda result: (
             result[0] + result[2] + result[3] + result[4] + result[5] +
-            result[6]
+            result[7]
         ),
         lambda result: (
             result[0] + result[2] + result[3] + result[4] + result[6]
