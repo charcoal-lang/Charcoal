@@ -1298,6 +1298,12 @@ c e g
         self.assertEqual(Run("a c¶d¶g⟲²a"), "c  \n  a\nadg")
         self.assertEqual(Run("a c¶d¶g⟲⁶a"), "gda\na  \n  c")
         self.assertEqual(Run("a c¶d¶g⟲⁴a"), " ag\n  d\nc a")
+        self.assertEqual(Run("↘asdf⟲²↘asdf"), """\
+    a   
+   f s  
+  d   d 
+ s     f
+a       """)
 
     def test_reflect(self):
         self.assertEqual(Run("a c¶d¶ghi‖←a"), " c a\n   d\naihg")

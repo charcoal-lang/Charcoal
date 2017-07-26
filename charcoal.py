@@ -679,9 +679,10 @@ class Charcoal(object):
 
         """
         y_index = self.y - self.top
-        x_index = self.indices[y_index]
         line = self.lines[y_index]
         delta_index = len(re.match("^\000*", line).group())
+        self.indices[y_index] += delta_index
+        x_index = self.indices[y_index]
         line = re.sub("\000+$", "", line[delta_index:])
         if not line:
             length = len(string)
@@ -690,7 +691,7 @@ class Charcoal(object):
             self.lengths[y_index] = length
             self.right_indices[y_index] = self.x + length
             return
-        start = self.x - delta_index - x_index
+        start = self.x - x_index
         end = start + len(string)
         if start - len(line) > 0 or end < 0:
             self.background_inside = True
@@ -707,7 +708,7 @@ class Charcoal(object):
             self.indices[y_index] = self.x
         length = len(self.lines[y_index])
         self.lengths[y_index] = length
-        self.right_indices[y_index] = (self.indices[y_index] + length)
+        self.right_indices[y_index] = self.indices[y_index] + length
 
     def FillLines(self):
         """
@@ -900,8 +901,8 @@ with a character automatically selected from -|/\\.
 
         """
         def grid(matrix):
-            #matrix = [[str(item) for item in row] for row in matrix]
-            #maximum = max(max(len(item) for item in row) for row in matrix)
+            # matrix = [[str(item) for item in row] for row in matrix]
+            # maximum = max(max(len(item) for item in row) for row in matrix)
             return matrix
         def simplify(string):
             if isinstance(string, Expression):
@@ -909,8 +910,8 @@ with a character automatically selected from -|/\\.
                 if isinstance(string, String):
                     return str(string)
                 if isinstance(string, List):
-                    #if isinstance(string[0], List):
-                    #    return grid(string)
+                    # if isinstance(string[0], List):
+                    #     return grid(string)
                     return [simplify(leaf) for leaf in string.leaves]
                 if type(string) in [Rule, DelayedRule, Pattern]:
                     return "" # TODO
