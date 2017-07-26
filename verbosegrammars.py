@@ -145,53 +145,25 @@ VerboseGrammars = {
         ["Print", "(", CT.Arrow, CT.Separator, CT.Expression, ")"],
         ["Print", "(", CT.Expression, ")"],
         [
-            "Multiprint",
-            "(",
-            CT.Multidirectional,
-            CT.Separator,
-            CT.Expression,
+            "Multiprint", "(", CT.Multidirectional, CT.Separator, CT.Expression,
             ")"
         ],
         ["Multiprint", "(", CT.Expression, ")"],
         ["Polygon", "(", CT.Sides, CT.Separator, CT.Expression, ")"],
         [
-            "Polygon",
-            "(",
-            CT.Multidirectional,
-            CT.Separator,
-            CT.Expression,
-            CT.Expression,
-            ")"
+            "Polygon", "(", CT.Multidirectional, CT.Separator, CT.Expression,
+            CT.Expression, ")"
         ],
         ["PolygonHollow", "(", CT.Sides, CT.Separator, CT.Expression, ")"],
         [
-            "PolygonHollow",
-            "(",
-            CT.Multidirectional,
-            CT.Separator,
-            CT.Expression,
-            CT.Expression,
-            ")"
+            "PolygonHollow", "(", CT.Multidirectional, CT.Separator,
+            CT.Expression, CT.Expression, ")"
         ],
         ["Rectangle", "(", CT.Expression, CT.Expression, ")"],
         ["Rectangle", "(", CT.Expression, ")"],
-        [
-            "Oblong",
-            "(",
-            CT.Expression,
-            CT.Expression,
-            CT.Expression,
-            ")"
-        ],
+        ["Oblong", "(", CT.Expression, CT.Expression, CT.Expression, ")"],
         ["Oblong", "(", CT.Expression, CT.Expression, ")"],
-        [
-            "Box",
-            "(",
-            CT.Expression,
-            CT.Expression,
-            CT.Expression,
-            ")"
-        ],
+        ["Box", "(", CT.Expression, CT.Expression, CT.Expression, ")"],
         ["Box", "(", CT.Expression, CT.Expression, ")"],
         ["Move", "(", CT.Arrow, ")"],
         ["Move", "(", CT.Expression, CT.Arrow, ")"],
@@ -207,30 +179,14 @@ VerboseGrammars = {
         ["ReflectTransform", "(", CT.Multidirectional, ")"],
         ["ReflectTransform", "(", CT.Arrow, ")"],
         ["ReflectTransform", "(", ")"],
-        [
-            "RotatePrism",
-            "(",
-            CT.Arrow,
-            CT.Separator,
-            CT.Expression,
-            ")"
-        ],
+        ["RotatePrism", "(", CT.Arrow, CT.Separator, CT.Expression, ")"],
         ["RotatePrism", "(", CT.Arrow, ")"],
         ["RotatePrism", "(", CT.Expression, ")"],
         ["RotatePrism", "(", ")"],
         ["ReflectMirror", "(", CT.Multidirectional, ")"],
         ["ReflectMirror", "(", CT.Arrow, ")"],
         ["ReflectMirror", "(", ")"],
-        [
-            "RotateCopy",
-            "(",
-            CT.Arrow,
-            CT.Separator,
-            CT.List,
-            ")"
-        ],
         ["RotateCopy", "(", CT.Arrow, CT.Separator, CT.Expression, ")"],
-        ["RotateCopy", "(", CT.List, ")"],
         ["RotateCopy", "(", CT.Arrow, ")"],
         ["RotateCopy", "(", CT.Expression, ")"],
         ["RotateCopy", "(", ")"],
@@ -238,93 +194,47 @@ VerboseGrammars = {
         ["ReflectCopy", "(", CT.Arrow, ")"],
         ["ReflectCopy", "(", ")"],
         [
-            "RotateOverlapOverlap",
-            "(",
-            CT.Arrow,
-            CT.Separator,
-            CT.List,
-            CT.Separator,
-            CT.Expression,
-            ")"
+            "RotateOverlapOverlap", "(", CT.Arrow, CT.Separator, CT.Number,
+            CT.Separator, CT.Expression, CT.Separator, CT.Expression, ")"
         ],
         [
-            "RotateOverlapOverlap",
-            "(",
-            CT.Arrow,
-            CT.Separator,
-            CT.Expression,
-            ")"
+            "RotateOverlapOverlap", "(", CT.Arrow, CT.Separator, CT.Expression,
+            CT.Separator, CT.Expression, ")"
         ],
         [
-            "RotateOverlapOverlap",
-            "(",
-            CT.Expression,
-            CT.Expression,
+            "RotateOverlapOverlap", "(", CT.Arrow, CT.Separator, CT.Expression,
             ")"
         ],
+        ["RotateOverlapOverlap", "(", CT.Expression, CT.Expression, ")"],
         ["RotateOverlapOverlap", "(", CT.Expression, ")"],
-        [
-            "RotateOverlap",
-            "(",
-            CT.Arrow,
-            CT.Separator,
-            CT.Expression,
-            ")"
-        ],
+        ["RotateOverlap", "(", CT.Arrow, CT.Separator, CT.Expression, ")"],
         ["RotateOverlap", "(", CT.Arrow, ")"],
         ["RotateOverlap", "(", CT.Expression, ")"],
         ["RotateOverlap", "(", ")"],
         [
-            "RotateShutterOverlap",
-            "(",
-            CT.Arrow,
-            CT.Separator,
-            CT.List,
-            CT.Separator,
-            CT.Expression,
-            ")"
+            "RotateShutterOverlap", "(", CT.Arrow, CT.Separator, CT.Number,
+            CT.Separator, CT.Expression, CT.Separator, CT.Expression, ")"
         ],
         [
-            "RotateShutterOverlap",
-            "(",
-            CT.Arrow,
-            CT.Separator,
-            CT.Expression,
-            ")"
+            "RotateShutterOverlap", "(", CT.Arrow, CT.Separator, CT.Expression,
+            CT.Separator, CT.Expression, ")"
         ],
         [
-            "RotateShutterOverlap",
-            "(",
-            CT.Expression,
-            CT.Expression,
+            "RotateShutterOverlap", "(", CT.Arrow, CT.Separator, CT.Expression,
             ")"
         ],
+        ["RotateShutterOverlap", "(", CT.Expression, CT.Expression, ")"],
         ["RotateShutterOverlap", "(", CT.Expression, ")"],
-        [
-            "RotateShutter",
-            "(",
-            CT.Arrow,
-            CT.Separator,
-            CT.Expression,
-            ")"
-        ],
+        ["RotateShutter", "(", CT.Arrow, CT.Separator, CT.Expression, ")"],
         ["RotateShutter", "(", CT.Arrow, ")"],
         ["RotateShutter", "(", CT.Expression, ")"],
         ["RotateShutter", "(", ")"],
         [
-            "ReflectOverlapOverlap",
-            "(",
-            CT.Multidirectional,
-            CT.Separator,
-            CT.Expression,
-            ")"
+            "ReflectOverlapOverlap", "(", CT.Multidirectional, CT.Separator,
+            CT.Expression, ")"
         ],
         [
-            "ReflectOverlapOverlap",
-            "(",
-            CT.Arrow,
-            CT.Separator,
-            CT.Expression,
+            "ReflectOverlapOverlap", "(", CT.Arrow, CT.Separator, CT.Expression,
             ")"
         ],
         ["ReflectOverlapOverlap", "(", CT.Expression, ")"],
@@ -332,20 +242,12 @@ VerboseGrammars = {
         ["ReflectOverlap", "(", CT.Arrow, ")"],
         ["ReflectOverlap", "(", ")"],
         [
-            "ReflectButterflyOverlap",
-            "(",
-            CT.Multidirectional,
-            CT.Separator,
-            CT.Expression,
-            ")"
+            "ReflectButterflyOverlap", "(", CT.Multidirectional, CT.Separator,
+            CT.Expression, ")"
         ],
         [
-            "ReflectButterflyOverlap",
-            "(",
-            CT.Arrow,
-            CT.Separator,
-            CT.Expression,
-            ")"
+            "ReflectButterflyOverlap", "(", CT.Arrow, CT.Separator,
+            CT.Expression, ")"
         ],
         ["ReflectButterflyOverlap", "(", CT.Expression, ")"],
         ["ReflectButterfly", "(", CT.Multidirectional, ")"],
@@ -361,11 +263,7 @@ VerboseGrammars = {
         ["if", "(", CT.Expression, ")", CT.Body, "else", CT.Body],
         ["if", "(", CT.Expression, ")", CT.Body],
         [
-            "AssignAtIndex",
-            "(",
-            CT.Expression,
-            CT.Expression,
-            CT.Expression,
+            "AssignAtIndex", "(", CT.Expression, CT.Expression, CT.Expression,
             ")"
         ],
         ["Assign", "(", CT.Expression, CT.Name, ")"],
@@ -373,92 +271,25 @@ VerboseGrammars = {
         ["Fill", "(", CT.Expression, ")"],
         ["SetBackground", "(", CT.Expression, ")"],
         ["Dump", "(", ")"],
-        [
-            "RefreshFor",
-            "(",
-            CT.Expression,
-            CT.Expression,
-            ")",
-            CT.Body
-        ],
-        [
-            "RefreshWhile",
-            "(",
-            CT.Expression,
-            CT.Expression,
-            ")",
-            CT.Body
-        ],
+        ["RefreshFor", "(", CT.Expression, CT.Expression, ")", CT.Body],
+        ["RefreshWhile", "(", CT.Expression, CT.Expression, ")", CT.Body],
         ["Refresh", "(", CT.Expression, ")"],
         ["Refresh", "(", ")"],
         ["ToggleTrim", "(", ")"],
         ["Trim", "(", CT.Expression, CT.Expression, ")"],
         ["Trim", "(", CT.Expression, ")"],
         ["Clear", "(", ")"],
-        [
-            "Extend",
-            "(",
-            CT.Expression,
-            CT.Expression,
-            ")"
-        ],
+        ["Extend", "(", CT.Expression, CT.Expression, ")"],
         ["Extend", "(", CT.Expression, ")"],
+        ["Push", "(", CT.Expression, CT.Expression, ")"],
         [
-            "Push",
-            "(",
-            CT.Expression,
-            CT.Expression,
-            ")"
+            "switch", "(", CT.Expression, ")", "{", CT.Cases, "default", ":",
+            CT.Body, "}"
         ],
-        [
-            "switch",
-            "(",
-            CT.Expression,
-            ")",
-            "{",
-            CT.Cases,
-            "default",
-            ":",
-            CT.Body,
-            "}"
-        ],
-        [
-            "switch",
-            "(",
-            CT.Expression,
-            ")",
-            "{",
-            CT.Cases,
-            "}"
-        ],
-        [
-            "MapCommand",
-            "(",
-            CT.Expression,
-            CT.Expression,
-            ")"
-        ],
-        [
-            "ExecuteVariable",
-            "(",
-            CT.Expression,
-            CT.WolframList,
-            ")"
-        ],
-        [
-            "execvar",
-            "(",
-            CT.Expression,
-            CT.WolframList,
-            ")"
-        ],
-        [
-            "SetVariable",
-            "(",
-            CT.Expression,
-            CT.Expression,
-            ")"
-        ]
+        ["switch", "(", CT.Expression, ")", "{", CT.Cases, "}"],
+        ["MapCommand", "(", CT.Expression, CT.Expression, ")"],
+        ["ExecuteVariable", "(", CT.Expression, CT.WolframList, ")"],
+        ["execvar", "(", CT.Expression, CT.WolframList, ")"],
+        ["SetVariable", "(", CT.Expression, CT.Expression, ")"]
     ]
 }
-

@@ -312,17 +312,14 @@ StringifierProcessor = {
         lambda result: "‖Ｍ" + result[2],
         lambda result: "‖Ｍ",
         lambda result: "⟲Ｃ" + result[2] + result[4],
-        lambda result: "⟲Ｃ" + result[2] + result[4],
-        lambda result: "⟲Ｃ" + result[2],
         lambda result: "⟲Ｃ" + result[2],
         lambda result: "⟲Ｃ" + result[2],
         lambda result: "⟲Ｃ",
         lambda result: "‖Ｃ" + result[2],
         lambda result: "‖Ｃ" + result[2],
         lambda result: "‖Ｃ",
-        lambda result: (
-            "⟲ＯＯ" + result[2] + result[3] + result[4] + result[5] + result[6]
-        ),
+        lambda result: "⟲ＯＯ" + result[2:-1],
+        lambda result: "⟲ＯＯ" + result[2:-1],
         lambda result: "⟲ＯＯ" + result[2] + result[4] + result[5],
         lambda result: "⟲ＯＯ" + result[2] + result[3],
         lambda result: "⟲ＯＯ" + result[2],
@@ -330,9 +327,8 @@ StringifierProcessor = {
         lambda result: "⟲Ｏ" + result[2],
         lambda result: "⟲Ｏ" + result[2],
         lambda result: "⟲Ｏ",
-        lambda result: (
-            "⟲ＳＯ" + result[2] + result[3] + result[4] + result[5] + result[6]
-        ),
+        lambda result: "⟲ＳＯ" + result[2:-1],
+        lambda result: "⟲ＳＯ" + result[2:-1],
         lambda result: "⟲ＳＯ" + result[2] + result[4] + result[5],
         lambda result: "⟲ＳＯ" + result[2] + result[3],
         lambda result: "⟲ＳＯ" + result[2],
