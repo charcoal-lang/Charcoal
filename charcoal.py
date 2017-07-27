@@ -3268,7 +3268,7 @@ iterable, else it returns the iterable.
         elif Info.dump_canvas in self.info:
             print("Map")
             print(str(self))
-        return iterable
+        return result
 
     def Add(self, left, right):
         left_type = type(left)
