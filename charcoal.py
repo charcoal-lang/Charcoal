@@ -1792,6 +1792,19 @@ but not if it overwrites the original.
         else:
             finished = False
         if finished:
+            if Info.step_canvas in self.info:
+                self.RefreshFastText((
+                    "Reflect overlap transform"
+                    if transform else
+                    "Reflect overlap"
+                ), self.canvas_step)
+            elif Info.dump_canvas in self.info:
+                print(
+                    "Reflect overlap transform"
+                    if transform else
+                    "Reflect overlap"
+                )
+                print(str(self))
             return
         initial_x = self.x
         initial_y = self.y

@@ -641,6 +641,9 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: dict(result[2](charcoal)).get(
             result[1](charcoal), result[3]
         )(charcoal),
+        lambda result: lambda charcoal: dict(result[2](charcoal)).get(
+            result[1](charcoal), lambda *arguments: None
+        )(charcoal),
         lambda result: lambda charcoal: charcoal.Map(
             result[1](charcoal), result[2], True
         ),

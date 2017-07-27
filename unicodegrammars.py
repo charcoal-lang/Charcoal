@@ -260,6 +260,7 @@ UnicodeGrammars = {
         ["ＵＥ", CT.Expression],
         ["⊞", CT.Expression, CT.Expression],
         ["≡", CT.Expression, CT.Cases, CT.Body],
+        ["≡", CT.Expression, CT.Cases],
         ["ＵＭ", CT.Expression, CT.Expression],
         ["▶", CT.Expression, CT.WolframList],
         ["▶", CT.Expression, CT.WolframExpression],
