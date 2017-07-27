@@ -1690,7 +1690,7 @@ but not if it overwrites the original.
 
         """
         if not overlap:
-            self.Reflect(direction, transform)
+            self.ReflectCopy(direction, transform)
             return
         if isinstance(direction, list):
             if not len(direction):
@@ -2277,7 +2277,7 @@ make a copy for each of the digits in rotations.
 
         """
         if not overlap:
-            self.Rotate(rotations, anchor, transform, number)
+            self.RotateCopy(rotations, anchor, transform, number)
             return
         _lines, lengths, indices = (
             self.lines[::-1],

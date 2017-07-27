@@ -1270,6 +1270,8 @@ ghi
         self.assertEqual(Run("abcＭ↖d‖ＯＯ↖²"), """\
 cdd
 abc""")
+        self.assertEqual(Run("abc‖ＯＯ→⁰"), """\
+abccba""")
 
     def test_reflect_butterfly(self):
         self.assertEqual(Run("<<|\\‖Ｂ→"), "<<|\|>>")
