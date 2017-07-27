@@ -1518,6 +1518,10 @@ foofoofoofoofoo""")
             "quux``4`M``4`*``j`K`V`w`5",
             grave=True
         ), "quxuxuxuxuxu")
+        self.assertEqual(Run(
+            "Multiprint('a');Print(*(Peek(),2));",
+            verbose=True
+        ), "aa")
 
     def test_count(self):
         self.assertEqual(Run("№foo¦o"), "--")

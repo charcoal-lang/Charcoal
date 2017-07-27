@@ -154,7 +154,7 @@ StringifierProcessor = {
         lambda result: "ＫＡ",
         lambda result: "ＫＭ",
         lambda result: "ＫＶ",
-        lambda result: "Ｋ"
+        lambda result: "ＫＫ"
     ],
     CharcoalToken.Unary: [
         lambda result: "±",
