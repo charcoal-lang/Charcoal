@@ -2,7 +2,7 @@ from codepage import OrdinalLookup, Codepage
 from string import ascii_lowercase, ascii_uppercase, digits
 import re
 
-symbols = ".!\"#$%&'()*+,-/:;<=>?@[\]^_`{|}~"
+symbols = ".!\"#$%&'()*+,-/:;<=>?@[\]^_`{|}~\r"
 whitespace = "\n "
 default_order = "wslnu"
 charset_fragment_lookup = {
@@ -16,7 +16,7 @@ Codepage.remove("”")
 gap = OrdinalLookup["”"]
 
 
-def Compressed(string):
+def Compressed(string, escape=False):
     """
     Compressed(string) -> str
     Returns the shortest Charcoal compressed literal of the given string.
@@ -25,11 +25,19 @@ def Compressed(string):
     if not string:
         return "””"
     if not all(
-        character == "¶" or character >= " " and character <= "~"
+        character == "¶" or character == "⸿" or
+        character >= " " and character <= "~"
         for character in string
     ):
-        return string
-    original_string, string = string, re.sub("¶", "\n", string)
+        if not escape:
+            return string
+        return (
+            "´" * (string[0] in "+X*|-\\/<>^KLTVY7¬") +
+            re.sub("[^ -~¶⸿]", "´\1", string)
+        )
+    original_string, string = string, re.sub(
+        "¶", "\n", re.sub("⸿", "\r", string)
+    )
     compressed_permuted = CompressPermutations(string)
     compressed = CompressString(string)
     string_length = len(original_string) - 2
@@ -37,7 +45,9 @@ def Compressed(string):
         string_length < len(compressed_permuted) and
         string_length < len(compressed)
     ):
-        return original_string
+        return (
+            "´" * (original_string[0] in "+X*|-\\/<>^KLTVY7¬") + original_string
+        )
     if len(compressed_permuted) < len(compressed):
         return "”" + compressed_permuted + "”"
     else:

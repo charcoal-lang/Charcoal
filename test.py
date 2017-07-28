@@ -1263,15 +1263,27 @@ ghi
   h  
   gda""")
         self.assertEqual(Run("a¶d¶ghi‖ＯＯ↘²"), """\
-a    
-d    
-ghi  
-  gda""")
+a   
+di  
+ghi 
+ gda""")
         self.assertEqual(Run("abcＭ↖d‖ＯＯ↖²"), """\
-cdd
-abc""")
+ cd
+abc
+ a """)
         self.assertEqual(Run("abc‖ＯＯ→⁰"), """\
 abccba""")
+        self.assertEqual(Run("""\
+Print('a\\nbc\\ndef\\nghij\\nklmno');
+ReflectOverlapOverlap(:UpRight, 2);
+Print('-');""", verbose=True), """\
+ a    
+abcgk 
+ defl 
+ ghij 
+ klmno
+    o 
+    - """)
 
     def test_reflect_butterfly(self):
         self.assertEqual(Run("<<|\\‖Ｂ→"), "<<|\|>>")
@@ -1504,7 +1516,7 @@ o
 foofoofoofoofoo""")
 
     def test_peek(self):
-        # TODO: test manipulation when list methods implemented
+        # TODO: test manipulation
         self.assertEqual(Run("barＭ←×ＫＫ⁵"), "barrrrr")
         self.assertEqual(Run("barＭ←⪫ＫＤ³←ω"), "barab")
         self.assertEqual(Run("↓foo×⪫ＫＡω⁵"), """\
@@ -1529,6 +1541,10 @@ foofoofoofoofoo""")
 
     def test_map(self):
         self.assertEqual(Run("Ｅ⟦¹1²⟧Ｉι"), "1\n-\n2")
+
+    def test_reduce(self):
+        self.assertEqual(Run("\
+Print(Cast(/([1,2,3,4,5,6,7],{Print(+(i,k))})))", verbose=True), "28")
 
     def test_python(self):
         self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")

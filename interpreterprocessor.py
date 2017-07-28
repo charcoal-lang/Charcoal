@@ -35,6 +35,14 @@ def ListFind(haystack, needle):
     except:
         return -1
 
+def charcoal_reduce(lst, function):
+    result = lst[0]
+    if not callable(function):
+        return (lst * (1 + int(1 / function)))[:int(len(lst) / function)]
+    for item in lst[1:]:
+        result = function(result, item)
+    return result
+
 InterpreterProcessor = {
     CharcoalToken.Arrow: [
         lambda result: Direction.left,
@@ -257,13 +265,15 @@ InterpreterProcessor = {
         ),
         lambda result: lambda left, right, charcoal: left * right,
         lambda result: lambda left, right, charcoal: (
-            ((left * (1 + 1 // right))[:len(left) // right]) if
-            isinstance(left, str) or isinstance(left, list) else
+            ((left * (1 + int(1 / right)))[:int(len(left) / right)])
+            if isinstance(left, str) or isinstance(left, list) else
             (left // right)
         ),
         lambda result: lambda left, right, charcoal: (
-            ((left * (1 + 1 // right))[:len(left) // right]) if
-            isinstance(left, str) or isinstance(left, list) else
+            ((left * (1 + int(1 / right)))[:int(len(left) / right)])
+            if isinstance(left, str) else
+            charcoal_reduce(left, right)
+            if isinstance(left, list) else
             (left / right)
         ),
         lambda result: lambda left, right, charcoal: left % right,

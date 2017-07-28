@@ -109,7 +109,7 @@ VerboseGrammars = {
     ],
     CT.Binary: [
         ["**"], ["+"], ["Add"], ["Plus"], ["-"], ["Subtract"], ["Minus"], ["*"],
-        ["Multiply"], ["Times"], ["//"], ["/"], ["Divide"], ["IntDivide"],
+        ["Multiply"], ["Times"], ["\\"], ["/"], ["Divide"], ["IntDivide"],
         ["IntegerDivide"], ["%"], ["Modulo"], ["=="], ["Equals"], ["<"],
         ["Less"], [">"], ["Greater"], ["&"], ["BitwiseAnd"], ["|"],
         ["BitwiseOr"], ["InclusiveRange"], ["Range"], ["Mold"], ["CycleChop"],

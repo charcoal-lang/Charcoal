@@ -48,6 +48,7 @@ import argparse
 import os
 import sys
 import builtins
+import types
 
 for alias, builtin in [
     ('a', abs), ('b', bin), ('c', complex), ('e', enumerate), ('f', format),
@@ -308,22 +309,33 @@ class Cells(list):
     __slots__ = ("xs", "ys", "charcoal")
 
     def __init__(self, charcoal, value, xs, ys):
-        super(Cells, self).__init__(value)
+        super().__init__(value)
         self.xs = xs
         self.ys = ys
         self.charcoal = charcoal
 
     def __setitem__(self, i, value):
-        super(Cells, self).__setitem__(i, value)
-
+        super().__setitem__(i, value)
         if isinstance(i, slice):
             start = i.start or 0 
             stop = len(self) if i.stop is None else i.stop
             for i in range(start, stop):
                 self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
             return
-
         self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
+
+    def __getitem__(self, i):
+        super().__getitem__(i)
+        if isinstance(i, slice):
+            start = i.start or 0 
+            stop = len(self) if i.stop is None else i.stop
+            return Cells(
+                self.charcoal,
+                self[start:stop],
+                self.xs[start:stop],
+                self.ys[start:stop]
+            )
+        return self[i]
 
 class Charcoal(object):
     __slots__ = (
@@ -331,7 +343,8 @@ class Charcoal(object):
         "scope", "info", "original_input", "inputs", "original_inputs",
         "all_inputs", "hidden", "direction", "background", "bg_lines",
         "bg_line_number", "bg_line_length", "timeout_end", "dump_timeout_end",
-        "background_inside", "trim", "print_at_end", "canvas_step"
+        "background_inside", "trim", "print_at_end", "canvas_step",
+        "last_printed", "charcoal"
     )
 
     secret = {
@@ -406,6 +419,8 @@ class Charcoal(object):
         self.trim = trim
         self.print_at_end = True
         self.canvas_step = canvas_step
+        self.last_printed = None
+        self.charcoal = None
         if Info.step_canvas in self.info:
             print("\033[2J")
 
@@ -486,6 +501,12 @@ class Charcoal(object):
                         "\n"
                     )
             return string[:-1]
+
+    def __getattribute__(self, attr):
+        method = object.__getattribute__(self, attr)
+        if type(method) == types.MethodType:
+            self.last_printed = None
+        return method
 
     def BackgroundString(self, y, start, end):
         """
@@ -611,6 +632,8 @@ class Charcoal(object):
         self.background_inside = False
         self.trim = False
         self.print_at_end = True
+        self.last_printed = None
+        self.charcoal = None
         if Info.step_canvas in self.info:
             self.RefreshFastText("Clear", self.canvas_step)
         elif Info.dump_canvas in self.info:
@@ -900,6 +923,7 @@ with a character automatically selected from -|/\\.
         If multiprint is true, the cursor will not be moved.
 
         """
+        original = string
         def grid(matrix):
             # matrix = [[str(item) for item in row] for row in matrix]
             # maximum = max(max(len(item) for item in row) for row in matrix)
@@ -935,6 +959,7 @@ with a character automatically selected from -|/\\.
         old_y = self.y
         if length and "\n" not in string:
             self.PrintLine(directions, length, string, multiprint=multiprint)
+            self.last_printed = original
             return
         lines = re.split("[\n\r]", string)
         seps = re.findall("[\n\r]", string)
@@ -1007,6 +1032,7 @@ with a character automatically selected from -|/\\.
         elif Info.dump_canvas in self.info:
             print("Print")
             print(str(self))
+        self.last_printed = original
 
     def Multiprint(self, string, directions=None):
         """
@@ -1819,16 +1845,13 @@ but not if it overwrites the original.
                 )
             )
             x = -negative_x
-            self.x = x + 1
+            self.x = x + overlap
 
             for line, length, index in zip(
                 self.lines[:], self.lengths[:], self.indices[:]
             ):
                 self.x -= 1
-                self.y = min(
-                    top_left - index + overlap - 1,
-                    top_left - self.x
-                )
+                self.y = top_left - index + overlap - 1
                 string = (
                     "".join(
                         NWSEFlip.get(character, character)
@@ -1836,17 +1859,14 @@ but not if it overwrites the original.
                     )
                     if transform else
                     line
-                )[max(
-                    0,
-                    overlap - (1 + index - self.x)
-                ):]
+                )
                 self.PrintLine(
                     {Direction.up},
                     len(string),
                     string,
                     overwrite=False
                 )
-            self.x = top_left - initial_y
+            self.x = top_left - initial_y + overlap - 1
             self.y = top_left - initial_x + overlap - 1
         elif direction == Direction.up_right:
             top_right, negative_x = min(
@@ -1858,15 +1878,12 @@ but not if it overwrites the original.
                 )
             )
             x = -negative_x
-            self.x = x - 1
+            self.x = x - overlap
             for line, length, right_index in zip(
                 self.lines[:], self.lengths[:], self.right_indices[:]
             ):
                 self.x += 1
-                self.y = min(
-                    top_right + right_index + overlap - 1,
-                    top_right + self.x + 1
-                )
+                self.y = top_right + right_index + overlap - 1
                 string = (
                     "".join(
                         NESWFlip.get(character, character)
@@ -1874,17 +1891,14 @@ but not if it overwrites the original.
                     )
                     if transform else
                     line
-                )[min(
-                    -1,
-                    -overlap + (self.x - right_index + 1)
-                )::-1]
+                )[::-1]
                 self.PrintLine(
                     {Direction.up},
                     len(string),
                     string,
                     overwrite=False
                 )
-            self.x = initial_y - top_right - 1
+            self.x = initial_y - top_right - overlap
             self.y = top_right + initial_x + overlap
         elif direction == Direction.down_left:
             bottom_left, x = max(
@@ -1895,15 +1909,12 @@ but not if it overwrites the original.
                     range(len(self.indices))[::-1]
                 )
             )
-            self.x = x + 1
+            self.x = x + overlap
             for line, length, index in zip(
                 self.lines[::-1], self.lengths[::-1], self.indices[::-1]
             ):
                 self.x -= 1
-                self.y = max(
-                    bottom_left + index - overlap + 1,
-                    bottom_left + self.x
-                )
+                self.y = bottom_left + index - overlap + 1
                 string = (
                     "".join(
                         NESWFlip.get(character, character)
@@ -1911,17 +1922,14 @@ but not if it overwrites the original.
                     )
                     if transform else
                     line
-                )[max(
-                    0,
-                    overlap - (1 + index - self.x)
-                ):]
+                )
                 self.PrintLine(
                     {Direction.down},
                     len(string),
                     string,
                     overwrite=False
                 )
-            self.x = initial_y - bottom_left
+            self.x = initial_y - bottom_left - 1 + overlap
             self.y = bottom_left + initial_x + 1 - overlap
         elif direction == Direction.down_right:
             bottom_right, negative_x = max(
@@ -1933,15 +1941,12 @@ but not if it overwrites the original.
                 )
             )
             x = -negative_x
-            self.x = x - 1
+            self.x = x - overlap
             for line, length, right_index in zip(
                 self.lines[::-1], self.lengths[::-1], self.right_indices[::-1]
             ):
                 self.x += 1
-                self.y = max(
-                    bottom_right - right_index - overlap + 1,
-                    bottom_right - self.x - 1
-                )
+                self.y = bottom_right - right_index - overlap + 1
                 string = (
                     "".join(
                         NWSEFlip.get(character, character)
@@ -1949,17 +1954,14 @@ but not if it overwrites the original.
                     )
                     if transform else
                     line
-                )[min(
-                    -1,
-                    -overlap + (self.x - right_index + 1)
-                )::-1]
+                )[::-1]
                 self.PrintLine(
                     {Direction.down},
                     len(string),
                     string,
                     overwrite=False
                 )
-            self.x = bottom_right - initial_y - 1
+            self.x = bottom_right - initial_y - overlap
             self.y = bottom_right - initial_x - overlap
         if Info.step_canvas in self.info:
             self.RefreshFastText((
@@ -2987,16 +2989,20 @@ arguments.
         Returns the result.
 
         """
+        self.charcoal = self
         if isinstance(name, String):
             name = str(name)
+        result = None
         if isinstance(name, Expression):
-            return name.run()(*arguments)
+            result = name.run()(*arguments)
         if name in self.scope:
-            return self.scope[name](*arguments)
+            result = self.scope[name](*arguments)
         if name in self.hidden:
-            return self.hidden[name](*arguments)
+            result = self.hidden[name](*arguments)
         if name in Charcoal.secret:
-            return Charcoal.secret[name](*arguments)
+            result = Charcoal.secret[name](*arguments)
+        self.charcoal = None
+        return result
 
     def ExecuteVariable(self, name, arguments):
         """
@@ -3006,6 +3012,7 @@ arguments.
 arguments.
 
         """
+        self.charcoal = self
         if isinstance(name, String):
             name = str(name)
         if isinstance(name, Expression):
@@ -3016,6 +3023,7 @@ arguments.
             self.hidden[name](*arguments)
         elif name in Charcoal.secret:
             Charcoal.secret[name](*arguments)
+        self.charcoal = None
 
     def Lambdafy(self, function):
         """
@@ -3025,15 +3033,20 @@ arguments.
 
         """
 
-        def run(function, arguments):
-            self.scope = Scope(self.scope)
+        def run(function, arguments, charcoal):
+            charcoal.scope = Scope(self.scope)
             for argument, key in zip(arguments, "ικλμνξπρςστυφχψωαβγδεζηθ"):
-                self.scope[key] = argument
-            result = function(self)
-            self.scope = self.scope.parent
-            return result
+                charcoal.scope[key] = argument
+            function(charcoal)
+            return (
+                charcoal.last_printed
+                if charcoal.last_printed is not None else
+                str(charcoal)
+            )
 
-        return lambda *arguments: run(function, arguments)
+        return lambda *arguments: run(
+            function, arguments, self.charcoal or Charcoal()
+        )
 
     def CycleChop(self, iterable, length):
         """
@@ -3269,12 +3282,9 @@ iterable, else it returns the iterable.
             self.scope[loop_variable] = iterable[i]
             self.scope[index_variable] = i
             result += [function(self)]
-        if (
-            not is_command and
-            not isinstance(iterable, str) and
-            not isinstance(iterable, String)
-        ):
-            iterable[:] = result
+        if isinstance(iterable, Cells):
+            clone = iterable[:]
+            clone[:] = result
         self.scope = self.scope.parent
         if Info.step_canvas in self.info and isinstance(iterable, Cells):
             self.RefreshFastText("Map", self.canvas_step)
@@ -3402,11 +3412,11 @@ starting from the token given as grammar.
             if isinstance(token, int):
                 if verbose:
                     if token == CharcoalToken.String:
+                        if index == len(code):
+                            success = False
+                            break
                         quote = code[index]
-                        if (
-                            index == len(code) or
-                            (quote != '"' and quote != "'")
-                        ):
+                        if quote != '"' and quote != "'":
                             success = False
                             break
                         old_index = index
@@ -3902,7 +3912,7 @@ def Degrave(code):
 
 def Golf(code):
     codes = re.split("([“”])([^”]*?)(”)", code)
-    for i in range(0, len(codes), 3):
+    for i in range(0, len(codes), 4):
         for regex, replacement in (
             ("([^·⁰¹²³⁴-⁹]|^)¹⁰⁰⁰([^·⁰¹²³⁴-⁹]|$)", "\\1φ\\2"),
             ("([^·⁰¹²³⁴-⁹]|^)¹⁰([^·⁰¹²³⁴-⁹]|$)", "\\1χ\\2"),
@@ -3916,12 +3926,14 @@ def Golf(code):
             ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
             ("([^´].|[^ -~´⸿¶])¦([ -~´⸿¶])", "\\1\\2"),
             ("([ -~´⸿¶])¦([^ -~´⸿¶])", "\\1\\2"),
+            ("(^|[^ -~])´([ -~])", "\\1\\2"),
             ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),
             ("¦((?:^|[^´])[α-ξπ-ω])", "\\1"),
             (
                 "(^|[^‖])Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´⸿¶])" % sOperator,
                 "\\1\\2"
             ),
+            ("(%s)¦(%s)" % (sOperator, sOperator), "\\1\\2"),
             ("»+$", "")
         ):
             codes[i] = re.sub(regex, replacement, codes[i])
