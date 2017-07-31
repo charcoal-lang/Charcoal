@@ -1546,6 +1546,28 @@ foofoofoofoofoo""")
         self.assertEqual(Run("\
 Print(Cast(/([1,2,3,4,5,6,7],{Print(+(i,k))})))", verbose=True), "28")
 
+    def test_any(self):
+        self.assertEqual(
+            Run("Print(Any([0,0,1,0],{Print(i)}))", verbose=True),
+            "-"
+        )
+        self.assertEqual(
+            Run("Print(Any([0,0,0,0],{Print(i)}))", verbose=True),
+            ""
+        )
+        pass
+
+    def test_all(self):
+        self.assertEqual(
+            Run("Print(All([1,2,3,1],{Print(i)}))", verbose=True),
+            "-"
+        )
+        self.assertEqual(
+            Run("Print(All([1,2,0,1],{Print(i)}))", verbose=True),
+            ""
+        )
+        pass
+
     def test_python(self):
         self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")
         self.assertEqual(

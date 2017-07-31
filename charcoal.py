@@ -51,10 +51,10 @@ import builtins
 import types
 
 for alias, builtin in [
-    ('a', abs), ('b', bin), ('c', complex), ('e', enumerate), ('f', format),
-    ('g', range), ('h', hex), ('i', __import__), ('m', sum), ('n', min),
-    ('o', oct), ('p', repr), ('r', reversed), ('s', sorted), ('x', max),
-    ('z', zip)
+    ("a", abs), ("b", bin), ("c", complex), ("e", enumerate), ("f", format),
+    ("g", range), ("h", hex), ("i", __import__), ("m", sum), ("n", min),
+    ("o", oct), ("p", repr), ("r", reversed), ("s", sorted), ("x", max),
+    ("z", zip)
 ]:
     setattr(builtins, alias, builtin)
 
@@ -138,7 +138,7 @@ def Sign(number):
     Return the mathematical sign of the given number.
 
     """
-    return 1 if number > 0 else -1 if number < 0 else 0
+    return number and (-1, 1)[number > 0]
 
 
 def large_range(number):
@@ -3258,7 +3258,7 @@ in the specified direction from the cursor.
 
     def Map(self, iterable, function, is_command=False):
         """
-        Map(iterable, function)
+        Map(iterable, function, is_command=False)
 
         Returns an iterable with the results of applying \
 function to each element of the iterable.
@@ -3272,7 +3272,9 @@ iterable, else it returns the iterable.
         self.scope[loop_variable] = 1
         index_variable = self.GetFreeVariable()
         result = []
-        if isinstance(iterable, Expression):
+        if callable(iterable):
+            iterable, function = function, iterable
+        if type(iterable) == Expression:
             iterable = iterable.run()
         if isinstance(iterable, float):
             iterable = int(iterable)
@@ -3293,53 +3295,145 @@ iterable, else it returns the iterable.
             print(str(self))
         return result
 
+    def All(self, iterable, function):
+        """
+        All(iterable, function)
+
+        Returns whether the function returns truthy for all values in the \
+iterable.
+
+        """
+        if callable(iterable):
+            iterable, function = function, iterable
+        if type(iterable) == Expression:
+            iterable = iterable.run()
+        return all(function(item) for item in iterable)
+
+    def Any(self, iterable, function):
+        """
+        Any(iterable, function)
+
+        Returns whether the function returns truthy for any values in the \
+iterable.
+
+        """
+        if callable(iterable):
+            iterable, function = function, iterable
+        if type(iterable) == Expression:
+            iterable = iterable.run()
+        return any(function(item) for item in iterable)
+
     def Add(self, left, right):
+        if isinstance(left, String):
+            left = str(left)
+        if isinstance(right, String):
+            right = str(right)
+        if type(left) == Expression:
+            left = left.run()
+        if type(right) == Expression:
+            right = right.run()
         left_type = type(left)
         right_type = type(right)
         left_is_iterable = (
             hasattr(left, "__iter__") and not isinstance(left, str)
         )
         right_is_iterable = (
-            hasattr(left, "__iter__") and not isinstance(left, str)
+            hasattr(right, "__iter__") and not isinstance(right, str)
         )
         if isinstance(left, Pattern) or isinstance(right, Pattern):
             return left + right
         if left_is_iterable ^ right_is_iterable:
             if left_is_iterable:
                 return left + [right]
-            if right_is_iterable:
-                return [left] + right
+            return [left] + right
         if (left_type == str) ^ (right_type == str):
             if left_type == str:
                 return left + str(right)
-            if right_type == str:
-                return str(left) + right
+            return str(left) + right
         return left + right
 
     def Subtract(self, left, right):
+        if isinstance(left, String):
+            left = str(left)
+        if isinstance(right, String):
+            right = str(right)
+        if type(left) == Expression:
+            left = left.run()
+        if type(right) == Expression:
+            right = right.run()
         left_type = type(left)
         right_type = type(right)
         left_is_iterable = (
-            hasattr(left, "__iter__") and
-            not isinstance(left, str)
+            hasattr(left, "__iter__") and not isinstance(left, str)
         )
         right_is_iterable = (
-            hasattr(left, "__iter__") and
-            not isinstance(left, str)
+            hasattr(right, "__iter__") and not isinstance(right, str)
         )
         if isinstance(left, Pattern) or isinstance(right, Pattern):
             return left - right
         if left_is_iterable ^ right_is_iterable:
             if left_is_iterable:
                 return left - [right]
-            if right_is_iterable:
-                return [left] - right
+            return [left] - right
         if (left_type == str) ^ (right_type == str):
             if left_type == str:
                 return left - str(right)
-            if right_type == str:
-                return str(left) - right
+            return str(left) - right
         return left - right
+
+    def Multiply(self, left, right):
+        if isinstance(left, String):
+            left = str(left)
+        if isinstance(right, String):
+            right = str(right)
+        if type(left) == Expression:
+            left = left.run()
+        if type(right) == Expression:
+            right = right.run()
+        left_type = type(left)
+        right_type = type(right)
+        left_is_iterable = hasattr(left, "__iter__")
+        right_is_iterable = hasattr(right, "__iter__")
+        if left_is_iterable ^ right_is_iterable:
+            if left_is_iterable:
+                return (left * (1 + int(right)))[:int(len(left) * right)]
+            return (right * (1 + int(left)))[:int(len(right) * left)]
+        if left_is_iterable and right_is_iterable:
+            if left_type == str:
+                return left.join(right)
+            if right_type == str:
+                return right.join(left)
+        return left * right
+
+    def Divide(self, left, right, floor=True):
+        def reduce(lst, function):
+            result = lst[0]
+            for item in lst[1:]:
+                result = function(result, item)
+            return result
+        if isinstance(left, String):
+            left = str(left)
+        if isinstance(right, String):
+            right = str(right)
+        if type(left) == Expression:
+            left = left.run()
+        if type(right) == Expression:
+            right = right.run()
+        left_type = type(left)
+        right_type = type(right)
+        left_is_iterable = hasattr(left, "__iter__")
+        right_is_iterable = hasattr(right, "__iter__")
+        if left_is_iterable ^ right_is_iterable:
+            if left_is_iterable:
+                if callable(right):
+                    return reduce(left, right)
+                return (left * (1 + int(1 / right)))[:int(len(left) / right)]
+            if callable(left):
+                return reduce(right, left)
+            return (right * (1 + int(1 / left)))[:int(len(right) / left)]
+        if left_type == str and right_type == str:
+            return left.split(right)
+        return left // right if floor else left / right
 
 def PassThrough(result):
     """
@@ -3675,7 +3769,6 @@ symbols they represent.
     Returns the processed program.
 
     """
-
     if normal_encoding:
         result = ""
         for i in range(len(code)):
@@ -3718,6 +3811,9 @@ symbols they represent.
         parsed = ParseExpression(
             code, 0, grammar, VerboseGrammars, StringifierProcessor, True
         )
+        if parsed[1] == False and not silent:
+            PrintParseTrace(parsed[0])
+            return processor[CharcoalToken.Program][-1]([])
         if parsed:
             code = parsed[0]
         else:
@@ -4033,20 +4129,12 @@ and processors.
         ]
         VerboseGrammars[CharcoalToken.OtherOperator] += [
             [
-                "PythonFunction",
-                "(",
-                _name,
-                CharcoalToken.Separator,
-                CharcoalToken.WolframList,
-                ")"
+                "PythonFunction", "(", _name, CharcoalToken.Separator,
+                CharcoalToken.WolframList, ")"
             ],
             [
-                "PythonFunction",
-                "(",
-                _name,
-                CharcoalToken.Separator,
-                CharcoalToken.WolframExpression,
-                ")"
+                "PythonFunction", "(", _name, CharcoalToken.Separator,
+                CharcoalToken.WolframExpression, ")"
             ],
             ["PythonFunction", "(", _name, CharcoalToken.Separator, ")"]
         ]
@@ -4073,20 +4161,12 @@ and processors.
         ]
         VerboseGrammars[CharcoalToken.Command] += [
             [
-                "PythonFunction",
-                "(",
-                _name,
-                CharcoalToken.Separator,
-                CharcoalToken.WolframList,
-                ")"
+                "PythonFunction", "(", _name, CharcoalToken.Separator,
+                CharcoalToken.WolframList, ")"
             ],
             [
-                "PythonFunction",
-                "(",
-                _name,
-                CharcoalToken.Separator,
-                CharcoalToken.WolframExpression,
-                ")"
+                "PythonFunction", "(", _name, CharcoalToken.Separator,
+                CharcoalToken.WolframExpression, ")"
             ],
             ["PythonFunction", "(", _name, CharcoalToken.Separator,")"]
         ]
@@ -4146,9 +4226,7 @@ given data in UTF-8.
         buf2 = ["%02x" % i for i in buf]
         print("{0}: {1:<39}  {2}".format(
             ("%07x" % (counter << 4)),
-            " ".join(
-                ["".join(buf2[i:i + 2]) for i in range(0, len(buf2), 2)]
-            ),
+            " ".join(["".join(buf2[i:i + 2]) for i in range(0, len(buf2), 2)]),
             "".join([chr(c) if c >= 32 and c <= 126 else "." for c in buf])
         ))
         counter += 1

@@ -116,7 +116,7 @@ VerboseGrammars = {
         ["Exponentiate"], ["Exponent"], ["Power"], ["AtIndex"],
         ["PushOperator"], ["Join"], ["Split"], ["FindAll"], ["Find"],
         ["PadLeft"], ["PadRight"], ["Count"], ["Rule"], ["DelayedRule"],
-        ["PatternTest"], ["Slice"]
+        ["PatternTest"], ["Slice"], ["Any"], ["Some"], ["All"], ["Every"]
     ],
     CT.Ternary: [["Slice"]],
     CT.Quarternary: [["Slice"]],

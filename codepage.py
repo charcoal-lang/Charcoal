@@ -37,8 +37,8 @@ for replacement, replaced in zip(
 ):
     add_character(replacement, replaced)
 for high, low in zip(
-    "⸿？⪫⪪℅◧◨⮌⌕≡№≔≕▷▶✂",
-    "\n\x00\x01\x02\x03\x04\x05\x06\x1B\x07\x08\x0C\x0D\x0E\x0F\x10"
+    "⸿？⪫⪪℅◧◨⮌⌕≡№≔≕▷▶✂⊙⬤",
+    "\n\x00\x01\x02\x03\x04\x05\x06\x1B\x07\x08\x0C\x0D\x0E\x0F\x10\x09\x0B"
 ):
     add_character(high, chr(ord(low) + 128))
 keys = list(UnicodeLookup.keys())
@@ -76,17 +76,17 @@ def InCodepage(character):
         (character >= "α" and character <= "ω" and character != "ο") or
         (character >= "Ａ" and character <= "Ｚ") or
         character in "⸿¶⁰¹²³⁴⁵⁶⁷⁸⁹⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›＆｜～←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖´·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№≔≕▷▶✂"
+↶↷⟲¿‽‖´·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№≔≕▷▶✂⊙⬤"
     )
 
 UnicodeCommands = "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ\
 ⁰¹²³⁴⁵⁶⁷⁸⁹αβγδεζηθικλμνξπρσςτυφχψω⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›＆｜～←↑→↓↖↗↘↙\
-↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№≔≕▷▶✂"
+↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№≔≕▷▶✂⊙⬤"
 UnicodeCommandRegex = "Ａ-Ｚ⁰¹²³⁴-⁹α-ξπ-ω⟦⟧⦃⦄«»⁺⁻×÷∕﹪∧∨¬⁼‹›＆｜～←-↓↖-↙\
-↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№≔≕▷▶✂"
+↶↷⟲¿‽‖·¤¦“”⎚…§⎇↥↧⌊⌈±⊞⊟➙⧴″‴？⪫⪪⌕℅◧◨⮌≡№≔≕▷▶✂⊙⬤"
 sCommand = "[%s]" % UnicodeCommandRegex
 sOperator = """\
-[ＳＮ‽¬Ｉ‽Ｖ⊟➙⧴″‴↧↥⌊⌈℅⮌⁺⁻×÷∕﹪⁼‹›＆｜～…Ｘ§？⪫⪪⌕◧◨№⎇Ｅ∧∨▷≕✂]\
+[ＳＮ‽¬Ｉ‽Ｖ⊟➙⧴″‴↧↥⌊⌈℅⮌⁺⁻×÷∕﹪⁼‹›＆｜～…Ｘ§？⪫⪪⌕◧◨№⎇Ｅ∧∨▷≕✂⊙⬤]\
 |Ｋ.|±Ｌ|⊞Ｏ|⌕Ａ"""
 rCommand = re.compile("(%s)" % sCommand)
 rOperator = re.compile("(%s)" % sOperator)

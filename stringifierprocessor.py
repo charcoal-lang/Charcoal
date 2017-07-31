@@ -231,7 +231,11 @@ StringifierProcessor = {
         lambda result: "➙",
         lambda result: "⧴",
         lambda result: "？",
-        lambda result: "✂"
+        lambda result: "✂",
+        lambda result: "⊙",
+        lambda result: "⊙",
+        lambda result: "⬤",
+        lambda result: "⬤"
     ],
     CharcoalToken.Ternary: [
         lambda result: "✂"

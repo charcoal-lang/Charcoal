@@ -11,37 +11,16 @@ def FindAll(haystack, needle):
     if isinstance(haystack, str):
         index = haystack.find(needle)
         while True:
-            if index != -1:
+            if ~index:
                 result += [index]
             else:
                 return result
             index = haystack.find(needle, index + 1)
     else:
-        try:
-            index = haystack.index(needle)
-        except:
-            return []
-        while True:
-            result += [index]
-            try:
-                index = haystack.index(needle, index + 1)
-            except:
-                return result
+        return [i for i, item in enumerate(haystack) if item == needle]
 
 def ListFind(haystack, needle):
-    try:
-        return haystack.index(needle)
-
-    except:
-        return -1
-
-def charcoal_reduce(lst, function):
-    result = lst[0]
-    if not callable(function):
-        return (lst * (1 + int(1 / function)))[:int(len(lst) / function)]
-    for item in lst[1:]:
-        result = function(result, item)
-    return result
+    return haystack.index(needle) if needle in haystack else -1
 
 InterpreterProcessor = {
     CharcoalToken.Arrow: [
@@ -263,18 +242,14 @@ InterpreterProcessor = {
         lambda result: lambda left, right, charcoal: charcoal.Subtract(
             left, right
         ),
-        lambda result: lambda left, right, charcoal: left * right,
-        lambda result: lambda left, right, charcoal: (
-            ((left * (1 + int(1 / right)))[:int(len(left) / right)])
-            if isinstance(left, str) or isinstance(left, list) else
-            (left // right)
+        lambda result: lambda left, right, charcoal: charcoal.Multiply(
+            left, right
         ),
-        lambda result: lambda left, right, charcoal: (
-            ((left * (1 + int(1 / right)))[:int(len(left) / right)])
-            if isinstance(left, str) else
-            charcoal_reduce(left, right)
-            if isinstance(left, list) else
-            (left / right)
+        lambda result: lambda left, right, charcoal: charcoal.Divide(
+            left, right
+        ),
+        lambda result: lambda left, right, charcoal: charcoal.Divide(
+            left, right, False
         ),
         lambda result: lambda left, right, charcoal: left % right,
         lambda result: lambda left, right, charcoal: left == right,
@@ -333,7 +308,9 @@ InterpreterProcessor = {
         lambda result: lambda left, right, charcoal: PatternTest(
             left, right
         ),
-        lambda result: lambda left, right, charcoal: left[right:]
+        lambda result: lambda left, right, charcoal: left[right:],
+        lambda result: lambda left, right, charcoal: charcoal.Any(left, right),
+        lambda result: lambda left, right, charcoal: charcoal.All(left, right)
     ],
     CharcoalToken.Ternary: [
         lambda result: lambda first, second, third, charcoal: first[
