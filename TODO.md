@@ -7,3 +7,4 @@
 translate and more complex number things e.g. factor
 - [ ] Add other operators to tutor? Introduce preinitialized variables?
 - [ ] Use one charcoal instance for new charcoal (lambdafy) maybe?
+- [ ] zip

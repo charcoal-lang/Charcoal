@@ -550,8 +550,8 @@ class Charcoal(object):
         Adds given inputs to the inputs of the canvas.
 
         """
-        self.inputs += inputs
         self.original_inputs += inputs
+        self.inputs = self.original_inputs[:]
         self.all_inputs = self.inputs + [""] * (5 - len(self.inputs))
         self.hidden["θ"] = self.all_inputs[0]
         self.hidden["η"] = self.all_inputs[1]
@@ -1399,7 +1399,7 @@ in the specified direction.
 clockwise or counterclockwise depending on pivot.
 
         """
-        for i in range(number):
+        for i in range(int(number)):
             self.direction = PivotLookup[pivot][self.direction]
 
     def Jump(self, x, y):
@@ -3369,16 +3369,20 @@ iterable.
         right_is_iterable = (
             hasattr(right, "__iter__") and not isinstance(right, str)
         )
-        if isinstance(left, Pattern) or isinstance(right, Pattern):
-            return left - right
         if left_is_iterable ^ right_is_iterable:
             if left_is_iterable:
-                return left - [right]
-            return [left] - right
+                return [item for item in left if item != right]
+            # return [left] - right
         if (left_type == str) ^ (right_type == str):
             if left_type == str:
+                if right_type == int or right_type == float:
+                    return (float if "." in left else int)(left) - right
                 return left - str(right)
+            if left_type == int or left_type == float:
+                return left - (float if "." in right else int)(right)
             return str(left) - right
+        if left_type == str and right_type == str:
+            return left.replace(right, "")
         return left - right
 
     def Multiply(self, left, right):
@@ -3919,7 +3923,7 @@ verbose=False, grave=False) -> Any
 
     Runs given Charcoal code with given inputs as a string.
 
-    If charcoal is falsy, a new Charcoal object is used instead if charcoal.
+    If charcoal is falsy, a new Charcoal object is used instead of charcoal.
 
     Starts parsing from the given grammar, using the given list of grammars.
 
