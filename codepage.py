@@ -17,8 +17,8 @@ for greek, lower in zip(
     "αβγδεζηθικλμνξπρσςτυφχψω",
     "abgdezhqiklmnxprsvtufcyw"
 ):
-    add_character(greek, chr(ord(lower) + 128)) # h and j are free
-for double_bracket, bracket in zip("⟦⟧⦃⦄«»", "[]{}()"): # not sure about ()
+    add_character(greek, chr(ord(lower) + 128))  # h and j are free
+for double_bracket, bracket in zip("⟦⟧⦃⦄«»", "[]{}()"):  # not sure about ()
     add_character(double_bracket, chr(ord(bracket) + 128))
 for symbol, operator in zip("⁺⁻×÷∕﹪¬⁼‹›", "+-*/\\%!=<>"):
     add_character(symbol, chr(ord(operator) + 128))
@@ -46,7 +46,7 @@ values = list(UnicodeLookup.values())
 for character in range(0, 257):
     char = chr(character)
     value = char
-    if not char in keys:
+    if char not in keys:
         if char in values:
             while value in values:
                 value = keys[values.index(value)]
@@ -57,7 +57,7 @@ keys = list(UnicodeLookup.keys())
 values = list(UnicodeLookup.values())
 for character in values:
     value = character
-    if not character in keys:
+    if character not in keys:
         while value in values:
             value = keys[values.index(value)]
         UnicodeLookup[character] = value

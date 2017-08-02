@@ -62,9 +62,9 @@ imports = {}
 python_function_is_command = {}
 
 if os.name == "nt":
-    import ansiterm # for colors/screen clear
+    import ansiterm  # for colors/screen clear
 else:
-    import readline # for arrow/Ctrl+A/Ctrl+E support
+    import readline  # for arrow/Ctrl+A/Ctrl+E support
 
 try:
     # if python > 3.6 or back-compat module exists
@@ -88,6 +88,7 @@ except:
 
         """
         return false
+
 
 def CleanExecute(function, *args, **kwargs):
     """
@@ -114,6 +115,7 @@ if an error occurs.
     return lambda *args, **kwargs: CleanExecute(function, *args, **kwargs)
 
 _open = open
+
 
 def Open(*args, **kwargs):
     """
@@ -305,6 +307,7 @@ class Scope(object):
     def delete(self, key):
         del self[key]
 
+
 class Cells(list):
     __slots__ = ("xs", "ys", "charcoal")
 
@@ -317,7 +320,7 @@ class Cells(list):
     def __setitem__(self, i, value):
         super().__setitem__(i, value)
         if isinstance(i, slice):
-            start = i.start or 0 
+            start = i.start or 0
             stop = len(self) if i.stop is None else i.stop
             for i in range(start, stop):
                 self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
@@ -327,7 +330,7 @@ class Cells(list):
     def __getitem__(self, i):
         super().__getitem__(i)
         if isinstance(i, slice):
-            start = i.start or 0 
+            start = i.start or 0
             stop = len(self) if i.stop is None else i.stop
             return Cells(
                 self.charcoal,
@@ -336,6 +339,7 @@ class Cells(list):
                 self.ys[start:stop]
             )
         return self[i]
+
 
 class Charcoal(object):
     __slots__ = (
@@ -387,9 +391,11 @@ class Charcoal(object):
         trim=False
     ):
         """
-        Charcoal(inputs=[], info=set(), canvas_step=500, original_input="") -> Charcoal
+        Charcoal(inputs=[], info=set(), canvas_step=500, original_input="") \
+-> Charcoal
 
-        Creates a Charcoal canvas, an object on which all canvas drawing methods exist.
+        Creates a Charcoal canvas, \
+an object on which all canvas drawing methods exist.
 
         """
         self.x = self.y = self.top = 0
@@ -446,9 +452,7 @@ class Charcoal(object):
                             line = (
                                 line[:bg_start] +
                                 self.BackgroundString(
-                                    top,
-                                    index + bg_start,
-                                    index + j
+                                    top, index + bg_start, index + j
                                 ) +
                                 line[j:]
                             )
@@ -457,22 +461,16 @@ class Charcoal(object):
                         line = (
                             line[:bg_start] +
                             self.BackgroundString(
-                                top,
-                                index + bg_start,
-                                index + j
+                                top, index + bg_start, index + j
                             )
                         )
                 string += (
                     self.BackgroundString(
-                        self.top + i,
-                        left,
-                        self.indices[i]
+                        self.top + i, left, self.indices[i]
                     ) +
                     line +
                     ("" if self.trim else self.BackgroundString(
-                        self.top + i,
-                        self.right_indices[i],
-                        right
+                        self.top + i, self.right_indices[i], right
                     )) +
                     "\n"
                 )
@@ -504,7 +502,7 @@ class Charcoal(object):
 
     def __getattribute__(self, attr):
         method = object.__getattribute__(self, attr)
-        if type(method) == types.MethodType:
+        if isinstance(method, types.MethodType):
             self.last_printed = None
         return method
 
@@ -533,13 +531,9 @@ class Charcoal(object):
         right = max(self.right_indices)
         self.background_inside = True
         return [
-            "\000" * (index - left) +
-            line +
-            "\000" * (right - right_index)
+            "\000" * (index - left) + line + "\000" * (right - right_index)
             for line, index, right_index in zip(
-                self.lines,
-                self.indices,
-                self.right_indices
+                self.lines, self.indices, self.right_indices
             )
         ]
 
@@ -924,10 +918,12 @@ with a character automatically selected from -|/\\.
 
         """
         original = string
+
         def grid(matrix):
             # matrix = [[str(item) for item in row] for row in matrix]
             # maximum = max(max(len(item) for item in row) for row in matrix)
             return matrix
+
         def simplify(string):
             if isinstance(string, Expression):
                 string = string.run()
@@ -938,7 +934,7 @@ with a character automatically selected from -|/\\.
                     #     return grid(string)
                     return [simplify(leaf) for leaf in string.leaves]
                 if type(string) in [Rule, DelayedRule, Pattern]:
-                    return "" # TODO
+                    return ""  # TODO
                 return string.to_number()
             return string
         string = simplify(string)
@@ -1197,11 +1193,17 @@ be used for the sides and + for the corners.
             initial_x = self.x
             initial_y = self.y
             if width > 0:
-                self.PrintLine({Direction.right}, width, "-", move_at_end=False)
+                self.PrintLine(
+                    {Direction.right}, width, "-", move_at_end=False
+                )
             else:
-                self.PrintLine({Direction.left}, -width, "-", move_at_end=False)
+                self.PrintLine(
+                    {Direction.left}, -width, "-", move_at_end=False
+                )
             if height > 0:
-                self.PrintLine({Direction.down}, height, "|", move_at_end=False)
+                self.PrintLine(
+                    {Direction.down}, height, "|", move_at_end=False
+                )
             else:
                 self.PrintLine({Direction.up}, -height, "|", move_at_end=False)
             if width > 0:
@@ -1679,7 +1681,8 @@ characters to the axis are next to the axis.
                     )
             else:
                 for line, length, right_index in zip(
-                    self.lines[::-1], self.lengths[::-1], self.right_indices[::-1]
+                    self.lines[::-1], self.lengths[::-1],
+                    self.right_indices[::-1]
                 ):
                     self.x += 1
                     self.y = bottom_right - right_index
@@ -2158,7 +2161,7 @@ make a copy for each of the digits in rotations.
         else:
             return
         if YMovement[anchor] == 1:
-            bottom  = self.top + len(self.lines)
+            bottom = self.top + len(self.lines)
         elif YMovement[anchor] == -1:
             top = self.top
         else:
@@ -2301,7 +2304,9 @@ make a copy for each of the digits in rotations.
         )
         if isinstance(rotations, list):
             for rotation in rotations:
-                self.RotateOverlap(rotation, anchor, transform, number, overlap)
+                self.RotateOverlap(
+                    rotation, anchor, transform, number, overlap
+                )
             return
         if rotations % 2:
             print("RuntimeError: Cannot rotate an odd number of times")
@@ -2320,14 +2325,14 @@ make a copy for each of the digits in rotations.
             rotations = new_rotations
         else:
             rotations = {rotations}
-        initial_x, initial_y = self.x,  self.y
+        initial_x, initial_y = self.x, self.y
         line_count = len(self.lines)
         if XMovement[anchor] == 1:
             right = max(self.right_indices)
         elif XMovement[anchor] == -1:
             left = min(self.indices)
         if YMovement[anchor] == 1:
-            bottom  = self.top + len(self.lines)
+            bottom = self.top + len(self.lines)
         elif YMovement[anchor] == -1:
             top = self.top
         if 2 in rotations:
@@ -2650,7 +2655,7 @@ if expression is a number.
                 expression = self.inputs[0]
                 self.inputs = self.inputs[1:]
             else:
-                pass # TODO
+                pass  # TODO
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
         variable = expression(self)
@@ -2714,7 +2719,9 @@ or into a number if it was a string.
             if isinstance(variable, String):
                 variable = str(variable)
                 return (
-                    float(variable) if "." in variable else int(variable or "0")
+                    float(variable)
+                    if "." in variable else
+                    int(variable or "0")
                 )
             if isinstance(variable, List):
                 return List(self.Cast(item) for item in variable)
@@ -2869,7 +2876,9 @@ add a timeout of timeout ms before which the screen cannot be refreshed again.
         """
         self.print_at_end = False
         if not isinstance(timeout, int):
-            print("RuntimeError: Refresh expected int, found %s" % str(timeout))
+            print(
+                "RuntimeError: Refresh expected int, found %s" % str(timeout)
+            )
             if Info.is_repl not in self.info:
                 sys.exit(1)
         elif timeout == 0 and Info.warn_ambiguities in self.info:
@@ -3439,6 +3448,7 @@ iterable.
             return left.split(right)
         return left // right if floor else left / right
 
+
 def PassThrough(result):
     """
     PassThrough(result) -> Any
@@ -3452,6 +3462,7 @@ SuperscriptToNormal = {
     "⁰": 0, "¹": 1, "²": 2, "³": 3, "⁴": 4,
     "⁵": 5, "⁶": 6, "⁷": 7, "⁸": 8, "⁹": 9
 }
+
 
 def ParseExpression(
     code,
@@ -3593,7 +3604,7 @@ starting from the token given as grammar.
                             break
                         tokens += [result[0]]
                         index = result[1]
-                        if index == False:
+                        if index is False:
                             parse_trace = result[0]
                             parse_index = result[2]
                             success = False
@@ -3708,7 +3719,7 @@ starting from the token given as grammar.
                             break
                         tokens += [result[0]]
                         index = result[1]
-                        if index == False:
+                        if index is False:
                             parse_trace, parse_index = result[0], result[2]
                             success = False
                             break
@@ -3738,6 +3749,7 @@ starting from the token given as grammar.
             parse_trace
         )
     ), False, original_index)
+
 
 def Parse(
     code,
@@ -3781,10 +3793,12 @@ symbols they represent.
             if ordinal == 0xFF:
                 i += 1
                 ordinal = ord(code[i])
-                if ordinal & 0b11000000 == 0b10000000: # 2 bytes
-                    result += chr(((ordinal & 63) << 8) + ord(code[i + 1]) + 128)
+                if ordinal & 0b11000000 == 0b10000000:  # 2 bytes
+                    result += chr(
+                        ((ordinal & 63) << 8) + ord(code[i + 1]) + 128
+                    )
                     i += 1
-                elif ordinal & 0b11100000 == 0b11000000: # 3 bytes
+                elif ordinal & 0b11100000 == 0b11000000:  # 3 bytes
                     print(code[i], code[i + 1], code[i + 2])
                     result += chr(
                         ((ordinal & 31) << 16) +
@@ -3793,7 +3807,7 @@ symbols they represent.
                         16512
                     )
                     i += 2
-                elif ordinal & 0b11110000 == 0b11100000: # 4 bytes
+                elif ordinal & 0b11110000 == 0b11100000:  # 4 bytes
                     result += chr(
                         ((ordinal & 15) << 24) +
                         (ord(code[i + 1]) << 16) +
@@ -3815,7 +3829,7 @@ symbols they represent.
         parsed = ParseExpression(
             code, 0, grammar, VerboseGrammars, StringifierProcessor, True
         )
-        if parsed[1] == False and not silent:
+        if parsed[1] is False and not silent:
             PrintParseTrace(parsed[0])
             return processor[CharcoalToken.Program][-1]([])
         if parsed:
@@ -3831,11 +3845,11 @@ symbols they represent.
     result = ParseExpression(code, 0, grammar, grammars, processor)
     if not result:
         return result
-    if result[1] == False and not silent:
+    if result[1] is False and not silent:
         PrintParseTrace(result[0])
     return (
         processor[CharcoalToken.Program][-1]([])
-        if result[1] == False else
+        if result[1] is False else
         result[0]
     )
 
@@ -4002,7 +4016,7 @@ def Degrave(code):
             ">": "↷", "r": "⟲", "j": "⪫", "s": "⪪", "c": "℅", "o": "℅",
             "f": "⌕", "v": "⮌", "[": "◧", "]": "◨", "=": "≡", "t": "⎇",
             "?": "‽", "&": "∧", "|": "∨", "d": "↧", "u": "↥", "_": "±",
-            "+": "⊞", "-": "⊟", "\\": "“", "/": "”", "n": "⌊", "x":  "⌈"
+            "+": "⊞", "-": "⊟", "\\": "“", "/": "”", "n": "⌊", "x": "⌈"
         }[match.group(1)]
         if match.group(1) else
         UnicodeLookup[chr(ord(match.group(2)) + 128)]
@@ -4019,8 +4033,14 @@ def Golf(code):
             ("(^|[^´].|[^ -~´⸿¶]) !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
     ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
     abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
-            ("([^´].|[^ -~´⸿¶]|^)abcdefghijklmnopqrstuvwxyz([^´]|$)", "\\1β\\2"),
-            ("([^´].|[^ -~´⸿¶]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)", "\\1α\\2"),
+            (
+                "([^´].|[^ -~´⸿¶]|^)abcdefghijklmnopqrstuvwxyz([^´]|$)",
+                "\\1β\\2"
+            ),
+            (
+                "([^´].|[^ -~´⸿¶]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)",
+                "\\1α\\2"
+            ),
             ("([^·⁰¹²³⁴-⁹ -~´⸿¶])¦([^·⁰¹²³⁴-⁹ -~´⸿¶])", "\\1\\2"),
             ("([^·⁰¹²³⁴-⁹])¦([·⁰¹²³⁴-⁹])", "\\1\\2"),
             ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
@@ -4033,6 +4053,7 @@ def Golf(code):
                 "(^|[^‖])Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´⸿¶])" % sOperator,
                 "\\1\\2"
             ),
+            ("([←-↓↖-↙])Ｍ", "\\1"),
             ("(%s)¦(%s)" % (sOperator, sOperator), "\\1\\2"),
             ("»+$", "")
         ):
@@ -4059,8 +4080,7 @@ def AddAmbiguityWarnings():
         lambda result: "Random [Warning: May be ambiguous]"
     )
     ASTProcessor[CharcoalToken.Command][59] = lambda result: [
-        "Refresh [Warning: May be ambiguous]",
-        result[1]
+        "Refresh [Warning: May be ambiguous]", result[1]
     ]
     ASTProcessor[CharcoalToken.Command][60] = lambda result: [
         "Refresh [Warning: May be ambiguous]"
@@ -4093,7 +4113,7 @@ and processors.
     if "." in name:
         try:
             module, *parts = name.split(".")
-            if not module in imports:
+            if module not in imports:
                 imports[module] = __import__(module)
             function = imports[module]
             for part in parts:
@@ -4102,7 +4122,7 @@ and processors.
             pass
     if not function:
         loc, glob = locals(), globals()
-        if not "." in name:
+        if "." not in name:
             if name in loc:
                 function = loc[name]
             elif name in glob:
@@ -4128,7 +4148,10 @@ and processors.
     if is_operator:
         UnicodeGrammars[CharcoalToken.OtherOperator] += [
             ["ＵＰ" + _name, CharcoalToken.Separator, CharcoalToken.List],
-            ["ＵＰ" + _name, CharcoalToken.Separator, CharcoalToken.Expression],
+            [
+                "ＵＰ" + _name, CharcoalToken.Separator,
+                CharcoalToken.Expression
+            ],
             ["ＵＰ" + _name, CharcoalToken.Separator]
         ]
         VerboseGrammars[CharcoalToken.OtherOperator] += [
@@ -4160,7 +4183,10 @@ and processors.
     else:
         UnicodeGrammars[CharcoalToken.Command] += [
             ["ＵＰ" + _name, CharcoalToken.Separator, CharcoalToken.List],
-            ["ＵＰ" + _name, CharcoalToken.Separator, CharcoalToken.Expression],
+            [
+                "ＵＰ" + _name, CharcoalToken.Separator,
+                CharcoalToken.Expression
+            ],
             ["ＵＰ" + _name, CharcoalToken.Separator]
         ]
         VerboseGrammars[CharcoalToken.Command] += [
@@ -4172,7 +4198,7 @@ and processors.
                 "PythonFunction", "(", _name, CharcoalToken.Separator,
                 CharcoalToken.WolframExpression, ")"
             ],
-            ["PythonFunction", "(", _name, CharcoalToken.Separator,")"]
+            ["PythonFunction", "(", _name, CharcoalToken.Separator, ")"]
         ]
         ASTProcessor[CharcoalToken.Command] += [
             lambda result: ["Python function: \"%s\"" % name, result[2]],
@@ -4191,6 +4217,7 @@ and processors.
         ]
 
 # from https://gist.github.com/puentesarrin/6567480
+
 
 def print_xxd(data):
     """

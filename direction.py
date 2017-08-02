@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Direction(Enum):
     left = 1
     up = 2
@@ -9,6 +10,7 @@ class Direction(Enum):
     up_right = 6
     down_left = 7
     down_right = 8
+
 
 class Pivot(Enum):
     left = 1

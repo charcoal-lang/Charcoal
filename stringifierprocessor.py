@@ -51,8 +51,8 @@ StringifierProcessor = {
     CharcoalToken.String: [
         lambda result: [Compressed(
             rCommand.sub(r"´\1", result[0])
-                .replace("\n", "¶")
-                .replace("\r", "⸿"),
+                    .replace("\n", "¶")
+                    .replace("\r", "⸿"),
             True
         )]
     ],
@@ -198,6 +198,7 @@ StringifierProcessor = {
         lambda result: "÷",
         lambda result: "∕",
         lambda result: "∕",
+        lambda result: "∕",
         lambda result: "÷",
         lambda result: "÷",
         lambda result: "﹪",
@@ -328,7 +329,7 @@ StringifierProcessor = {
         lambda result: "⟲ＯＯ" + result[2] + result[4] + result[5],
         lambda result: "⟲ＯＯ" + result[2] + result[3],
         lambda result: "⟲ＯＯ" + result[2],
-        lambda result: "⟲Ｏ" + result[2] +  result[4],
+        lambda result: "⟲Ｏ" + result[2] + result[4],
         lambda result: "⟲Ｏ" + result[2],
         lambda result: "⟲Ｏ" + result[2],
         lambda result: "⟲Ｏ",
@@ -386,4 +387,3 @@ StringifierProcessor = {
         lambda result: "≔" + result[2] + result[3]
     ]
 }
-

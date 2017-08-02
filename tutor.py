@@ -26,14 +26,19 @@ argv = parser.parse_args()
 
 i = argv.level
 index = 1 if argv.grave else 2 if argv.verbose else 0
-true = lambda code: True
+
+
+def true(code):
+    return True
 trues = (true, true, true)
+
 
 def word():
     return "".join([
         choice("bcdfghjklmnpqrstvwxz") + choice("aeiouy")
-        for i in range(randint(2, 5))
+        for _ in range(randint(2, 5))
     ])[::choice([-1, 1])].replace("q", "qu")
+
 
 def ensure(text, strings, expected, limits, validate=trues, inp=""):
     global i
@@ -74,51 +79,57 @@ to make sure you did not miss anything important.""")
         sys.exit()
 
 for generator in [
-    lambda: (lambda expected:
-        (lambda expected, length: (
-            """\
-The most important part of Charcoal is its literals.
-A string is %s.""",
-            (
-                "a run of non-commands, \
-and/or commands preceded by the escape character '´'",
-                "a run of non-commands, \
-and/or commands preceded by the escape character '```'",
-                """an ordinary Python string.
-In verbose mode, Print() is needed to print a value."""
-            ),
-            expected,
-            (length, length, length + 11)
-        ))(expected, len(expected))
+    lambda: (
+        lambda expected: (
+            lambda expected, length: (
+                """\
+    The most important part of Charcoal is its literals.
+    A string is %s.""",
+                (
+                    "a run of non-commands, \
+    and/or commands preceded by the escape character '´'",
+                    "a run of non-commands, \
+    and/or commands preceded by the escape character '```'",
+                    """an ordinary Python string.
+    In verbose mode, Print() is needed to print a value."""
+                ),
+                expected,
+                (length, length, length + 11)
+            )
+        )(expected, len(expected))
     )(word()),
-    lambda: (lambda expected: (
-        "A number is %s.",
-        (
-            "a run of any character in '⁰¹²³⁴⁵⁶⁷⁸⁹·'",
-            "a run of '`0'-'`9' or '`.'",
-            "an ordinary number"
-        ),
-        expected,
-        (1, 2, 10)
-    ))("-" * randint(5, 9)),
-    lambda: (lambda expected:
-        (lambda expected, length: (
-            """\
-Another important part of Charcoal is its directional printing.
-Preceding a number with one of the directions %s \
-prints a line with a character selected from '-|/\\' in that direction.""",
+    lambda: (
+        lambda expected: (
+            "A number is %s.",
             (
-                "'←↑→↓↖↗↘↙'",
-                "'``0'-'``9' according to numpad directions",
-                """
-:Up, :Down, :Left, :Right:UpLeft, :UpRight, :DownLeft and :DownRight"""
+                "a run of any character in '⁰¹²³⁴⁵⁶⁷⁸⁹·'",
+                "a run of '`0'-'`9' or '`.'",
+                "an ordinary number"
             ),
             expected,
-            (2, 5, 22)
-        ))(expected, len(expected))
+            (1, 2, 10)
+        )
+    )("-" * randint(5, 9)),
+    lambda: (
+        lambda expected: (
+            lambda expected, length: (
+                """\
+    Another important part of Charcoal is its directional printing.
+    Preceding a number with one of the directions %s \
+    prints a line with a character selected from '-|/\\' in that direction.""",
+                (
+                    "'←↑→↓↖↗↘↙'",
+                    "'``0'-'``9' according to numpad directions",
+                    """
+    :Up, :Down, :Left, :Right:UpLeft, :UpRight, :DownLeft and :DownRight"""
+                ),
+                expected,
+                (2, 5, 22)
+            )
+        )(expected, len(expected))
     )(Run(choice("←↑→↓↖↗↘↙") + choice("⁵⁶⁷⁸⁹"))),
     lambda: (lambda expected: (
-            """\
+        """\
 A language is never complete without arithmetic.
 Charcoal has the basic arithmetic operators %s,
 but the cast operator %s is needed to see the result as a number,
@@ -199,7 +210,7 @@ to assign the input to the variable.""",
             lambda code: "InputString" in code
         ),
         repr([expected])
-    ))(word()),
+    ))(word())
     # TODO: https://github.com/somebody1234/Charcoal/wiki/Tutorial
     # Next up:
     # Assign

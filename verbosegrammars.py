@@ -108,12 +108,12 @@ VerboseGrammars = {
         ["InclusiveRange"], ["Range"], ["~"], ["BitwiseNot"]
     ],
     CT.Binary: [
-        ["**"], ["+"], ["Add"], ["Plus"], ["-"], ["Subtract"], ["Minus"], ["*"],
-        ["Multiply"], ["Times"], ["\\"], ["/"], ["Divide"], ["IntDivide"],
-        ["IntegerDivide"], ["%"], ["Modulo"], ["=="], ["Equals"], ["<"],
-        ["Less"], [">"], ["Greater"], ["&"], ["BitwiseAnd"], ["|"],
-        ["BitwiseOr"], ["InclusiveRange"], ["Range"], ["Mold"], ["CycleChop"],
-        ["Exponentiate"], ["Exponent"], ["Power"], ["AtIndex"],
+        ["**"], ["+"], ["Add"], ["Plus"], ["-"], ["Subtract"], ["Minus"],
+        ["*"], ["Multiply"], ["Times"], ["\\"], ["/"], ["Divide"], ["Reduce"],
+        ["IntDivide"], ["IntegerDivide"], ["%"], ["Modulo"], ["=="],
+        ["Equals"], ["<"], ["Less"], [">"], ["Greater"], ["&"], ["BitwiseAnd"],
+        ["|"], ["BitwiseOr"], ["InclusiveRange"], ["Range"], ["Mold"],
+        ["CycleChop"], ["Exponentiate"], ["Exponent"], ["Power"], ["AtIndex"],
         ["PushOperator"], ["Join"], ["Split"], ["FindAll"], ["Find"],
         ["PadLeft"], ["PadRight"], ["Count"], ["Rule"], ["DelayedRule"],
         ["PatternTest"], ["Slice"], ["Any"], ["Some"], ["All"], ["Every"]
@@ -145,8 +145,8 @@ VerboseGrammars = {
         ["Print", "(", CT.Arrow, CT.Separator, CT.Expression, ")"],
         ["Print", "(", CT.Expression, ")"],
         [
-            "Multiprint", "(", CT.Multidirectional, CT.Separator, CT.Expression,
-            ")"
+            "Multiprint", "(", CT.Multidirectional, CT.Separator,
+            CT.Expression, ")"
         ],
         ["Multiprint", "(", CT.Expression, ")"],
         ["Polygon", "(", CT.Sides, CT.Separator, CT.Expression, ")"],
@@ -234,8 +234,8 @@ VerboseGrammars = {
             CT.Expression, ")"
         ],
         [
-            "ReflectOverlapOverlap", "(", CT.Arrow, CT.Separator, CT.Expression,
-            ")"
+            "ReflectOverlapOverlap", "(", CT.Arrow, CT.Separator,
+            CT.Expression, ")"
         ],
         ["ReflectOverlapOverlap", "(", CT.Expression, ")"],
         ["ReflectOverlap", "(", CT.Multidirectional, ")"],

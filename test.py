@@ -13,6 +13,7 @@ from charcoal import Run
 import unittest
 import sys
 
+
 class CharcoalTest(unittest.TestCase):
     def test_print(self):
         self.assertEqual(Run("abc"), "abc")
@@ -575,7 +576,7 @@ Print('de');
 RotateCopy(:DownLeft, 2)""",
                 verbose=True
             ),
-             """\
+            """\
 ce   
 bdabc
 a  de"""
@@ -613,7 +614,6 @@ abc
 db 
 ec """
         )
-
 
     def test_rotate_overlap(self):
         self.assertEqual(Run("abc¶de⟲Ｏ²"), """\
@@ -700,7 +700,7 @@ Print('de');
 RotateOverlap(:DownLeft, 2)""",
                 verbose=True
             ),
-             """\
+            """\
 ce  
 babc
 a de"""
@@ -1822,10 +1822,12 @@ CDE12345cde")
         self.assertEqual(Run("▷StringRiffle⟦⟦a¦b¦c¦d¦e⟧, ⟧"), "a, b, c, d, e")
         self.assertEqual(Run("▷StringRiffle⟦⟦a¦b¦c¦d¦e⟧⟦(¦, ¦)⟧⟧"), "\
 (a, b, c, d, e)")
-        self.assertEqual(Run("▷StringRiffle⟦⟦⟦a¦b¦c⟧⟦d¦e¦f⟧⟧⟧"), "a b c\nd e f")
+        self.assertEqual(Run("\
+▷StringRiffle⟦⟦⟦a¦b¦c⟧⟦d¦e¦f⟧⟧⟧"), "a b c\nd e f")
         self.assertEqual(Run("▷StringRiffle⟦⟦⟦a¦b¦c⟧⟦d¦e¦f⟧⟧¶¦	⟧"), "\
 a	b	c\nd	e	f")
-        self.assertEqual(Run("▷StringRiffle⟦⟦⟦a¦27⟧⟦b¦28⟧⟦c¦29⟧⟧⟦{¦, ¦}⟧: ⟧"), "\
+        self.assertEqual(Run("\
+▷StringRiffle⟦⟦⟦a¦27⟧⟦b¦28⟧⟦c¦29⟧⟧⟦{¦, ¦}⟧: ⟧"), "\
 {a: 27, b: 28, c: 29}")
         self.assertEqual(Run("▷StringStartsQ⟦abcd¦a⟧"), "-")
         self.assertEqual(Run("▷StringStartsQ⟦quickSort¦quick⟧"), "-")
@@ -1863,7 +1865,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\
         self.assertEqual(Run("β"), "abcdefghijklmnopqrstuvwxyz")
         self.assertEqual(Run("α"), "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         self.assertEqual(Run("ω"), "")
-        self.assertEqual(Run("ψ"), "") # null byte
+        self.assertEqual(Run("aψcＵＢb"), "abc")
         self.assertEqual(Run("χ"), "----------")
         self.assertEqual(Run("φ"), "-" * 1000)
 

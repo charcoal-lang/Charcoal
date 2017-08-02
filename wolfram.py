@@ -9,6 +9,7 @@ try:
         compile as re_compile, escape as re_escape,
         M as multiline_flag
     )
+
     def multilineify(function):
         def wrap_function(*args, **kwargs):
             kwargs['flags'] = multiline_flag
@@ -37,7 +38,7 @@ prime_cache = [2, 3]
 
 def take(generator, n):
     if n:
-        for i in range(n):
+        for _ in range(n):
             yield next(generator)
     else:
         while True:
@@ -79,7 +80,9 @@ def headify(clazz):
     global headifies
     if clazz not in heads:
         heads += [clazz]
-        fn = lambda leaves, precision=10: clazz(*leaves)
+
+        def fn(leaves, precision=10):
+            return clazz(*leaves)
         headifies += [fn]
         return fn
     return headifies[heads.index(clazz)]
@@ -117,6 +120,7 @@ cx = create_expression
 
 def boolean(value):
     return _True if value else _False
+
 
 class Expression(object):
 
@@ -193,6 +197,7 @@ class Expression(object):
     def is_even(self):
         return self.run().is_even()
 
+
 class Symbol(Expression):
     pass
 
@@ -201,9 +206,11 @@ IC = IgnoreCase = Symbol()
 A = All = Symbol()
 O = Overlaps = Symbol()
 
+
 class Number(Expression):
     def __init__(self, head=None):
         super().__init__(head=head)
+
 
 class Real(Number):
     slots = ("head", "leaves", "run", "is_int", "precision")
@@ -344,7 +351,7 @@ class Real(Number):
         if other_type == Rational:
             pass
         if other_type == Complex:
-            pass # TODO
+            pass  # TODO
 
     def to_number(self):
         result = (
@@ -374,6 +381,7 @@ class Real(Number):
                 self.leaves[0] % 2 == 0
             )
         )
+
 
 class Integer(Real):
     def __init__(self, value, exponent=0):
@@ -424,6 +432,7 @@ _False = Integer(0)
 _True = Integer(1)
 setattr(_False, "__str__", lambda: "False")
 setattr(_True, "__str__", lambda: "True")
+
 
 class Rational(Number):
     def __init__(self, numerator, denominator, exponent=0):
@@ -504,6 +513,7 @@ class Rational(Number):
     def is_even(self):
         return boolean(self.leaves[1] == 1 and (self.leaves[0] % 2 == 0))
 
+
 class Complex(Number):
     def __init__(self, real, imaginary=0):
         super.__init__(head=headify(Complex))
@@ -517,6 +527,7 @@ class Complex(Number):
 
     def __repr__(self):
         return str(self)
+
 
 class List(Expression):
     # TODO: operators
@@ -535,6 +546,7 @@ class List(Expression):
 
     def __iter__(self):
         return iter(self.leaves)
+
 
 class String(Expression):
     def __init__(self, value):
@@ -567,15 +579,18 @@ class String(Expression):
         if other_type == List:
             return List(*(other.leaves + self.leaves))
 
+
 class Rule(Expression):
     def __init__(self, match, replacement):
         super().__init__(head=headify(Rule))
         self.leaves = [match, replacement]
 
+
 class DelayedRule(Expression):
     def __init__(self, match, replacement):
         super().__init__(head=headify(DelayedRule))
         self.leaves = [match, replacement]
+
 
 class Pattern(Expression):
     def __init__(self, regex):
@@ -644,10 +659,12 @@ WB = WordBoundary = Pattern(r"\b")
 
 # TODO: PatternTest (_ ? LetterQ)
 
+
 class RegularExpression(Pattern):
     def __init__(self, regex):
         super().__init__(regex)
         self.head = headify(RegularExpression)
+
 
 class Repeated(Pattern):
     def __init__(self, item):
@@ -659,6 +676,7 @@ class Repeated(Pattern):
             super().__init__("(?:" + re_escape(str(item)) + ")+")
         self.head = headify(Repeated)
 
+
 class RepeatedNull(Pattern):
     def __init__(self, item):
         if isinstance(item, Pattern):
@@ -669,6 +687,7 @@ class RepeatedNull(Pattern):
             super().__init__("(?:" + re_escape(str(item)) + ")*")
         self.head = headify(RepeatedNull)
 
+
 class Shortest(Pattern):
     def __init__(self, item):
         if isinstance(item, Pattern):
@@ -678,6 +697,7 @@ class Shortest(Pattern):
         else:
             super().__init__(re_escape(str(item)))
         self.head = headify(RepeatedNull)
+
 
 class Except(Pattern):
     # TODO: doesn't work for multiple chars atm
@@ -714,6 +734,7 @@ Sa(?:t(?:urday)?)?|Su(?:n(?:Day)?)?)",
 }
 # TODO: date pattern, need to test on mathematica e.g. feb 30 and hour 24
 
+
 class DatePattern(Pattern):
     def __init__(self, items, *other):
         if isinstance(items, list):
@@ -728,6 +749,7 @@ class DatePattern(Pattern):
         )]
 
 pattern_test_lookup = {}
+
 
 class PatternTest(Pattern):
     def __init__(self, pattern, condition):
@@ -754,6 +776,7 @@ class PatternTest(Pattern):
             ]
 
 # TODO: AlphabetData (from lazy ranges)
+
 
 class Span(Expression):
     __slots__ = ("head", "leaves", "process")
@@ -806,22 +829,27 @@ class Span(Expression):
                     # TODO: clone or no
                     self.process = lambda iterable: iterable[:]
 
+
 def integerQ(number):
     return int(
         isinstance(number, int) or
         (isinstance(number, float) and not (number % 1))
     )
 
+
 def oddQ(number):
     return int(integerQ(number) and number % 2)
+
 
 def evenQ(number):
     return int(integerQ(number) and not (number % 2))
 
+
 def n(number, digits=0):
     return number - number % 10 ** -digits
 
-#TODO: round, log
+# TODO: round, log
+
 
 class Wolfram(object):
 
@@ -831,8 +859,8 @@ class Wolfram(object):
     def UpTo(leaves, precision=10):
         return leaves[0]
 
-    #TODO: named (which are chained) operators - these don't use the
-    #default + etc
+    # TODO: named (which are chained) operators - these don't use the
+    # default + etc
     # change default to use an internal method with precision passable
     # which both e.g. Plus and __add__ can use
 
@@ -871,7 +899,7 @@ class Wolfram(object):
                 precision = precision.to_number()
             precision = max(precision, 1)
             digits = int(log10(n) + 1) // 2
-            try: # TODO: avoid try
+            try:  # TODO: avoid try
                 result = (
                     int(sqrt(n) * 10 ** (precision - digits))
                     if precision > digits else
@@ -911,7 +939,7 @@ class Wolfram(object):
             return leaves[0]
         head = leaves[0].head
         if len(leaves) > 1 and isinstance(leaves[1], List):
-            pass # TODO
+            pass  # TODO
             # next_indices = [
             #     list(filter(None, map(lambda n: n - 1, sublist)))
             #     for sublist in leaves[1]
@@ -962,10 +990,12 @@ class Wolfram(object):
         # This includes zero length ones
         if isinstance(leaves[0], List):
             other_leaves = leaves[1:]
-            return create_expression([
-               Wolfram.StringSplit([item] + other_leaves)
-               for item in leaves[0].leaves
-            ])
+            return create_expression(
+                [
+                    Wolfram.StringSplit([item] + other_leaves)
+                    for item in leaves[0].leaves
+                ]
+            )
         ignorecase, maxsplit, dont_return_all = "", 0, True
         for leaf in leaves[2:]:
             if leaf == All:
@@ -1045,7 +1075,7 @@ class Wolfram(object):
             result += [string, splitter.leaves[1]]
         return create_expression(result[
             (dont_return_all and not result[0]):
-            -1 - (dont_return_all and not result[-1])
+            (-1 - (dont_return_all and not result[-1]))
         ])
 
     def StringTake(leaves, precision=10):
@@ -1177,7 +1207,7 @@ class Wolfram(object):
                 maxreplace
             ))
         if replacer_type == List:
-            #Assume Rule
+            # Assume Rule
             lookup = {}
             for rule in replacer.leaves:
                 lookup[rule.leaves[0]] = rule.leaves[1]
@@ -1394,7 +1424,7 @@ class Wolfram(object):
         deleter = leaves[1]
         deleter_type = type(leaves[1])
         if deleter_type == List:
-            #Assume String
+            # Assume String
             lookup = {}
             for rule in deleter.leaves:
                 lookup[rule.leaves[0]] = rule.leaves[1]
@@ -1494,9 +1524,9 @@ class Wolfram(object):
             type(leaves[2]) == Rule and
             leaves[2].leaves == [IgnoreCase, _True]
         ):
-            return boolean(
-                search("(?i)" + re_escape(str(leaves[1])) + "$", str(leaves[0]))
-            )
+            return boolean(search(
+                "(?i)" + re_escape(str(leaves[1])) + "$", str(leaves[0])
+            ))
         return boolean(str(leaves[0]).endswith(str(leaves[1])))
 
     def StringContainsQ(leaves, precision=10):
@@ -1549,10 +1579,10 @@ class Wolfram(object):
         return List(*map(chr, range(leaves[0], leaves[1])))
 
     def Predict(leaves, precision=10):
-        #Assume List<Rule>
+        # Assume List<Rule>
         pass
 
-    ### Constants
+    # Constants
 
     def ChamperowneNumber(leaves, precision=10):
 
@@ -1574,29 +1604,21 @@ class Wolfram(object):
                 denominator *= multiplier
                 i += 1
                 if i >= next_power:
-                     number *= base
-                     numerator *= base
-                     multiplier *= base
-                     next_power *= base
-                     j += 1
+                    number *= base
+                    numerator *= base
+                    multiplier *= base
+                    next_power *= base
+                    j += 1
                 division = numerator // denominator
             return Real(
-                number // (10 * next_power),
-                -precision,
-                precision=precision
+                number // (10 * next_power), -precision, precision=precision
             )
 
         return Expression(
-            None,
-            [],
-            lambda precision=10: Wolfram.calculate_champerowne(
-                precision,
-                leaves[0]
-            )
+            None, [],
+            lambda precision=10: calculate_champerowne(precision, leaves[0])
         ) if len(leaves) else Expression(
-            None,
-            [],
-            lambda precision=10: Wolfram.calculate_champerowne(precision)
+            None, [], lambda precision=10: calculate_champerowne(precision)
         )
 
     # TODO: hide this function from scope
@@ -1606,20 +1628,18 @@ class Wolfram(object):
         precision = max(precision - 1, 0)
         number = 0
         numerator = 10 ** (precision + 2)
-        denominator = 1
-        i = 1
+        denominator = i = j = 1
         next_power_of_10 = 10
-        j = 1
         division = numerator // denominator
         while division:
             number = number + division
             denominator *= i
             i += 1
             if i >= next_power_of_10:
-                 number *= 10
-                 numerator *= 10
-                 next_power_of_10 *= 10
-                 j += 1
+                number *= 10
+                numerator *= 10
+                next_power_of_10 *= 10
+                j += 1
             division = numerator // denominator
         return Real(
             number // (10 * next_power_of_10),
@@ -1647,8 +1667,7 @@ class Wolfram(object):
                 floating_point_precision
             )
             x = (
-                int(floating_point_precision *
-                sqrt(n_float)) * one
+                int(floating_point_precision * sqrt(n_float)) * one
             ) // floating_point_precision
             n_one = n * one
             while 1:
@@ -1686,13 +1705,15 @@ class Wolfram(object):
         lambda precision=10: Wolfram.calculate_pi(precision)
     )
 
-    Degree = Pi / 180 # TODO: make sure this still accepts precision arg
+    Degree = Pi / 180  # TODO: make sure this still accepts precision arg
+
 
 def functionify(head):
-    return lambda *leaves: Expression(head, [
-        leaf.run() if type(leaf) == Expression else leaf
-        for leaf in leaves
-    ])
+    return lambda *leaves: Expression(
+        head, [
+            leaf.run() if type(leaf) == Expression else leaf for leaf in leaves
+        ]
+    )
 
 
 I = Integer
@@ -1754,12 +1775,12 @@ l2 = Log2 = log2
 la = Log10 = log10
 ln = Log = log
 rt = Rt = Sqrt = functionify(Wolfram.Sqrt)
-#Sin = sin
-#Cos = cos
-#Tan = tan
-#ArcSin = asin
-#ArcCos = acos
-#ArcTan = atan
+# Sin = sin
+# Cos = cos
+# Tan = tan
+# ArcSin = asin
+# ArcCos = acos
+# ArcTan = atan
 
 for key, value in (
     (LetterQ, LetterCharacter),

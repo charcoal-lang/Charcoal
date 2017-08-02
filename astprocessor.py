@@ -47,10 +47,15 @@ ASTProcessor = {
             ["Stop", result[2]],
             ["Step", result[4]]
         ],
-        lambda result: [result[0] + ": Span", ["Start", result[0]], ["Step", result[3]]],
-        lambda result: [result[0] + ": Span", ["Start", result[0]], ["Stop", result[2]]],
+        lambda result: [
+            result[0] + ": Span", ["Start", result[0]], ["Step", result[3]]
+        ],
+        lambda result: [
+            result[0] + ": Span", ["Start", result[0]], ["Stop", result[2]]
+        ],
         lambda result: [result[0] + ": Span", ["Start", result[0]]],
-        lambda result: [result[0] + ": Span", ["Stop", result[1]], ["Step", result[3]]
+        lambda result: [
+            result[0] + ": Span", ["Stop", result[1]], ["Step", result[3]]
         ],
         lambda result: [result[0] + ": Span", ["Stop", result[1]]],
         lambda result: [result[0] + ": Span", ["Step", result[2]]],
@@ -78,7 +83,9 @@ ASTProcessor = {
         lambda result: ["PairExpressions", [result[0], result[1]]]
     ],
     CharcoalToken.Cases: [
-        lambda result: ["Cases", ["Case", result[0], result[1]]] + result[2][1:],
+        lambda result: [
+            "Cases", ["Case", result[0], result[1]]
+        ] + result[2][1:],
         lambda result: ["Cases"]
     ],
 
@@ -241,13 +248,21 @@ ASTProcessor = {
     [lambda result: [result[0] + ": Reflect mirror"] + result[1:]] * 3 +
     [lambda result: [result[0] + ": Rotate copy"] + result[1:]] * 6 +
     [lambda result: [result[0] + ": Reflect copy"] + result[1:]] * 3 +
-    [lambda result: [result[0] + ": Rotate overlap overlap"] + result[1:]] * 6 +
+    [lambda result: [
+        result[0] + ": Rotate overlap overlap"
+    ] + result[1:]] * 6 +
     [lambda result: [result[0] + ": Rotate overlap"] + result[1:]] * 6 +
-    [lambda result: [result[0] + ": Rotate shutter overlap"] + result[1:]] * 6 +
+    [lambda result: [
+        result[0] + ": Rotate shutter overlap"
+    ] + result[1:]] * 6 +
     [lambda result: [result[0] + ": Rotate shutter"] + result[1:]] * 6 +
-    [lambda result: [result[0] + ": Reflect overlap overlap"] + result[1:]] * 3 +
+    [lambda result: [
+        result[0] + ": Reflect overlap overlap"
+    ] + result[1:]] * 3 +
     [lambda result: [result[0] + ": Reflect overlap"] + result[1:]] * 3 +
-    [lambda result: [result[0] + ": Reflect butterfly overlap"] + result[1:]] * 3 +
+    [lambda result: [
+        result[0] + ": Reflect butterfly overlap"
+    ] + result[1:]] * 3 +
     [lambda result: [result[0] + ": Reflect butterfly"] + result[1:]] * 3 +
     [
         lambda result: [result[0] + ": Rotate"] + result[1:],

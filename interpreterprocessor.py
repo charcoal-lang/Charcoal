@@ -2,7 +2,8 @@ from direction import Direction, Pivot
 from charcoaltoken import CharcoalToken
 from unicodegrammars import UnicodeGrammars
 from wolfram import (
-    String, Rule, DelayedRule, Span, Repeated, RepeatedNull, PatternTest
+    String, Rule, DelayedRule, Span, Repeated, RepeatedNull, PatternTest,
+    Number
 )
 
 
@@ -18,6 +19,7 @@ def FindAll(haystack, needle):
             index = haystack.find(needle, index + 1)
     else:
         return [i for i, item in enumerate(haystack) if item == needle]
+
 
 def ListFind(haystack, needle):
     return haystack.index(needle) if needle in haystack else -1
@@ -208,8 +210,19 @@ InterpreterProcessor = {
         lambda result: lambda charcoal: charcoal.Peek()
     ],
     CharcoalToken.Unary: [
-        lambda result: lambda item, charcoal: -item,
-        lambda result: lambda item, charcoal: len(item),
+        lambda result: lambda item, charcoal: (
+            item[::-1]
+            if hasattr(item, "__iter__") else
+            (-item)
+            if (
+                isinstance(item, int) or isinstance(item, float) or
+                isinstance(item, Number)
+            ) else
+            str(item)[::-1]
+        ),
+        lambda result: lambda item, charcoal: (
+            len(item) if hasattr(item, "__iter__") else len(str(item))
+        ),
         lambda result: lambda item, charcoal: not item,
         lambda result: lambda item, charcoal: charcoal.Cast(item),
         lambda result: lambda item, charcoal: charcoal.Random(item),
@@ -220,7 +233,19 @@ InterpreterProcessor = {
         lambda result: lambda item, charcoal: min(item),
         lambda result: lambda item, charcoal: max(item),
         lambda result: lambda item, charcoal: charcoal.ChrOrd(item),
-        lambda result: lambda item, charcoal: item[::-1],
+        lambda result: lambda item, charcoal: (
+            item[::-1]
+            if hasattr(item, "__iter__") else
+            int(str(item)[::-1])
+            if isinstance(item, int) else
+            float(
+                ("-" + str(item)[:0:-1])
+                if item[-1] == "-" else
+                str(item)[::-1]
+            )
+            if isinstance(item, float) else
+            str(item)[::-1]
+        ),
         lambda result: lambda item, charcoal: charcoal.Retrieve(item),
         lambda result: lambda item, charcoal: Repeated(item),
         lambda result: lambda item, charcoal: RepeatedNull(item),
@@ -235,7 +260,11 @@ InterpreterProcessor = {
             if isinstance(item, int) or isinstance(item, float) else
             list(map(chr, range(ord(item))))
         ),
-        lambda result: lambda item, charcoal: ~item
+        lambda result: lambda item, charcoal: (
+            ~item
+            if isinstance(item, int) or isinstance(item, float) else
+            (~(float(str(item)) if "." in item else int(str(item))))
+        )
     ],
     CharcoalToken.Binary: [
         lambda result: lambda left, right, charcoal: charcoal.Add(left, right),
@@ -284,7 +313,7 @@ InterpreterProcessor = {
             (
                 getattr(left, right)
                 if isinstance(right, str) and hasattr(left, right) else
-                left[right % len(left)] # default to iterable
+                left[right % len(left)]  # default to iterable
             )
         ),
         lambda result: lambda left, right, charcoal: (
@@ -294,7 +323,9 @@ InterpreterProcessor = {
         lambda result: lambda left, right, charcoal: left.split(right),
         lambda result: lambda left, right, charcoal: FindAll(left, right),
         lambda result: lambda left, right, charcoal: (
-            left.find(right) if isinstance(left, str) else ListFind(left, right)
+            left.find(right)
+            if isinstance(left, str) else
+            ListFind(left, right)
         ),
         lambda result: lambda left, right, charcoal: (
             " " * (right - len(left)) + left

@@ -2,10 +2,12 @@ from enum import Enum
 
 i = -1
 
+
 def _id():
     global i
     i += 1
     return i
+
 
 class CharcoalToken(object):
     Arrow = _id()

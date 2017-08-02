@@ -46,7 +46,8 @@ def Compressed(string, escape=False):
         string_length < len(compressed)
     ):
         return (
-            "´" * (original_string[0] in "+X*|-\\/<>^KLTVY7¬") + original_string
+            "´" * (original_string[0] in "+X*|-\\/<>^KLTVY7¬") +
+            original_string
         )
     if len(compressed_permuted) < len(compressed):
         return "”" + compressed_permuted + "”"

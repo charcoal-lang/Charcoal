@@ -23,8 +23,9 @@ try:
 
     class CONSOLE_SCREEN_BUFFER_INFO(Structure):
         _fields_ = [
-            ("Size", COORD), ("CursorPosition", COORD), ("Attributes", c_short),
-            ("Window", SMALL_RECT), ("MaximumWindowSize", COORD)
+            ("Size", COORD), ("CursorPosition", COORD),
+            ("Attributes", c_short), ("Window", SMALL_RECT),
+            ("MaximumWindowSize", COORD)
         ]
 
     class CONSOLE_CURSOR_INFO(Structure):
