@@ -1568,6 +1568,22 @@ Print(Cast(/([1,2,3,4,5,6,7],{Print(+(i,k))})))", verbose=True), "28")
         )
         pass
 
+    def test_direction(self):
+        self.assertEqual(Run("ＦＮ✳§⟦↘→↗→⟧ι⁻θ¹O", "5"), """\
+\           ----\    
+ \         /     \   
+  \       /       \  
+   \     /         \ 
+    ----/           O""")
+        self.assertEqual(Run("ＦＮＰ✳✳⟦↘→↗→⟧⁻θ¹O", "5"), """\
+   /
+  / 
+ /  
+O---
+ \  
+  \ 
+   \\""")
+
     def test_python(self):
         self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")
         self.assertEqual(

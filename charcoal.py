@@ -24,8 +24,8 @@ the CLI, and various classes used by the Charcoal class.
 # - from compression on
 # finish string ops in wolfram
 
-from direction import Direction, Pivot
-from charcoaltoken import CharcoalToken
+from direction import Direction, DirectionToString, Pivot
+from charcoaltoken import CharcoalToken, CharcoalTokenNames
 from charactertransformers import *
 from directiondictionaries import *
 from unicodegrammars import UnicodeGrammars
@@ -117,7 +117,7 @@ if an error occurs.
 _open = open
 
 
-def Open(*args, **kwargs):
+def open(*args, **kwargs):
     """
     Open(*args, **kwargs)
 
@@ -127,7 +127,17 @@ def Open(*args, **kwargs):
     kwargs["encoding"] = "utf-8"
     return _open(*args, **kwargs)
 
-open = Open
+
+def openl1(*args, **kwargs):
+    """
+    Open(*args, **kwargs)
+
+    Returns a file object opened with UTF-8 encoding.
+
+    """
+    kwargs["encoding"] = "latin1"
+    return _open(*args, **kwargs)
+
 old_input = input
 input = Cleanify(old_input)
 sleep = Cleanify(sleep)
@@ -942,6 +952,8 @@ with a character automatically selected from -|/\\.
             string = int(string)
         if isinstance(string, int):
             length, string = string, ""
+        elif isinstance(string, Direction):
+            string = DirectionToString[string]
         length = int(length)
         if not directions:
             directions = {self.direction}
@@ -2814,6 +2826,16 @@ else set the variable with the given name to the given value.
             self.inputs = self.inputs[1:]
         elif Info.prompt in self.info:
             result = input("Enter string: ")
+        self.original_inputs += [result]
+        if len(self.all_inputs) < 5:
+            self.all_inputs = self.original_inputs + [""] * (
+                5 - len(self.original_inputs)
+            )
+            self.hidden["θ"] = self.all_inputs[0]
+            self.hidden["η"] = self.all_inputs[1]
+            self.hidden["ζ"] = self.all_inputs[2]
+            self.hidden["ε"] = self.all_inputs[3]
+            self.hidden["δ"] = self.all_inputs[4]
         if key:
             self.scope[key] = result
         else:
@@ -2841,6 +2863,16 @@ else set the variable with the given name to the given value.
                 result = float(inp) if "." in inp else int(inp)
             except:
                 result = 0
+        self.original_inputs += [result]
+        if not all(self.all_inputs):
+            self.all_inputs = self.original_inputs + [""] * (
+                5 - len(self.original_inputs)
+            )
+            self.hidden["θ"] = self.all_inputs[0]
+            self.hidden["η"] = self.all_inputs[1]
+            self.hidden["ζ"] = self.all_inputs[2]
+            self.hidden["ε"] = self.all_inputs[3]
+            self.hidden["δ"] = self.all_inputs[4]
         if key:
             self.scope[key] = result
         else:
@@ -3577,9 +3609,7 @@ starting from the token given as grammar.
                             success = False
                             break
                         tokens += processor[token][0]([
-                            int(code[old_index:index])
-                            if integer else
-                            float(code[old_index:index])
+                            (int if integer else float)(code[old_index:index])
                         ])
                     elif token == CharcoalToken.Name:
                         if index == len(code):
@@ -3745,10 +3775,56 @@ starting from the token given as grammar.
         parse_trace
         if not parse_index or parse_index == original_index else
         (
-            ["%s: '%s'" % (grammar, code[original_index:parse_index])] +
+            ["%s: %s" % (
+                CharcoalTokenNames[grammar],
+                repr(code[original_index:parse_index])
+            )] +
             parse_trace
         )
     ), False, original_index)
+
+
+def Decode(code):
+    """
+    Decode(code)
+
+    Returns code converted from Charcoal's codepage to Unicode.
+
+    """
+    result = ""
+    i = 0
+    while i < len(code):
+        character = code[i]
+        ordinal = ord(character)
+        if ordinal == 0xFF:
+            i += 1
+            ordinal = ord(code[i])
+            if ordinal & 0b11000000 == 0b10000000:  # 2 bytes
+                result += chr(
+                    ((ordinal & 63) << 8) + ord(code[i + 1]) + 128
+                )
+                i += 2
+            elif ordinal & 0b11100000 == 0b11000000:  # 3 bytes
+                result += chr(
+                    ((ordinal & 31) << 16) +
+                    (ord(code[i + 1]) << 8) +
+                    ord(code[i + 2]) +
+                    16512
+                )
+                i += 3
+            elif ordinal & 0b11110000 == 0b11100000:  # 4 bytes
+                result += chr(
+                    ((ordinal & 15) << 24) +
+                    (ord(code[i + 1]) << 16) +
+                    (ord(code[i + 2]) << 8) +
+                    ord(code[i + 3]) +
+                    2113664
+                )
+                i += 4
+        else:
+            result += UnicodeLookup.get(character, character)
+            i += 1
+    return result
 
 
 def Parse(
@@ -3786,39 +3862,7 @@ symbols they represent.
 
     """
     if normal_encoding:
-        result = ""
-        for i in range(len(code)):
-            character = code[i]
-            ordinal = ord(character)
-            if ordinal == 0xFF:
-                i += 1
-                ordinal = ord(code[i])
-                if ordinal & 0b11000000 == 0b10000000:  # 2 bytes
-                    result += chr(
-                        ((ordinal & 63) << 8) + ord(code[i + 1]) + 128
-                    )
-                    i += 1
-                elif ordinal & 0b11100000 == 0b11000000:  # 3 bytes
-                    print(code[i], code[i + 1], code[i + 2])
-                    result += chr(
-                        ((ordinal & 31) << 16) +
-                        (ord(code[i + 1]) << 8) +
-                        ord(code[i + 2]) +
-                        16512
-                    )
-                    i += 2
-                elif ordinal & 0b11110000 == 0b11100000:  # 4 bytes
-                    result += chr(
-                        ((ordinal & 15) << 24) +
-                        (ord(code[i + 1]) << 16) +
-                        (ord(code[i + 2]) << 8) +
-                        ord(code[i + 3]) +
-                        2113664
-                    )
-                    i += 3
-            else:
-                result += UnicodeLookup.get(character, character)
-        code = result
+        code = Decode(code)
     if whitespace:
         code = re.sub(
             r"(´\s)?\s*",
@@ -4026,38 +4070,43 @@ def Degrave(code):
 
 def Golf(code):
     codes = re.split("([“”])([^”]*?)(”)", code)
-    for i in range(0, len(codes), 4):
-        for regex, replacement in (
-            ("([^·⁰¹²³⁴-⁹]|^)¹⁰⁰⁰([^·⁰¹²³⁴-⁹]|$)", "\\1φ\\2"),
-            ("([^·⁰¹²³⁴-⁹]|^)¹⁰([^·⁰¹²³⁴-⁹]|$)", "\\1χ\\2"),
-            ("(^|[^´].|[^ -~´⸿¶]) !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
-    ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
-    abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
-            (
-                "([^´].|[^ -~´⸿¶]|^)abcdefghijklmnopqrstuvwxyz([^´]|$)",
-                "\\1β\\2"
-            ),
-            (
-                "([^´].|[^ -~´⸿¶]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)",
-                "\\1α\\2"
-            ),
-            ("([^·⁰¹²³⁴-⁹ -~´⸿¶])¦([^·⁰¹²³⁴-⁹ -~´⸿¶])", "\\1\\2"),
-            ("([^·⁰¹²³⁴-⁹])¦([·⁰¹²³⁴-⁹])", "\\1\\2"),
-            ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
-            ("([^´].|[^ -~´⸿¶])¦([ -~´⸿¶])", "\\1\\2"),
-            ("([ -~´⸿¶])¦([^ -~´⸿¶])", "\\1\\2"),
-            ("(^|[^ -~])´([ -~])", "\\1\\2"),
-            ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),
-            ("¦((?:^|[^´])[α-ξπ-ω])", "\\1"),
-            (
-                "(^|[^‖])Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´⸿¶])" % sOperator,
-                "\\1\\2"
-            ),
-            ("([←-↓↖-↙])Ｍ", "\\1"),
-            ("(%s)¦(%s)" % (sOperator, sOperator), "\\1\\2"),
-            ("»+$", "")
-        ):
-            codes[i] = re.sub(regex, replacement, codes[i])
+    success = True
+    while success:
+        success = False
+        for i in range(0, len(codes), 4):
+            for regex, replacement in (
+                ("([^·⁰¹²³⁴-⁹]|^)¹⁰⁰⁰([^·⁰¹²³⁴-⁹]|$)", "\\1φ\\2"),
+                ("([^·⁰¹²³⁴-⁹]|^)¹⁰([^·⁰¹²³⁴-⁹]|$)", "\\1χ\\2"),
+                ("(^|[^´].|[^ -~´⸿¶�]) !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
+        ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
+        abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
+                (
+                    "([^´].|[^ -~´⸿¶�]|^)abcdefghijklmnopqrstuvwxyz([^´]|$)",
+                    "\\1β\\2"
+                ),
+                (
+                    "([^´].|[^ -~´⸿¶�]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)",
+                    "\\1α\\2"
+                ),
+                ("([^·⁰¹²³⁴-⁹ -~´⸿¶�])¦([^·⁰¹²³⁴-⁹ -~´⸿¶�])", "\\1\\2"),
+                ("([^·⁰¹²³⁴-⁹])¦([·⁰¹²³⁴-⁹])", "\\1\\2"),
+                ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
+                ("([^´].|[^ -~´⸿¶�])¦([ -~´⸿¶�])", "\\1\\2"),
+                ("([ -~´⸿¶�])¦([^ -~´⸿¶�])", "\\1\\2"),
+                ("(^|[^ -~])´([ -~])", "\\1\\2"),
+                ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),
+                ("¦((?:^|[^´])[α-ξπ-ω])", "\\1"),
+                (
+                    "(^|[^‖])Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´⸿¶�])" % sOperator,
+                    "\\1\\2"
+                ),
+                ("(%s)¦(%s)" % (sOperator, sOperator), "\\1\\2"),
+                ("»+$", "")
+            ):
+                old = codes[i]
+                codes[i] = re.sub(regex, replacement, codes[i])
+                if codes[i] != old:
+                    success = True
     code = "".join(codes)
     for match, replacement in (
         (Compressed(" !\"#$%&'()*+,-./0123456789:;<=>?@\
@@ -4235,15 +4284,18 @@ given data in UTF-8.
             array.append(ordinal)
         elif ordinal < 16512:
             code = ordinal - 128
+            array.append(0xFF)
             array.append(0b10000000 | (code >> 8))
             array.append(code & 0xFF)
         elif ordinal < 2113664:
             code = ordinal - 16512
+            array.append(0xFF)
             array.append(0b11000000 | (code >> 16))
             array.append((code >> 8) & 0xFF)
             array.append(code & 0xFF)
         else:
             code = ordinal - 2113664
+            array.append(0xFF)
             array.append(0b11100000 | (code >> 24))
             array.append((code >> 16) & 0xFF)
             array.append((code >> 8) & 0xFF)
@@ -4301,6 +4353,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "-cs", "--canvasstep", type=int, nargs="?", default=500,
         help="Change canvas step interval."
+    )
+    parser.add_argument(
+        "-de", "--decode", action="store_true",
+        help="Turn encoded code into unicode code."
     )
     parser.add_argument(
         "-e", "--normalencoding", action="store_true",
@@ -4395,18 +4451,19 @@ non-raw file input and file output."""
         info.add(Info.is_repl)
     code = argv.code
     if argv.file:
+        openfile = openl1 if argv.normalencoding or argv.decode else open
         if os.path.isfile(argv.file):
-            with open(argv.file) as file:
+            with openfile(argv.file) as file:
                 code = file.read()
         elif os.path.isfile(argv.file + ".cl"):
-            with open(argv.file + ".cl") as file:
+            with openfile(argv.file + ".cl") as file:
                 code = file.read()
         elif os.path.isfile(argv.file + ".clv"):
-            with open(argv.file + ".clv") as file:
+            with openfile(argv.file + ".clv") as file:
                 code = file.read()
                 argv.verbose = True
         elif os.path.isfile(argv.file + "clg"):
-            with open(argv.file + ".clg") as file:
+            with openfile(argv.file + ".clg") as file:
                 code = file.read()
                 argv.grave = True
         else:
@@ -4468,16 +4525,20 @@ non-raw file input and file output."""
         code = Degrave(code)
         if argv.degrave:
             print(code)
+    elif argv.normalencoding or argv.decode:
+        code = Decode(code)
+        argv.normalencoding = False
+        if argv.decode:
+            print(code)
     if argv.showlength:
 
         def charcoal_length(character):
             ordinal = ord(character)
             if ordinal < 16512:
-                return 2
-            if ordinal < 2113664:
                 return 3
-            return 4
-
+            if ordinal < 2113664:
+                return 4
+            return 5
         length = 0
         for character in code:
             if InCodepage(character) or ord(character) < 256:

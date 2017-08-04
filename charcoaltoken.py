@@ -1,48 +1,45 @@
-from enum import Enum
+CharcoalTokenNames = [
+    "Arrow",
+    "Multidirectional",
+    "Side",
+    "Separator",
+    "String",
+    "Number",
+    "Name",
+    "Span",
 
-i = -1
+    "Arrows",
+    "Sides",
+    "WolframExpressions",
+    "Expressions",
+    "PairExpressions",
+    "Cases",
 
+    "WolframExpression",
+    "Expression",
+    "Nilary",
+    "Unary",
+    "Binary",
+    "Ternary",
+    "Quarternary",
+    "LazyUnary",
+    "LazyBinary",
+    "LazyTernary",
+    "LazyQuarternary",
+    "OtherOperator",
 
-def _id():
-    global i
-    i += 1
-    return i
+    "WolframList",
+    "List",
+    "Dictionary",
+
+    "Program",
+    "Body",
+    "Command",
+]
 
 
 class CharcoalToken(object):
-    Arrow = _id()
-    Multidirectional = _id()
-    Side = _id()
-    Separator = _id()
-    String = _id()
-    Number = _id()
-    Name = _id()
-    Span = _id()
+    pass
 
-    Arrows = _id()
-    Sides = _id()
-    WolframExpressions = _id()
-    Expressions = _id()
-    PairExpressions = _id()
-    Cases = _id()
-
-    WolframExpression = _id()
-    Expression = _id()
-    Nilary = _id()
-    Unary = _id()
-    Binary = _id()
-    Ternary = _id()
-    Quarternary = _id()
-    LazyUnary = _id()
-    LazyBinary = _id()
-    LazyTernary = _id()
-    LazyQuarternary = _id()
-    OtherOperator = _id()
-
-    WolframList = _id()
-    List = _id()
-    Dictionary = _id()
-
-    Program = _id()
-    Body = _id()
-    Command = _id()
+for i in range(len(CharcoalTokenNames)):
+    setattr(CharcoalToken, CharcoalTokenNames[i], i)

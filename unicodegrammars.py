@@ -3,7 +3,8 @@ import re
 
 UnicodeGrammars = {
     CT.Arrow: [
-        ["←"], ["↑"], ["→"], ["↓"], ["↖"], ["↗"], ["↘"], ["↙"]
+        ["←"], ["↑"], ["→"], ["↓"], ["↖"], ["↗"], ["↘"], ["↙"],
+        ["✳", CT.Expression]
     ],
     CT.Multidirectional: [
         [CT.Arrows, CT.Multidirectional],
@@ -25,14 +26,11 @@ UnicodeGrammars = {
         ["7", CT.Multidirectional],
         ["¬", CT.Multidirectional],
         ["⟦", CT.Multidirectional, "⟧"],
+        ["✳✳", CT.Expression],
         [CT.Separator]
     ],
-    CT.Side: [
-        [CT.Arrow, CT.Expression]
-    ],
-    CT.Separator: [
-        ["¦"], []
-    ],
+    CT.Side: [[CT.Arrow, CT.Expression]],
+    CT.Separator: [["¦"], []],
     CT.Span: [
         [CT.Expression, "；", CT.Expression, "；", CT.Expression],
         [CT.Expression, "；", "；", CT.Expression],
@@ -67,6 +65,7 @@ UnicodeGrammars = {
         [CT.String, CT.Separator],
         [CT.Name, CT.Separator],
         [CT.List, CT.Separator],
+        ["⟦", CT.Multidirectional, "⟧", CT.Separator],
         [CT.Dictionary, CT.Separator],
         ["«", CT.Program, "»", CT.Separator],
         [CT.OtherOperator, CT.Separator],
@@ -87,7 +86,7 @@ UnicodeGrammars = {
         [CT.Nilary, CT.Separator]
     ],
     CT.Nilary: [
-        ["Ｓ"], ["Ｎ"], ["‽"], ["ＫＡ"], ["ＫＭ"], ["ＫＶ"], ["ＫＫ"]
+        ["Ｓ"], ["Ｎ"], ["‽"], ["ＫＡ"], ["ＫＭ"], ["ＫＶ"], ["ＫＫ"],["ⅈ"], ["ⅉ"]
     ],
     CT.Unary: [
         ["±"], ["Ｌ"], ["¬"], ["Ｉ"], ["‽"], ["Ｖ"], ["⊟"], ["↧"], ["↥"], ["⌊"],

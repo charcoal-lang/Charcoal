@@ -11,6 +11,17 @@ class Direction(Enum):
     down_left = 7
     down_right = 8
 
+DirectionToString = {
+    Direction.left: "←",
+    Direction.up: "↑",
+    Direction.right: "→",
+    Direction.down: "↓",
+    Direction.up_left: "↖",
+    Direction.up_right: "↗",
+    Direction.down_left: "↙",
+    Direction.down_right: "↘"
+}
+
 
 class Pivot(Enum):
     left = 1

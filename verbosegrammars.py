@@ -9,7 +9,8 @@ VerboseGrammars = {
         [":Left"],
         [":Up"],
         [":Right"],
-        [":Down"]
+        [":Down"],
+        ["Direction", "(", CT.Expression, ")"]
     ],
     CT.Multidirectional: [
         [CT.Arrows, CT.Separator, CT.Multidirectional],
@@ -31,6 +32,7 @@ VerboseGrammars = {
         [":7", CT.Separator, CT.Multidirectional],
         [":¬", CT.Separator, CT.Multidirectional],
         ["[", CT.Multidirectional, "]"],
+        ["Directions", "(", CT.Expression, ")"],
         [CT.Separator]
     ],
     CT.Side: [
@@ -71,6 +73,7 @@ VerboseGrammars = {
         [CT.String, CT.Separator],
         [CT.Name, CT.Separator],
         [CT.List, CT.Separator],
+        ["[", CT.Multidirectional, "]", CT.Separator],
         [CT.Dictionary, CT.Separator],
         ["{", CT.Program, "}", CT.Separator],
         [CT.OtherOperator, CT.Separator],
@@ -98,7 +101,7 @@ VerboseGrammars = {
     ],
     CT.Nilary: [
         ["InputString"], ["InputNumber"], ["Random"], ["PeekAll"],
-        ["PeekMoore"], ["PeekVonNeumann"], ["Peek"]
+        ["PeekMoore"], ["PeekVonNeumann"], ["Peek"], ["x"], ["y"], ["i"], ["j"]
     ],
     CT.Unary: [
         ["Negate"], ["Length"], ["Not"], ["Cast"], ["Random"], ["Evaluate"],
