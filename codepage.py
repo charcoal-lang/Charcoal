@@ -31,15 +31,15 @@ for other, ascii_character in zip("¿‖´·¤¦⎚…§⎆⎈⌀", "?;`.o: _$,&
     # not sure about ;
     add_character(other, chr(ord(ascii_character) + 128))
 for replacement, replaced in zip(
-    "¶⎇‽；∧∨“”↧↥⌊⌈±⊞⊟➙⧴″‴＆｜�ⅈⅉ",
+    "¶⎇‽；∧∨“”↧↥⌊⌈±⊞⊟➙⧴″‴＆｜�",
     "\n\x15\x16\x00\x01\x02\x03\x04\x17\x18\x19\x1A\x1B\x05\x06\x07\x08\x09\x0B\
 \x0C\x0D\xFF\x89\x8B"
 ):
     add_character(replacement, replaced)
 for high, low in zip(
-    "⸿？⪫⪪℅◧◨⮌⌕≡№≔≕▷▶✂⊙⬤✳～",
+    "⸿？⪫⪪℅◧◨⮌⌕≡№≔≕▷▶✂⊙⬤✳～ⅈⅉ",
     "\n\x00\x01\x02\x03\x04\x05\x06\x1B\x07\x08\x0C\x0D\x0E\x0F\x10\x09\x0B\
-\x15~"
+\x15~\x19\x1A"
 ):
     add_character(high, chr(ord(low) + 128))
 keys = list(UnicodeLookup.keys())

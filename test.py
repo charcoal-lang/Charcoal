@@ -1584,6 +1584,10 @@ O---
   \ 
    \\""")
 
+    def test_ij(self):
+        self.assertEqual(Run("→→→ⅈ"), "--")
+        self.assertEqual(Run("↓↓↓ⅉ"), " \n \n|\n|")
+
     def test_python(self):
         self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")
         self.assertEqual(
