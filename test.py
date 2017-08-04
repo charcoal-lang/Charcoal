@@ -173,13 +173,17 @@ ab
 3   1
 2   2
 13213""")
-        self.assertEqual(Run("""
-Box(Times(2.999, 1.999), 5.999, '123')""", verbose=True), """\
+        self.assertEqual(Run("\
+Box(Times(2.999, 1.999), 5.999, '123')", verbose=True), """\
 12312
 1   3
 3   1
 2   2
 13213""")
+        self.assertEqual(Run("\
+Box(10, 1, 'charcoal')))", verbose=True), "charcoalch")
+        self.assertEqual(Run("\
+Box(10, Negate(1), 'charcoal')))", verbose=True), "charcoalch")
 
     def test_rectangle(self):
         self.assertEqual(Run("ＵＲ⁵¦⁵"), """\

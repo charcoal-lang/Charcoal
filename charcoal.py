@@ -1245,24 +1245,24 @@ be used for the sides and + for the corners.
         else:
             length = len(border)
             self.PrintLine({Direction.right}, width, border, move_at_end=False)
-            self.PrintLine(
-                {Direction.down}, height,
-                border[(width - 1) % length:] +
-                border[:(width - 1) % length],
-                move_at_end=False
-            )
-            self.PrintLine(
-                {Direction.left}, width,
-                border[(width + height - 2) % length:] +
-                border[:(width + height - 2) % length],
-                move_at_end=False
-            )
-            self.PrintLine(
-                {Direction.up}, height - 1,
-                border[(width * 2 + height - 3) % length:] +
-                border[:(width * 2 + height - 3) % length],
-                move_at_end=False
-            )
+            if height != 1 and height != -1:
+                self.PrintLine(
+                    {Direction.down}, height,
+                    border[(width - 1) % length:] +
+                    border[:(width - 1) % length],
+                    move_at_end=False
+                )
+                self.PrintLine(
+                    {Direction.left}, width,
+                    border[(width + height - 2) % length:] +
+                    border[:(width + height - 2) % length],
+                    move_at_end=False
+                )
+                self.PrintLine(
+                    {Direction.up}, height - 1,
+                    border[(width * 2 + height - 3) % length:] +
+                    border[:(width * 2 + height - 3) % length]
+                )
         if Info.step_canvas in self.info:
             self.RefreshFastText((
                 "Rectangle"
@@ -2853,14 +2853,16 @@ else set the variable with the given name to the given value.
         result = 0
         if len(self.inputs):
             try:
-                result = int(self.inputs[0])
+                result = (float if "." in self.inputs[0] else int)(
+                    self.inputs[0]
+                )
             except:
                 result = 0
             self.inputs = self.inputs[1:]
         elif Info.prompt in self.info:
             try:
                 inp = input("Enter number: ")
-                result = float(inp) if "." in inp else int(inp)
+                result = (float if "." in inp else int)(inp)
             except:
                 result = 0
         self.original_inputs += [result]
