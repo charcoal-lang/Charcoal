@@ -184,6 +184,20 @@ Box(Times(2.999, 1.999), 5.999, '123')", verbose=True), """\
 Box(10, 1, 'charcoal')))", verbose=True), "charcoalch")
         self.assertEqual(Run("\
 Box(10, Negate(1), 'charcoal')))", verbose=True), "charcoalch")
+        self.assertEqual(Run("\
+Box(Negate(10), 1, 'charcoal')))", verbose=True), "hclaocrahc")
+        self.assertEqual(Run("\
+Box(Negate(10), Negate(10), 'charcoal');", verbose=True), """\
+arcoalchar
+h        c
+c        o
+l        a
+a        l
+o        c
+c        h
+r        a
+a        r
+hclaocrahc""")
 
     def test_rectangle(self):
         self.assertEqual(Run("ＵＲ⁵¦⁵"), """\
@@ -815,7 +829,7 @@ ghi a
         self.assertEqual(Run("abc¶  d¶ gh‖Ｃ←"), "cbaabc\nd    d\nhg  gh")
         self.assertEqual(Run("a c¶d¶ghi‖Ｃ↑"), "ghi\nd  \na c\na c\nd  \nghi")
         self.assertEqual(Run("a c¶d¶ghi‖Ｃ↓"), "a c\nd  \nghi\nghi\nd  \na c")
-        self.assertEqual(Run("a¶¶¶¶¶→→→→a‖Ｃ↙"), """\
+        self.assertEqual(Run("a↓↓↓↓↓→→→a‖Ｃ↙"), """\
    a   
        
        
@@ -823,7 +837,7 @@ a
        
       a
      a """)
-        self.assertEqual(Run("a¶¶¶¶¶←←←←a‖Ｃ↘"), """\
+        self.assertEqual(Run("a↓↓↓↓↓←←←←←a‖Ｃ↘"), """\
    a   
        
        
@@ -1098,14 +1112,14 @@ jkl
 ghi
 d  
 a c""")
-        self.assertEqual(Run("a¶¶¶¶¶→→→→a‖Ｏ↙"), """\
+        self.assertEqual(Run("a↓↓↓↓↓→→→a‖Ｏ↙"), """\
   a   
       
 a     
       
       
      a""")
-        self.assertEqual(Run("a¶¶¶¶¶←←←←a‖Ｏ↘"), """\
+        self.assertEqual(Run("a↓↓↓↓↓←←←←←a‖Ｏ↘"), """\
    a  
       
      a
@@ -1655,7 +1669,7 @@ a b  \n--   \nc d  \n--   \ne f g")
         self.assertEqual(Run("\
 ▷StringSplit⟦⟦a:b:c:d¦listable:element⟧:⟧"), "\
 a       \nb       \nc       \nd       \n        \nlistable\nelement ")
-        self.assertEqual(Run("▷StringSplit⟦:a:b:c:¦:≕All⟧"), " \na\nb\nc")
+        self.assertEqual(Run("▷StringSplit⟦:a:b:c:¦:≕All⟧"), " \na\nb\nc\n ")
         self.assertEqual(Run("\
 ▷StringSplit⟦▷StringSplit⟦11:12:13//21:22:23//31:32:33¦//⟧:⟧"), "\
 11\n12\n13\n  \n21\n22\n23\n  \n31\n32\n33")
@@ -1857,7 +1871,8 @@ a	b	c\nd	e	f")
         self.assertEqual(Run("▷StringStartsQ⟦quickSort¦quick⟧"), "-")
         self.assertEqual(Run("▷StringStartsQ⟦United States¦United⟧"), "-")
         self.assertEqual(Run("\
-▷StringStartsQ⟦⟦int1¦int2¦int3¦float1¦float2¦longint1⟧¦int⟧"), "-\n-\n-")
+▷StringStartsQ⟦⟦int1¦int2¦int3¦float1¦float2¦longint1⟧¦int⟧"), "\
+-\n-\n-\n \n \n ")
         self.assertEqual(Run("▷StringStartsQ⟦Abcd¦a➙≕IgnoreCase≕False⟧"), "")
         self.assertEqual(Run("▷StringStartsQ⟦Abcd¦a➙≕IgnoreCase≕True⟧"), "-")
         self.assertEqual(Run("▷StringEndsQ⟦abcd¦d⟧"), "-")
@@ -1869,9 +1884,7 @@ a	b	c\nd	e	f")
         self.assertEqual(Run("▷StringContainsQ⟦bcde⁺⁺c≕__¦t⟧"), "")
         self.assertEqual(Run("▷StringContainsQ⟦bcde⁺⁺b≕__¦e⟧"), "-")
         self.assertEqual(Run("\
-▷StringContainsQ⟦⟦a¦b¦ab¦abcd¦bcde⟧¦a⟧"), "-\n \n-\n-")
-        self.assertEqual(Run("\
-▷StringContainsQ⟦⟦a¦b¦ab¦abcd¦bcde⟧¦a⟧"), "-\n \n-\n-")
+▷StringContainsQ⟦⟦a¦b¦ab¦abcd¦bcde⟧¦a⟧"), "-\n \n-\n-\n ")
         self.assertEqual(Run("\
 ▷StringContainsQ⟦abcd¦BC➙≕IgnoreCase≕False⟧"), "")
         self.assertEqual(Run("\
@@ -2024,11 +2037,11 @@ Fill('3.141592653589793238462643383279502884197169')""", verbose=True),
 Congratulations on your new baby! :D⟲²""",
                 "4"
             ), """\
- $ $ $ $ 
- | | | | 
----------
-~~~~~~~~~
----------"""
+ $ $ $ $  
+ | | | |  
+--------- 
+~~~~~~~~~ 
+--------- """
         )
         self.assertEqual(Run("Ｇ↗↘←Ｎ*Ｍ↓*", "4"), """\
    *   

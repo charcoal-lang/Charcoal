@@ -8,7 +8,7 @@ SuperscriptToNormal = "⁰¹²³⁴⁵⁶⁷⁸⁹"
 
 StringifierProcessor = {
     CT.Arrow: [
-        (lambda i: lambda r: "↖↗↘↙←↑→↓"[i])(i)
+        (lambda i: lambda r: "↖↗↘↙←↑→↓↓"[i])(i)
         for i in range(8)
     ] + [
         lambda r: "✳" + r[2],

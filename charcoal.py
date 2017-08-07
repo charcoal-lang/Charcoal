@@ -873,6 +873,10 @@ be added to the list of coordinates.
                     direction == Direction.left
                 )
             ):
+                if (
+                    self.y < self.top or self.y > (self.top + len(self.lines))
+                ) and re.match("\000*$", string):
+                    continue
                 self.FillLines()
                 final = (string * (length // len(string) + 1))[:length]
                 if direction == Direction.left:
@@ -890,9 +894,6 @@ be added to the list of coordinates.
                 string_length = len(string)
                 for i in range(length):
                     character = string[i % string_length]
-                    if character == "\000":
-                        self.Move(direction)
-                        continue
                     if coordinates:
                         coordinates.Add(self.x, self.y)
                     self.FillLines()
@@ -979,8 +980,7 @@ with a character automatically selected from -|/\\.
                 initial_x = self.x
                 for i in range(len(lines)):
                     line = lines[i]
-                    if not re.match("^\000*$", line):
-                        self.PrintLine({Direction.right}, len(line), line)
+                    self.PrintLine({Direction.right}, len(line), line)
                     if i == r_index:
                         initial_x = 0
                     self.x = initial_x
@@ -992,8 +992,7 @@ with a character automatically selected from -|/\\.
                 initial_x = self.x
                 for i in range(len(lines)):
                     line = lines[i]
-                    if not re.match("^\000*$", line):
-                        self.PrintLine({Direction.left}, len(line), line)
+                    self.PrintLine({Direction.left}, len(line), line)
                     if i == r_index:
                         initial_x = 0
                     self.x = initial_x
@@ -1243,23 +1242,31 @@ be used for the sides and + for the corners.
             self.Put("+")
             self.y = initial_y
         else:
+            h, w, height, width = (
+                height > 0, width > 0, abs(height), abs(width)
+            )
             length = len(border)
-            self.PrintLine({Direction.right}, width, border, move_at_end=False)
+            self.PrintLine({
+                Direction.right if w else Direction.left
+            }, width, border, move_at_end=False)
             if height != 1 and height != -1:
                 self.PrintLine(
-                    {Direction.down}, height,
+                    {Direction.down if h else Direction.up},
+                    height,
                     border[(width - 1) % length:] +
                     border[:(width - 1) % length],
                     move_at_end=False
                 )
                 self.PrintLine(
-                    {Direction.left}, width,
+                    {Direction.left if w else Direction.right},
+                    width,
                     border[(width + height - 2) % length:] +
                     border[:(width + height - 2) % length],
                     move_at_end=False
                 )
                 self.PrintLine(
-                    {Direction.up}, height - 1,
+                    {Direction.up if h else Direction.down},
+                    height - 1,
                     border[(width * 2 + height - 3) % length:] +
                     border[:(width * 2 + height - 3) % length]
                 )
@@ -4457,6 +4464,10 @@ non-raw file input and file output."""
         if os.path.isfile(argv.file):
             with openfile(argv.file) as file:
                 code = file.read()
+                if argv.file.endswith(".clv"):
+                    argv.verbose = True
+                if argv.file.endswith(".clg"):
+                    argv.grave = True
         elif os.path.isfile(argv.file + ".cl"):
             with openfile(argv.file + ".cl") as file:
                 code = file.read()
