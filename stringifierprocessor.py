@@ -186,6 +186,8 @@ StringifierProcessor = {
         lambda r: "ＵＰ" + r[2] + r[3],
         lambda r: "ＵＰ" + r[2],
         lambda r: "▷" + r[2] + r[3],
+        lambda r: "▷" + r[2] + r[3],
+        lambda r: "▷" + r[2] + r[3],
         lambda r: "▷" + r[2] + r[3]
     ],
 
@@ -305,6 +307,8 @@ StringifierProcessor = {
         lambda r: "≡" + r[2] + r[5] + r[8],
         lambda r: "≡" + r[2] + r[5],
         lambda r: "ＵＭ" + r[2] + r[3],
+        lambda r: "▶" + r[2] + r[3],
+        lambda r: "▶" + r[2] + r[3],
         lambda r: "▶" + r[2] + r[3],
         lambda r: "▶" + r[2] + r[3],
         lambda r: "≔" + r[2] + r[3]

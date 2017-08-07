@@ -134,7 +134,9 @@ VerboseGrammars = {
         ["PythonFunction", "(", CT.Expression, CT.List, ")"],
         ["PythonFunction", "(", CT.Expression, ")"],
         ["EvaluateVariable", "(", CT.Expression, CT.WolframList, ")"],
-        ["evalvar", "(", CT.Expression, CT.WolframList, ")"]
+        ["evalvar", "(", CT.Expression, CT.WolframList, ")"],
+        ["EvaluateVariable", "(", CT.Expression, CT.Expression, ")"],
+        ["evalvar", "(", CT.Expression, CT.Expression, ")"]
     ],
     CT.Program: [[CT.Command, CT.Separator, CT.Separator, CT.Program], []],
     CT.Body: [["{", CT.Program, "}"], [CT.Command]],
@@ -293,6 +295,8 @@ VerboseGrammars = {
         ["MapCommand", "(", CT.Expression, CT.Expression, ")"],
         ["ExecuteVariable", "(", CT.Expression, CT.WolframList, ")"],
         ["execvar", "(", CT.Expression, CT.WolframList, ")"],
+        ["ExecuteVariable", "(", CT.Expression, CT.Expression, ")"],
+        ["execvar", "(", CT.Expression, CT.Expression, ")"],
         ["SetVariable", "(", CT.Expression, CT.Expression, ")"]
     ]
 }

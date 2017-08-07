@@ -14,6 +14,8 @@ default_charset = (
 )
 Codepage.remove("”")
 gap = OrdinalLookup["”"]
+RAW_ENCODING = 120
+DICTIONARY_ENCODING = 121
 
 
 def Compressed(string, escape=False):
@@ -31,6 +33,8 @@ def Compressed(string, escape=False):
     ):
         if not escape:
             return string
+        if len(re.findall("[^ -~¶⸿]", string) > 2):
+            return "”" + Codepage[RAW_ENCODING] + string + "”"
         return (
             "´" * (string[0] in "+X*|-\\/<>^KLTVY7¬") +
             re.sub("[^ -~¶⸿]", "´\1", string)
@@ -131,7 +135,12 @@ def Decompressed(string):
     if string[-1] != "”":
         return string
     if string[0] == "”":
-        return DecompressPermutations(string[1:-1])
+        alphabet_id = OrdinalLookup.get(string[0], ord(string[0]))
+        if alphabet_id < 120:
+            return DecompressPermutations(string[1:-1])
+        return [
+            lambda string: string
+        ][alphabet_id - 120](string[2:-1])
     elif string[0] == "“":
         return DecompressString(string[1:-1])
 
