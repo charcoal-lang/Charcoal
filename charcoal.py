@@ -53,8 +53,8 @@ import types
 for alias, builtin in [
     ("a", abs), ("b", bin), ("c", complex), ("e", enumerate), ("f", format),
     ("g", range), ("h", hex), ("i", __import__), ("m", sum), ("n", min),
-    ("o", oct), ("p", repr), ("r", reversed), ("s", sorted), ("x", max),
-    ("z", zip)
+    ("o", oct), ("p", repr), ("r", reversed), ("s", sorted), ("v", eval),
+    ("x", max), ("z", zip)
 ]:
     setattr(builtins, alias, builtin)
 
