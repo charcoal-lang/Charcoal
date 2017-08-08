@@ -1606,6 +1606,9 @@ O---
         self.assertEqual(Run("→→→ⅈ"), "--")
         self.assertEqual(Run("↓↓↓ⅉ"), " \n \n|\n|")
 
+    def test_compression(self):
+        self.assertEqual(Run("”xＡ⟦³¦²¦¹⟧β▷sβ”"), "Ａ⟦³¦²¦¹⟧β▷sβ")
+
     def test_python(self):
         self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")
         self.assertEqual(

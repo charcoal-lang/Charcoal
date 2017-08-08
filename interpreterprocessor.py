@@ -484,7 +484,7 @@ InterpreterProcessor = {
         lambda r: lambda c: c.ToggleTrim(),
         lambda r: lambda c: c.Crop(r[1](c), r[2](c)),
         lambda r: lambda c: c.Crop(r[1](c)),
-        lambda r: lambda c: c.Clear(),
+        lambda r: lambda c: c.Clear(False),
         lambda r: lambda c: c.Extend(r[1](c), r[2](c)),
         lambda r: lambda c: c.Extend(r[1](c)),
         lambda r: lambda c: r[1](c).append(r[2](c)),

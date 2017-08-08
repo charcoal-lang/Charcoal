@@ -614,11 +614,13 @@ an object on which all canvas drawing methods exist.
                 line = line[:-match_2_length]
             self.lines[i] = line
 
-    def Clear(self):
+    def Clear(self, all=True):
         """
-        Clear()
+        Clear(all=True)
 
         Resets Charcoal object to initial state.
+
+        If all is False, only reset canvas
 
         """
         self.x = self.y = self.top = 0
@@ -626,6 +628,8 @@ an object on which all canvas drawing methods exist.
         self.indices = [0]
         self.lengths = [0]
         self.right_indices = [0]
+        if not all:
+            return
         self.scope = Scope()
         self.inputs = self.original_inputs[:]
         self.direction = Direction.right

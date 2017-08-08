@@ -33,7 +33,7 @@ def Compressed(string, escape=False):
     ):
         if not escape:
             return string
-        if len(re.findall("[^ -~¶⸿]", string) > 2):
+        if len(re.findall("[^ -~¶⸿]", string)) > 2:
             return "”" + Codepage[RAW_ENCODING] + string + "”"
         return (
             "´" * (string[0] in "+X*|-\\/<>^KLTVY7¬") +
@@ -135,7 +135,7 @@ def Decompressed(string):
     if string[-1] != "”":
         return string
     if string[0] == "”":
-        alphabet_id = OrdinalLookup.get(string[0], ord(string[0]))
+        alphabet_id = OrdinalLookup.get(string[1], ord(string[1]))
         if alphabet_id < 120:
             return DecompressPermutations(string[1:-1])
         return [
