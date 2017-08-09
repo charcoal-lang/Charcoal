@@ -129,10 +129,9 @@ class Expression(object):
     def __init__(self, head=None, leaves=[], run=None):
         self.head = head
         self.leaves = [create_expression(leaf) for leaf in leaves]
-        if run:
-            self.run = lambda precision=10: run(precision)
-        else:
-            self.run = lambda precision=10: self.head(self.leaves, precision)
+        self.run = run or (lambda precision=10: self.head(
+            self.leaves, precision
+        ))
 
     def __add__(self, other):
         return Expression(
@@ -990,12 +989,10 @@ class Wolfram(object):
         # This includes zero length ones
         if isinstance(leaves[0], List):
             other_leaves = leaves[1:]
-            return create_expression(
-                [
-                    Wolfram.StringSplit([item] + other_leaves)
-                    for item in leaves[0].leaves
-                ]
-            )
+            return create_expression([
+                Wolfram.StringSplit([item] + other_leaves)
+                for item in leaves[0].leaves
+            ])
         ignorecase, maxsplit, dont_return_all = "", 0, True
         for leaf in leaves[2:]:
             if leaf == All:
@@ -1701,19 +1698,20 @@ class Wolfram(object):
         return Real((Q * 426880 * sqrtC) // T, -precision, precision=precision)
 
     Pi = Expression(
-        None, [],
-        lambda precision=10: Wolfram.calculate_pi(precision)
+        None, [], lambda precision=10: Wolfram.calculate_pi(precision)
     )
 
     Degree = Pi / 180  # TODO: make sure this still accepts precision arg
 
 
 def functionify(head):
-    return lambda *leaves: Expression(
-        head, [
-            leaf.run() if type(leaf) == Expression else leaf for leaf in leaves
-        ]
-    )
+    return lambda *leaves: Expression(head, [
+        leaf.run() if type(leaf) == Expression else leaf for leaf in leaves
+    ])
+
+
+def functionify_no_run(head):
+    return lambda *leaves: Expression(head, leaves)
 
 
 I = Integer
@@ -1738,7 +1736,7 @@ E = Wolfram.E
 Deg = Degree = Wolfram.Degree
 Rt = Sqrt = functionify(Wolfram.Sqrt)
 UT = UpTo = functionify(Wolfram.UpTo)
-N = functionify(Wolfram.N)
+N = functionify_no_run(Wolfram.N)
 SQ = StringQ = functionify(Wolfram.StringQ)
 NQ = NumberQ = functionify(Wolfram.NumberQ)
 IQ = IntegerQ = functionify(Wolfram.IntegerQ)

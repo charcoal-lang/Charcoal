@@ -942,13 +942,15 @@ with a character automatically selected from -|/\\.
         def simplify(string):
             if isinstance(string, Expression):
                 string = string.run()
-                if isinstance(string, String):
+                string_type = type(string)
+                if string_type == String:
+                    #
                     return str(string)
-                if isinstance(string, List):
+                if string_type == List:
                     # if isinstance(string[0], List):
                     #     return grid(string)
                     return [simplify(leaf) for leaf in string.leaves]
-                if type(string) in [Rule, DelayedRule, Pattern]:
+                if string_type in [Rule, DelayedRule, Pattern]:
                     return ""  # TODO
                 return string.to_number()
             return string
@@ -2748,7 +2750,7 @@ or into a number if it was a string.
                 )
             if isinstance(variable, List):
                 return List(self.Cast(item) for item in variable)
-            return str(variable.to_number())
+            return str(variable)
 
     def ChrOrd(self, variable):
         """
