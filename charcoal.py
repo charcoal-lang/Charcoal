@@ -1276,6 +1276,8 @@ be used for the sides and + for the corners.
                     border[(width * 2 + height - 3) % length:] +
                     border[:(width * 2 + height - 3) % length]
                 )
+            else:
+                self.Move(Direction.left if w else Direction.right, width - 1)
         if Info.step_canvas in self.info:
             self.RefreshFastText((
                 "Rectangle"
@@ -4089,6 +4091,7 @@ def Golf(code):
     while success:
         success = False
         for i in range(0, len(codes), 4):
+            # TODO: better unicode support
             for regex, replacement in (
                 ("([^·⁰¹²³⁴-⁹]|^)¹⁰⁰⁰([^·⁰¹²³⁴-⁹]|$)", "\\1φ\\2"),
                 ("([^·⁰¹²³⁴-⁹]|^)¹⁰([^·⁰¹²³⁴-⁹]|$)", "\\1χ\\2"),
@@ -4106,7 +4109,7 @@ def Golf(code):
                 ("([^·⁰¹²³⁴-⁹ -~´⸿¶�])¦([^·⁰¹²³⁴-⁹ -~´⸿¶�])", "\\1\\2"),
                 ("([^·⁰¹²³⁴-⁹])¦([·⁰¹²³⁴-⁹])", "\\1\\2"),
                 ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
-                ("([^´].|[^ -~´⸿¶�])¦([ -~´⸿¶�])", "\\1\\2"),
+                ("([^´][^ -~´⸿¶�]|[^ -~´⸿¶�])¦([ -~´⸿¶�])", "\\1\\2"),
                 ("([ -~´⸿¶�])¦([^ -~´⸿¶�])", "\\1\\2"),
                 ("(^|[^ -~])´([ -~])", "\\1\\2"),
                 ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),

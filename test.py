@@ -181,11 +181,11 @@ Box(Times(2.999, 1.999), 5.999, '123')", verbose=True), """\
 2   2
 13213""")
         self.assertEqual(Run("\
-Box(10, 1, 'charcoal')))", verbose=True), "charcoalch")
+Box(10, 1, 'charcoal');; Print('a')", verbose=True), "aharcoalch")
         self.assertEqual(Run("\
-Box(10, Negate(1), 'charcoal')))", verbose=True), "charcoalch")
+Box(10, Negate(1), 'charcoal');; Print('a')", verbose=True), "aharcoalch")
         self.assertEqual(Run("\
-Box(Negate(10), 1, 'charcoal')))", verbose=True), "hclaocrahc")
+Box(Negate(10), 1, 'charcoal');; Print('a')", verbose=True), "hclaocraha")
         self.assertEqual(Run("\
 Box(Negate(10), Negate(10), 'charcoal');", verbose=True), """\
 arcoalchar
