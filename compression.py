@@ -245,6 +245,8 @@ using a given character set, passed without delimiters.
         ordinal = OrdinalLookup.get(character, ord(character))
         number = number * 255 + ordinal - (ordinal > gap)
     base = len(charset)
+    if base == 1:
+        return charset[0] * number
     result = ""
     while number > 1:
         result = charset[number % base] + result

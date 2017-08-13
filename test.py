@@ -1627,6 +1627,14 @@ Print('yyyyyyyyyyyyyyyyyyeeeeeeeeeeeeeeeeeeqqqqqqqqqqqqqqqqqqqqbbbbbbbb')",
             ),
             "yyyyyyyyyyyyyyyyyyeeeeeeeeeeeeeeeeeeqqqqqqqqqqqqqqqqqqqqbbbbbbbb"
         )
+        self.assertEqual(
+            Run(
+                "\
+Print('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')",
+                verbose=True
+            ),
+            "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+        )
 
     def test_python(self):
         self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")
