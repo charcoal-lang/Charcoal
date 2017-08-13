@@ -1607,7 +1607,26 @@ O---
         self.assertEqual(Run("↓↓↓ⅉ"), " \n \n|\n|")
 
     def test_compression(self):
-        self.assertEqual(Run("”xＡ⟦³¦²¦¹⟧β▷sβ”"), "Ａ⟦³¦²¦¹⟧β▷sβ")
+        self.assertEqual(Run("”yＡ⟦³¦²¦¹⟧β▷sβ”"), "Ａ⟦³¦²¦¹⟧β▷sβ")
+        self.assertEqual(Run("\
+Print('zzyzyzyzyzyzyzyzzzzzzzzyzyz')", verbose=True), "\
+zzyzyzyzyzyzyzyzzzzzzzzyzyz")
+        self.assertEqual(
+            Run(
+                "\
+Print('aaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbccccccccccccccccccccc')",
+                verbose=True
+            ),
+            "aaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbccccccccccccccccccccc"
+        )
+        self.assertEqual(
+            Run(
+                "\
+Print('yyyyyyyyyyyyyyyyyyeeeeeeeeeeeeeeeeeeqqqqqqqqqqqqqqqqqqqqbbbbbbbb')",
+                verbose=True
+            ),
+            "yyyyyyyyyyyyyyyyyyeeeeeeeeeeeeeeeeeeqqqqqqqqqqqqqqqqqqqqbbbbbbbb"
+        )
 
     def test_python(self):
         self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")

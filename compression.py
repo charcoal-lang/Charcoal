@@ -16,6 +16,8 @@ Codepage.remove("”")
 gap = OrdinalLookup["”"]
 RAW_ENCODING = 120
 DICTIONARY_ENCODING = 121
+CHARSET_ENCODING = 122
+RLE_ENCODING = 123
 
 
 def Compressed(string, escape=False):
@@ -33,7 +35,7 @@ def Compressed(string, escape=False):
     ):
         if not escape:
             return string
-        if len(re.findall("[^ -~¶⸿]", string)) > 2:
+        if len(re.findall("[^ -~¶⸿]", string)) > 3:
             return "”" + Codepage[RAW_ENCODING] + string + "”"
         return (
             "´" * (string[0] in "+X*|-\\/<>^KLTVY7¬") +
@@ -42,28 +44,101 @@ def Compressed(string, escape=False):
     original_string, string = string, re.sub(
         "¶", "\n", re.sub("⸿", "\r", string)
     )
+    compressed_charset = CompressCharset(string)
+    compressed_rle = CompressRLE(string)
     compressed_permuted = CompressPermutations(string)
     compressed = CompressString(string)
     string_length = len(original_string) - 2
-    if (
-        string_length < len(compressed_permuted) and
-        string_length < len(compressed)
-    ):
+    minimum_length = min(
+        len(compressed_charset), len(compressed_rle), len(compressed_permuted),
+        len(compressed), string_length
+    )
+    if string_length == minimum_length:
+        if not escape:
+            return original_string
+        if len(re.findall("[^ -~¶⸿]", original_string)) > 3:
+            return "”" + Codepage[RAW_ENCODING] + original_string + "”"
         return (
             "´" * (original_string[0] in "+X*|-\\/<>^KLTVY7¬") +
-            original_string
+            re.sub("[^ -~¶⸿]", "´\1", original_string)
         )
-    if len(compressed_permuted) < len(compressed):
-        return "”" + compressed_permuted + "”"
-    else:
+    if len(compressed) == minimum_length:
         return "“" + compressed + "”"
+    if len(compressed_permuted) == minimum_length:
+        return "”" + compressed_permuted + "”"
+    if len(compressed_charset) == minimum_length:
+        return "”" + compressed_charset + "”"
+    return "”" + compressed_rle + "”"
 
+
+def CompressCharset(string):
+    """
+    CompressPermutations(string) -> str
+    Returns without delimiters the given string compressed \
+using a character set of only the characters in the string.
+
+    """
+    occurrences = [0] * 97
+    for character in string:
+        i = (
+            0 if character == "\n" else
+            1 if character == "\r" else
+            ord(character) - 30
+        )
+        occurrences[i] += 1
+    items = sorted([i for i, n in enumerate(occurrences) if n])[::-1]
+    charset = "".join([chr(n + 30) if n > 1 else "\n\r"[n] for n in items])
+    base = len(charset)
+    result = ""
+    number = 1
+    if base == 1:
+        number = len(string)
+    else:
+        for character in string:
+            number = number * base + charset.index(character)
+    while number:
+        result = Codepage[number % 255] + result
+        number //= 255
+    number = 1
+    length = 0
+    for character in charset:
+        number = number * 97 + default_charset.index(character)
+    while number:
+        result = Codepage[number % 255] + result
+        length += 1
+        number //= 255
+    return Codepage[CHARSET_ENCODING] + Codepage[length] + result
+
+
+def CompressRLE(string):
+    """
+    CompressRLE(string) -> str
+    Returns without delimiters the given string compressed \
+using run-length encoding.
+
+    """
+    number, previous, count = 1, string[0], -1
+    for character in string:
+        if character != previous or count == 32:
+            number = number * 97 + default_charset.index(previous)
+            number = number * 32 + count
+            count = 0
+            previous = character
+        else:
+            count += 1
+    number = number * 97 + default_charset.index(string[-1])
+    number = number * 32 + count
+    result = ""
+    while number:
+        result = Codepage[number % 255] + result
+        number //= 255
+    return Codepage[RLE_ENCODING] + result
 
 def CompressPermutations(string):
     """
     CompressPermutations(string) -> str
     Returns without delimiters the given string compressed \
-using a permuted codepage, without delimiters.
+using a permuted codepage.
 
     """
     numeric = lowercase = uppercase = whitespace = symbol = 0
@@ -135,14 +210,66 @@ def Decompressed(string):
     if string[-1] != "”":
         return string
     if string[0] == "”":
-        alphabet_id = OrdinalLookup.get(string[1], ord(string[1]))
+        ordinal = OrdinalLookup.get(string[1], ord(string[1]))
+        alphabet_id = ordinal - (ordinal > gap)
         if alphabet_id < 120:
             return DecompressPermutations(string[1:-1])
         return [
-            lambda string: string
+            lambda string: string,
+            lambda string: "", # TODO
+            lambda string: DecompressCharset(string),
+            lambda string: DecompressRLE(string)
         ][alphabet_id - 120](string[2:-1])
     elif string[0] == "“":
         return DecompressString(string[1:-1])
+
+
+def DecompressCharset(string):
+    """
+    DecompressCharset(string) -> str
+    Returns the original form of the given string compressed \
+using a given character set, passed without delimiters.
+
+    """
+    length = OrdinalLookup.get(string[0], ord(string[0])) + 1
+    number = 0
+    for character in string[1:length]:
+        ordinal = OrdinalLookup.get(character, ord(character))
+        number = number * 255 + ordinal - (ordinal > gap)
+    charset = ""
+    while number > 1:
+        charset = default_charset[number % 97] + charset
+        number //= 97
+    number = 0
+    for character in string[length:]:
+        ordinal = OrdinalLookup.get(character, ord(character))
+        number = number * 255 + ordinal - (ordinal > gap)
+    base = len(charset)
+    result = ""
+    while number > 1:
+        result = charset[number % base] + result
+        number //= base
+    return result
+
+
+def DecompressRLE(string):
+    """
+    DecompressRLE(string) -> str
+    Returns the original form of the given string compressed \
+using run-length encoding, passed without delimiters.
+
+    """
+    number = 0
+    for character in string:
+        ordinal = OrdinalLookup.get(character, ord(character))
+        number = number * 255 + ordinal - (ordinal > gap)
+    result = ""
+    while number > 1:
+        count = number % 32
+        number //= 32
+        result = default_charset[number % 97] * (count + 1) + result
+        number //= 97
+    return result
 
 
 def DecompressPermutations(string):
@@ -155,8 +282,7 @@ using a permuted codepage, passed without delimiters.
     index = OrdinalLookup.get(string[0], ord(string[0]))
     if index > gap:
         index -= 1
-    base = 2
-    letters = ["u"]
+    base, letters = 2, ["u"]
     while index:
         letters.insert(index % base, default_order[5 - base])
         index //= base
@@ -164,12 +290,8 @@ using a permuted codepage, passed without delimiters.
     while base <= 5:
         letters.insert(0, default_order[5 - base])
         base += 1
-    charset = "".join(
-        charset_fragment_lookup[character] for character in letters
-    )
-    return "".join([
-        charset[ordinal] for ordinal in Decompress(string[1:])
-    ])
+    charset = "".join(charset_fragment_lookup[c] for c in letters)
+    return "".join([charset[n] for n in Decompress(string[1:])])
 
 
 def DecompressString(string):
@@ -179,9 +301,7 @@ def DecompressString(string):
 passed without delimiters.
 
     """
-    return "".join([
-        default_charset[ordinal] for ordinal in Decompress(string)
-    ])
+    return "".join([default_charset[n] for n in Decompress(string)])
 
 
 def Decompress(string):
@@ -198,7 +318,7 @@ def Decompress(string):
         ordinal = OrdinalLookup.get(character, ord(character))
         number = (number * 255) + ordinal - (ordinal > gap)
     if base == 1:
-        return [ord("\n")] * number
+        return [0] * number
     while number > 1:
         remainder = number % base
         result = [remainder] + result

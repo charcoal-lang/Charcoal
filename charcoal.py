@@ -4086,26 +4086,23 @@ def Degrave(code):
 
 
 def Golf(code):
-    codes = re.split("([“”])([^”]*?)(”)", code)
+    for match, replacement in (
+        ("””", "ω"),
+        (Compressed(" !\"#$%&'()*+,-./0123456789:;<=>?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"), "γ"),
+        (Compressed("abcdefghijklmnopqrstuvwxyz"), "β"),
+        (Compressed("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "α")
+    ):
+        code = code.replace(match, replacement)
+    codes = re.split("([“”][^”]*?”)", code)
     success = True
     while success:
         success = False
-        for i in range(0, len(codes), 4):
+        for i in range(0, len(codes), 2):
             # TODO: better unicode support
             for regex, replacement in (
                 ("([^·⁰¹²³⁴-⁹]|^)¹⁰⁰⁰([^·⁰¹²³⁴-⁹]|$)", "\\1φ\\2"),
                 ("([^·⁰¹²³⁴-⁹]|^)¹⁰([^·⁰¹²³⁴-⁹]|$)", "\\1χ\\2"),
-                ("(^|[^´].|[^ -~´⸿¶�]) !\"#\$%&'\(\)\*\+,-\./0123456789:;<=>\?@\
-        ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\\\]\^_`\
-        abcdefghijklmnopqrstuvwxyz{\|}~([^´]|$)", "\\1γ\\2"),
-                (
-                    "([^´].|[^ -~´⸿¶�]|^)abcdefghijklmnopqrstuvwxyz([^´]|$)",
-                    "\\1β\\2"
-                ),
-                (
-                    "([^´].|[^ -~´⸿¶�]|^)ABCDEFGHIJKLMNOPQRSTUVWXYZ([^´]|$)",
-                    "\\1α\\2"
-                ),
                 ("([^·⁰¹²³⁴-⁹ -~´⸿¶�])¦([^·⁰¹²³⁴-⁹ -~´⸿¶�])", "\\1\\2"),
                 ("([^·⁰¹²³⁴-⁹])¦([·⁰¹²³⁴-⁹])", "\\1\\2"),
                 ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
@@ -4115,7 +4112,8 @@ def Golf(code):
                 ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),
                 ("¦((?:^|[^´])[α-ξπ-ω])", "\\1"),
                 (
-                    "(^|[^‖])Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´⸿¶�])" % sOperator,
+                    "\
+(^|[^‖])Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´⸿¶�])" % sOperator,
                     "\\1\\2"
                 ),
                 ("(%s)¦(%s)" % (sOperator, sOperator), "\\1\\2"),
@@ -4126,13 +4124,6 @@ def Golf(code):
                 if codes[i] != old:
                     success = True
     code = "".join(codes)
-    for match, replacement in (
-        (Compressed(" !\"#$%&'()*+,-./0123456789:;<=>?@\
-ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"), "γ"),
-        (Compressed("abcdefghijklmnopqrstuvwxyz"), "β"),
-        (Compressed("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "α")
-    ):
-        code = code.replace(match, replacement)
     return code
 
 
