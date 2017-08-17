@@ -3519,6 +3519,7 @@ iterable.
     def MapAssign(self, key, operator):
         iterable = self.Retrieve(key)
         if not hasattr(iterable, "__iter__"):
+            self.scope[key] = operator(iterable, self)
             return
         self.scope[key] = [operator(item, self) for item in iterable]
         if isinstance(iterable, str):
@@ -3529,6 +3530,7 @@ iterable.
     def MapAssignLeft(self, key, left, operator):
         iterable = self.Retrieve(key)
         if not hasattr(iterable, "__iter__"):
+            self.scope[key] = operator(left, iterable, self)
             return
         self.scope[key] = [operator(left, item, self) for item in iterable]
         if isinstance(iterable, str):
@@ -3539,6 +3541,7 @@ iterable.
     def MapAssignRight(self, key, right, operator):
         iterable = self.Retrieve(key)
         if not hasattr(iterable, "__iter__"):
+            self.scope[key] = operator(iterable, right, self)
             return
         self.scope[key] = [operator(item, right, self) for item in iterable]
         if isinstance(iterable, str):
