@@ -57,8 +57,8 @@ VerboseGrammars = {
         [CT.WolframExpression]
     ],
     CT.PairExpressions: [
-        [CT.Expression, CT.Expression, CT.PairExpressions],
-        [CT.Expression, CT.Expression]
+        [CT.Expression, ":", CT.Expression, CT.PairExpressions],
+        [CT.Expression, ":", CT.Expression]
     ],
     CT.Cases: [
         ["case", CT.Expression, ":", CT.Body, CT.Separator, CT.Cases],
@@ -297,6 +297,9 @@ VerboseGrammars = {
         ["execvar", "(", CT.Expression, CT.WolframList, ")"],
         ["ExecuteVariable", "(", CT.Expression, CT.Expression, ")"],
         ["execvar", "(", CT.Expression, CT.Expression, ")"],
-        ["SetVariable", "(", CT.Expression, CT.Expression, ")"]
+        ["SetVariable", "(", CT.Expression, CT.Expression, ")"],
+        ["MapAssignLeft", "(", CT.Binary, CT.Expression, CT.Name],
+        ["MapAssignRight", "(", CT.Binary, CT.Expression, CT.Name, ")"],
+        ["MapAssign", "(", CT.Unary, CT.Name, ")"]
     ]
 }

@@ -1423,13 +1423,13 @@ b   a   z
 
     def test_multiply(self):
         self.assertEqual(Run("×²¦³"), "------")
-        self.assertEqual(Run("×²¦abc"), "abcabc")
-        self.assertEqual(Run("×²¦⟦abc⟧"), "abc\nabc")
+        self.assertEqual(Run("×²abc"), "abcabc")
+        self.assertEqual(Run("×²⟦abc⟧"), "abcabc")
 
     def test_divide(self):
         self.assertEqual(Run("÷⁵¦²"), "--")
-        self.assertEqual(Run("÷abcabcab¦³"), "ab")
-        self.assertEqual(Run("÷⟦a¹a²b²c³⟧¦³"), "a\n-")
+        self.assertEqual(Run("÷abcabcab³"), "ab")
+        # self.assertEqual(Run("÷⟦a¹a²b²c³⟧³"), "a\n-")
 
     def test_and(self):
         self.assertEqual(Run("∧⁰¦÷¹¦⁰"), "")
@@ -1605,6 +1605,11 @@ O---
     def test_ij(self):
         self.assertEqual(Run("→→→ⅈ"), "--")
         self.assertEqual(Run("↓↓↓ⅉ"), " \n \n|\n|")
+
+    def test_map_assign(self):
+        self.assertEqual(Run("Ａ⟦³¦²¦¹⟧β≧×²ββ"), "------\n----  \n--    ")
+        self.assertEqual(Run("Ａ⟦³¦²¦¹⟧β≧⁻¹ββ"), "--\n- \n  ")
+        self.assertEqual(Run("Ａ⟦³¦²¦¹⟧β≦⁻³ββ"), "  \n- \n--")
 
     def test_compression(self):
         self.assertEqual(Run("”yＡ⟦³¦²¦¹⟧β▷sβ”"), "Ａ⟦³¦²¦¹⟧β▷sβ")

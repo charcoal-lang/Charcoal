@@ -311,6 +311,9 @@ StringifierProcessor = {
         lambda r: "▶" + r[2] + r[3],
         lambda r: "▶" + r[2] + r[3],
         lambda r: "▶" + r[2] + r[3],
-        lambda r: "≔" + r[2] + r[3]
+        lambda r: "≔" + r[2] + r[3],
+        lambda r: "≦" + r[2] + r[3] + r[4],
+        lambda r: "≧" + r[2] + r[3] + r[4],
+        lambda r: "≦" + r[2] + r[3]
     ]
 }

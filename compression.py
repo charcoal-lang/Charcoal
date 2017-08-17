@@ -18,6 +18,7 @@ RAW_ENCODING = 120
 DICTIONARY_ENCODING = 121
 CHARSET_ENCODING = 122
 RLE_ENCODING = 123
+BROTLI_ENCODING = 124
 
 
 def Compressed(string, escape=False):
@@ -79,13 +80,8 @@ using a character set of only the characters in the string.
 
     """
     occurrences = [0] * 97
-    for character in string:
-        i = (
-            0 if character == "\n" else
-            1 if character == "\r" else
-            ord(character) - 30
-        )
-        occurrences[i] += 1
+    for c in string:
+        occurrences[0 if c == "\n" else 1 if c == "\r" else ord(c) - 30] += 1
     items = sorted([i for i, n in enumerate(occurrences) if n])[::-1]
     charset = "".join([chr(n + 30) if n > 1 else "\n\r"[n] for n in items])
     base = len(charset)
@@ -133,6 +129,16 @@ using run-length encoding.
         result = Codepage[number % 255] + result
         number //= 255
     return Codepage[RLE_ENCODING] + result
+
+
+def CompressBrotli(string):
+    """
+    CompressBrotli(string) -> str
+    Returns without delimiters the given string compressed \
+using Google's brotli compression method.
+
+    """
+
 
 def CompressPermutations(string):
     """

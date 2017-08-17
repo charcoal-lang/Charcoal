@@ -230,6 +230,10 @@ UnicodeGrammars = {
         ["ＵＭ", CT.Expression, CT.Expression],
         ["▶", CT.Expression, CT.WolframList],
         ["▶", CT.Expression, CT.WolframExpression],
-        ["≔", CT.Expression, CT.Expression]
+        ["≔", CT.Expression, CT.Expression],
+        ["≦", CT.Binary, CT.Expression, CT.Name],
+        ["≦", CT.Unary, CT.Name],
+        ["≧", CT.Binary, CT.Expression, CT.Name],
+        ["≧", CT.Unary, CT.Name]
     ]
 }

@@ -495,6 +495,10 @@ InterpreterProcessor = {
         lambda r: lambda c: c.Map(r[1](c), r[2], True),
         lambda r: lambda c: c.ExecuteVariable(r[1](c), r[2](c)),
         lambda r: lambda c: c.ExecuteVariable(r[1](c), [r[2](c)]),
-        lambda r: lambda c: c.Assign(r[2](c), r[1](c))
+        lambda r: lambda c: c.Assign(r[2](c), r[1](c)),
+        lambda r: lambda c: c.MapAssignLeft(r[3], r[2](c), r[1]),
+        lambda r: lambda c: c.MapAssign(r[2], r[1]),
+        lambda r: lambda c: c.MapAssignRight(r[3], r[2](c), r[1]),
+        lambda r: lambda c: c.MapAssign(r[2], r[1])
     ]
 }

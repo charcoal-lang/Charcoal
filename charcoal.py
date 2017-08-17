@@ -3402,8 +3402,8 @@ iterable.
             return left + right
         if left_is_iterable ^ right_is_iterable:
             if left_is_iterable:
-                return left + [right]
-            return [left] + right
+                return [item + right for item in left]
+            return [left + item for item in right]
         if (left_type == str) ^ (right_type == str):
             if left_type == str:
                 return left + str(right)
@@ -3429,8 +3429,8 @@ iterable.
         )
         if left_is_iterable ^ right_is_iterable:
             if left_is_iterable:
-                return [item for item in left if item != right]
-            # return [left] - right
+                return [item - right for item in left]
+            return [left - item for item in right]
         if (left_type == str) ^ (right_type == str):
             if left_type == str:
                 if right_type == int or right_type == float:
@@ -3443,7 +3443,7 @@ iterable.
             return left.replace(right, "")
         return left - right
 
-    def Multiply(self, left, right):
+    def Multiply(self, left, right, iterable=True):
         if isinstance(left, String):
             left = str(left)
         if isinstance(right, String):
@@ -3458,8 +3458,12 @@ iterable.
         right_is_iterable = hasattr(right, "__iter__")
         if left_is_iterable ^ right_is_iterable:
             if left_is_iterable:
-                return (left * (1 + int(right)))[:int(len(left) * right)]
-            return (right * (1 + int(left)))[:int(len(right) * left)]
+                if left_type == str:
+                    return (left * (1 + int(right)))[:int(len(left) * right)]
+                return [item * right for item in left]
+            if right_type == str:
+                return (right * (1 + int(left)))[:int(len(right) * left)]
+            return [left * item for item in right]
         if left_is_iterable and right_is_iterable:
             if left_type == str:
                 return left.join(right)
@@ -3467,7 +3471,7 @@ iterable.
                 return right.join(left)
         return left * right
 
-    def Divide(self, left, right, floor=True):
+    def Divide(self, left, right, floor=True, iterable=True):
         def reduce(lst, function):
             result = lst[0]
             for item in lst[1:]:
@@ -3483,19 +3487,64 @@ iterable.
             right = right.run()
         left_type = type(left)
         right_type = type(right)
-        left_is_iterable = hasattr(left, "__iter__")
-        right_is_iterable = hasattr(right, "__iter__")
-        if left_is_iterable ^ right_is_iterable:
-            if left_is_iterable:
-                if callable(right):
-                    return reduce(left, right)
-                return (left * (1 + int(1 / right)))[:int(len(left) / right)]
-            if callable(left):
-                return reduce(right, left)
-            return (right * (1 + int(1 / left)))[:int(len(right) / left)]
+        if iterable:
+            left_is_iterable = hasattr(left, "__iter__")
+            right_is_iterable = hasattr(right, "__iter__")
+            if left_is_iterable ^ right_is_iterable:
+                if left_is_iterable:
+                    if callable(right):
+                        return reduce(left, right)
+                    if left_type == str:
+                        return (left * (1 + int(1 / right)))[
+                            :int(len(left) / right)
+                        ]
+                    return [
+                        self.Divide(item, right, iterable=False)
+                        for item in left
+                    ]
+                if callable(left):
+                    return reduce(right, left)
+                if right_type == str:
+                    return (right * (1 + int(1 / left)))[
+                        :int(len(right) / left)
+                    ]
+                return [
+                    self.Divide(left, item, iterable=False) for item in right
+                ]
         if left_type == str and right_type == str:
             return left.split(right)
         return left // right if floor else left / right
+
+    # TODO: dry these
+    def MapAssign(self, key, operator):
+        iterable = self.Retrieve(key)
+        if not hasattr(iterable, "__iter__"):
+            return
+        self.scope[key] = [operator(item, self) for item in iterable]
+        if isinstance(iterable, str):
+            self.scope[key] = "".join(self.scope[key])
+        if isinstance(iterable, String):
+            self.scope[key] = String("".join(self.scope[key]))
+
+    def MapAssignLeft(self, key, left, operator):
+        iterable = self.Retrieve(key)
+        if not hasattr(iterable, "__iter__"):
+            return
+        self.scope[key] = [operator(left, item, self) for item in iterable]
+        if isinstance(iterable, str):
+            self.scope[key] = "".join(self.scope[key])
+        if isinstance(iterable, String):
+            self.scope[key] = String("".join(self.scope[key]))
+
+    def MapAssignRight(self, key, right, operator):
+        iterable = self.Retrieve(key)
+        if not hasattr(iterable, "__iter__"):
+            return
+        self.scope[key] = [operator(item, right, self) for item in iterable]
+        if isinstance(iterable, str):
+            self.scope[key] = "".join(self.scope[key])
+        if isinstance(iterable, String):
+            self.scope[key] = String("".join(self.scope[key]))
 
 
 def PassThrough(result):
