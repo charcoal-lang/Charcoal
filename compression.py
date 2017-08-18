@@ -138,6 +138,7 @@ def CompressBrotli(string):
 using Google's brotli compression method.
 
     """
+    pass
 
 
 def CompressPermutations(string):
@@ -237,7 +238,8 @@ def DecompressCharset(string):
 using a given character set, passed without delimiters.
 
     """
-    length = OrdinalLookup.get(string[0], ord(string[0])) + 1
+    length = OrdinalLookup.get(string[0], ord(string[0]))
+    length += length <= gap
     number = 0
     for character in string[1:length]:
         ordinal = OrdinalLookup.get(character, ord(character))

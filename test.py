@@ -1640,6 +1640,32 @@ Print('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')",
             ),
             "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
         )
+        self.assertEqual(
+            Run(
+                r"Print('\\\\\n \\\\              //\\\\\n  \\\\            \
+//  \\\\            //\n   \\\\          //    \\\\          //\n    \
+\\\\        //      \\\\        //\n     \\\\      //        \\\\      //\
+\n      \\\\    //          \\\\    //\n       \\\\  //    //\\\\    \\\\  //\
+\n        \\\\//    //  \\\\    \\\\//\n         //    //    \\\\    \\\\\
+\n        //\\\\  //      \\\\  //\\\\\n           \\\\//        \\\\//  \
+\\\\\n                              \\\\')",
+                verbose=True
+            ),
+            __import__("re").sub(r"\\", r"\\\\", """\
+\\                                  
+ \\              //\\               
+  \\            //  \\            //
+   \\          //    \\          // 
+    \\        //      \\        //  
+     \\      //        \\      //   
+      \\    //          \\    //    
+       \\  //    //\\    \\  //     
+        \\//    //  \\    \\//      
+         //    //    \\    \\       
+        //\\  //      \\  //\\      
+           \\//        \\//  \\     
+                              \\    """)
+        )
 
     def test_python(self):
         self.assertEqual(Run("ＵＰmin⟦¹¦²⟧"), "-")

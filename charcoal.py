@@ -1175,12 +1175,19 @@ filled with the specified string.
         if isinstance(height, str) and not fill:
             fill, height = height, width
         height, width = int(height), int(width)
+        step_canvas = Info.step_canvas in self.info
+        dump_canvas = Info.dump_canvas in self.info
+        self.info -= {Info.step_canvas, Info.dump_canvas}
         self.Polygon([
             [Direction.right, width],
             [Direction.down, height],
             [Direction.left, width],
             [Direction.up, height]
         ], fill)
+        if step_canvas:
+            self.info |= {Info.step_canvas}
+        if dump_canvas:
+            self.info |= {Info.dump_canvas}
         if Info.step_canvas in self.info:
             self.RefreshFastText("Oblong", self.canvas_step)
         elif Info.dump_canvas in self.info:
@@ -1946,18 +1953,12 @@ but not if it overwrites the original.
                 self.x -= 1
                 self.y = bottom_left + index - overlap + 1
                 string = (
-                    "".join(
-                        NESWFlip.get(character, character)
-                        for character in line
-                    )
+                    "".join(NESWFlip.get(c, c) for c in line)
                     if transform else
                     line
                 )
                 self.PrintLine(
-                    {Direction.down},
-                    len(string),
-                    string,
-                    overwrite=False
+                    {Direction.down}, len(string), string, overwrite=False
                 )
             self.x = initial_y - bottom_left - 1 + overlap
             self.y = bottom_left + initial_x + 1 - overlap
@@ -1978,32 +1979,21 @@ but not if it overwrites the original.
                 self.x += 1
                 self.y = bottom_right - right_index - overlap + 1
                 string = (
-                    "".join(
-                        NWSEFlip.get(character, character)
-                        for character in line
-                    )
-                    if transform else
-                    line
+                    "".join(NWSEFlip.get(c, c) for c in line)
+                    if transform else line
                 )[::-1]
                 self.PrintLine(
-                    {Direction.down},
-                    len(string),
-                    string,
-                    overwrite=False
+                    {Direction.down}, len(string), string, overwrite=False
                 )
             self.x = bottom_right - initial_y - overlap
             self.y = bottom_right - initial_x - overlap
         if Info.step_canvas in self.info:
             self.RefreshFastText((
-                "Reflect overlap transform"
-                if transform else
-                "Reflect overlap"
+                "Reflect overlap transform" if transform else "Reflect overlap"
             ), self.canvas_step)
         elif Info.dump_canvas in self.info:
             print(
-                "Reflect overlap transform"
-                if transform else
-                "Reflect overlap"
+                "Reflect overlap transform" if transform else "Reflect overlap"
             )
             print(str(self))
 
@@ -2032,21 +2022,18 @@ but not if it overwrites the original.
                 for index in self.indices
             ]
             self.lines = [
-                "".join(
-                    HorizontalFlip.get(character, character)
-                    for character in line[::-1]
-                ) for line in self.lines
+                "".join(HorizontalFlip.get(c, c) for c in line[::-1])
+                for line in self.lines
             ] if transform else [
                 line[::-1] for line in self.lines
             ]
             self.x = -self.x
         elif direction == Direction.up or direction == Direction.down:
             if transform:
-                for i in range(len(self.lines)):
-                    self.lines[i] = "".join(
-                        VerticalFlip.get(character, character)
-                        for character in self.lines[i]
-                    )
+                self.lines = [
+                    "".join(VerticalFlip.get(c, c) for c in line)
+                    for line in self.lines
+                ]
             self.lines.reverse()
             self.indices.reverse()
             self.lengths.reverse()
@@ -2058,11 +2045,10 @@ but not if it overwrites the original.
             direction == Direction.down_right
         ):
             if transform:
-                for i in range(len(self.lines)):
-                    self.lines[i] = "".join(
-                        NESWFlip.get(character, character)
-                        for character in self.lines[i]
-                    )
+                self.lines = [
+                    "".join(NESWFlip.get(c, c) for c in line)
+                    for line in self.lines
+                ]
             self.Rotate(2)
             self.Reflect(Direction.right, False)
         elif (
@@ -4680,7 +4666,11 @@ Parse trace:
             charcoal=global_charcoal, whitespace=argv.whitespace,
             normal_encoding=argv.normalencoding
         )
-        if not argv.stepcanvas and global_charcoal.print_at_end:
+        if (
+            not argv.stepcanvas and
+            not argv.dumpcanvas and
+            global_charcoal.print_at_end
+        ):
             sys.stdout.write(result)
     else:
         successes = failures = 0
