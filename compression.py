@@ -2,7 +2,6 @@ from codepage import OrdinalLookup, Codepage
 from string import ascii_lowercase, ascii_uppercase, digits
 import re
 import lzma
-import zlib
 try:
     import brotli
 except:
