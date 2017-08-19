@@ -2835,16 +2835,16 @@ else set the variable with the given name to the given value.
             self.inputs = self.inputs[1:]
         elif Info.prompt in self.info:
             result = input("Enter string: ")
-        self.original_inputs += [result]
-        if len(self.all_inputs) < 5:
-            self.all_inputs = self.original_inputs + [""] * (
-                5 - len(self.original_inputs)
-            )
-            self.hidden["θ"] = self.all_inputs[0]
-            self.hidden["η"] = self.all_inputs[1]
-            self.hidden["ζ"] = self.all_inputs[2]
-            self.hidden["ε"] = self.all_inputs[3]
-            self.hidden["δ"] = self.all_inputs[4]
+            self.original_inputs += [result]
+            if len(self.original_inputs) < 5:
+                self.all_inputs = self.original_inputs + [""] * (
+                    5 - len(self.original_inputs)
+                )
+                self.hidden["θ"] = self.all_inputs[0]
+                self.hidden["η"] = self.all_inputs[1]
+                self.hidden["ζ"] = self.all_inputs[2]
+                self.hidden["ε"] = self.all_inputs[3]
+                self.hidden["δ"] = self.all_inputs[4]
         if key:
             self.scope[key] = result
         else:
@@ -2872,18 +2872,18 @@ else set the variable with the given name to the given value.
             try:
                 inp = input("Enter number: ")
                 result = (float if "." in inp else int)(inp)
+                self.original_inputs += [inp]
+                if len(self.original_inputs) < 5:
+                    self.all_inputs = self.original_inputs + [""] * (
+                        5 - len(self.original_inputs)
+                    )
+                    self.hidden["θ"] = self.all_inputs[0]
+                    self.hidden["η"] = self.all_inputs[1]
+                    self.hidden["ζ"] = self.all_inputs[2]
+                    self.hidden["ε"] = self.all_inputs[3]
+                    self.hidden["δ"] = self.all_inputs[4]
             except:
                 result = 0
-        self.original_inputs += [result]
-        if not all(self.all_inputs):
-            self.all_inputs = self.original_inputs + [""] * (
-                5 - len(self.original_inputs)
-            )
-            self.hidden["θ"] = self.all_inputs[0]
-            self.hidden["η"] = self.all_inputs[1]
-            self.hidden["ζ"] = self.all_inputs[2]
-            self.hidden["ε"] = self.all_inputs[3]
-            self.hidden["δ"] = self.all_inputs[4]
         if key:
             self.scope[key] = result
         else:
