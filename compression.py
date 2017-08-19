@@ -1,6 +1,13 @@
 from codepage import OrdinalLookup, Codepage
 from string import ascii_lowercase, ascii_uppercase, digits
 import re
+import lzma
+import zlib
+try:
+    import brotli
+except:
+    print("Please install the 'brotli' module: 'sudo -H pip3 install brotli'")
+    __import__("sys").exit()
 
 symbols = ".!\"#$%&'()*+,-/:;<=>?@[\]^_`{|}~\r"
 whitespace = "\n "
@@ -19,6 +26,7 @@ DICTIONARY_ENCODING = 121
 CHARSET_ENCODING = 122
 RLE_ENCODING = 123
 BROTLI_ENCODING = 124
+LZMA_ENCODING = 125
 
 
 def Compressed(string, escape=False):
@@ -47,12 +55,15 @@ def Compressed(string, escape=False):
     )
     compressed_charset = CompressCharset(string)
     compressed_rle = CompressRLE(string)
+    compressed_brotli = CompressBrotli(string)
+    compressed_lzma = CompressLZMA(string)
     compressed_permuted = CompressPermutations(string)
     compressed = CompressString(string)
     string_length = len(original_string) - 2
     minimum_length = min(
-        len(compressed_charset), len(compressed_rle), len(compressed_permuted),
-        len(compressed), string_length
+        len(compressed_charset), len(compressed_rle), len(compressed_brotli),
+        len(compressed_lzma), len(compressed_permuted), len(compressed),
+        string_length
     )
     if string_length == minimum_length:
         if not escape:
@@ -69,7 +80,11 @@ def Compressed(string, escape=False):
         return "”" + compressed_permuted + "”"
     if len(compressed_charset) == minimum_length:
         return "”" + compressed_charset + "”"
-    return "”" + compressed_rle + "”"
+    if len(compressed_rle) == minimum_length:
+        return "”" + compressed_rle + "”"
+    if len(compressed_brotli) == minimum_length:
+        return "”" + compressed_brotli + "”"
+    return "”" + compressed_lzma + "”"
 
 
 def CompressCharset(string):
@@ -138,7 +153,37 @@ def CompressBrotli(string):
 using Google's brotli compression method.
 
     """
-    pass
+    compressed = brotli.compress(string)
+    number = 1
+    for c in compressed:
+        number = number * 256 + c
+    result = ""
+    while number:
+        result = Codepage[number % 255] + result
+        number //= 255
+    return Codepage[BROTLI_ENCODING] + result
+
+
+def CompressLZMA(string):
+    """
+    CompressBrotli(string) -> str
+    Returns without delimiters the given string compressed \
+using the lzstring compression method.
+
+    """
+    compressed = lzma.compress(
+        string.encode("ascii"),
+        format=lzma.FORMAT_RAW,
+        filters=[{'id': lzma.FILTER_LZMA2, 'preset': 9 | lzma.PRESET_EXTREME}]
+    )
+    number = 1
+    for c in compressed:
+        number = number * 256 + c
+    result = ""
+    while number:
+        result = Codepage[number % 255] + result
+        number //= 255
+    return Codepage[LZMA_ENCODING] + result
 
 
 def CompressPermutations(string):
@@ -225,7 +270,9 @@ def Decompressed(string):
             lambda string: string,
             lambda string: "", # TODO
             lambda string: DecompressCharset(string),
-            lambda string: DecompressRLE(string)
+            lambda string: DecompressRLE(string),
+            lambda string: DecompressBrotli(string),
+            lambda string: DecompressLZMA(string)
         ][alphabet_id - 120](string[2:-1])
     elif string[0] == "“":
         return DecompressString(string[1:-1])
@@ -280,6 +327,42 @@ using run-length encoding, passed without delimiters.
         result = default_charset[number % 97] * (count + 1) + result
         number //= 97
     return result
+
+
+def DecompressBrotli(string):
+    """
+    DecompressBrotli(string) -> str
+    Returns the original form of the given string compressed \
+using Google's brotli compression method., passed without delimiters.
+
+    """
+    number = 0
+    for character in string:
+        ordinal = OrdinalLookup.get(character, ord(character))
+        number = number * 255 + ordinal - (ordinal > gap)
+    compressed = []
+    while number > 1:
+        compressed = [number % 256] + compressed
+        number //= 256
+    return brotli.decompress(bytes(compressed)).decode("ascii")
+
+
+def DecompressLZMA(string):
+    """
+    DecompressBrotli(string) -> str
+    Returns the original form of the given string compressed \
+using Google's brotli compression method., passed without delimiters.
+
+    """
+    number = 0
+    for character in string:
+        ordinal = OrdinalLookup.get(character, ord(character))
+        number = number * 255 + ordinal - (ordinal > gap)
+    compressed = []
+    while number > 1:
+        compressed = [number % 256] + compressed
+        number //= 256
+    return lzma.decompress(bytes(compressed)).decode("ascii")
 
 
 def DecompressPermutations(string):
