@@ -298,7 +298,7 @@ VerboseGrammars = {
         ["ExecuteVariable", "(", CT.Expression, CT.Expression, ")"],
         ["execvar", "(", CT.Expression, CT.Expression, ")"],
         ["SetVariable", "(", CT.Expression, CT.Expression, ")"],
-        ["MapAssignLeft", "(", CT.Binary, CT.Expression, CT.Name],
+        ["MapAssignLeft", "(", CT.Binary, CT.Expression, CT.Name, ")"],
         ["MapAssignRight", "(", CT.Binary, CT.Expression, CT.Name, ")"],
         ["MapAssign", "(", CT.Unary, CT.Name, ")"]
     ]

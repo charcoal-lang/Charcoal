@@ -184,6 +184,14 @@ class Info(Enum):
 
 
 class Whatever(object):
+    def __call__(self, *args, **kwargs):
+        if kwargs == {}:
+            if len(args) == 1:
+                return args[0]
+            if not len(args):
+                return self
+        return dict(enumerate(args), **kwargs)
+
     def __add__(self, other):
         return other
 
