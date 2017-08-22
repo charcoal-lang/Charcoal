@@ -1083,7 +1083,8 @@ a horizontal, vertical or diagonal line.
         initial_x = self.x
         initial_y = self.y
         coordinates = Coordinates()
-        for side in sides:
+        for i in range(len(sides)):
+            side = sides[i]
             direction = side[0]
             length = int(side[1])
             if length < 0:
@@ -1091,10 +1092,10 @@ a horizontal, vertical or diagonal line.
                 length *= -1
             self.PrintLine(
                 {direction},
-                length,
+                length - (i < len(sides) - 1),
                 character,
                 coordinates=coordinates,
-                move_at_end=False,
+                move_at_end=(i < len(sides) - 1),
                 multichar_fill=multichar_fill
             )
             if Info.step_canvas in self.info:
@@ -1133,7 +1134,7 @@ a horizontal, vertical or diagonal line.
             ]
             for row in coordinates.coordinates:
                 line = lines[self.y % number_of_lines]
-                while row:
+                while len(row) >= 2:
                     start, end = row[:2]
                     row = row[2:]
                     if start > end:
@@ -1146,12 +1147,17 @@ a horizontal, vertical or diagonal line.
                         length,
                         line[index:] + line[:index]
                     )
+                if len(row):
+                    position = row[0]
+                    index = position % line_length
+                    self.x = position
+                    self.Put(line[index])
                 self.y += 1
         else:
             for row in coordinates.coordinates:
                 if len(row) % 2:
                     row = row[:-1] + row[-2:]
-                while row:
+                while len(row) >= 2:
                     start, end = row[:2]
                     row = row[2:]
                     if start > end:
@@ -1161,6 +1167,10 @@ a horizontal, vertical or diagonal line.
                     length = end - start
                     self.x = start + 1
                     self.PrintLine({Direction.right}, length, character)
+                if len(row):
+                    position = row[0]
+                    self.x = position
+                    self.Put(character)
                 self.y += 1
         self.x = final_x
         self.y = final_y
