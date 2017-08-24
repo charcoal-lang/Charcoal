@@ -6,4 +6,5 @@ environment:
 build: off
 
 test_script:
+  - "%PYTHON%\\python.exe -m 'pip install regex brotli'"
   - "%PYTHON%\\python.exe test.py"

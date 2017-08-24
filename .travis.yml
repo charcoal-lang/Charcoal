@@ -2,8 +2,10 @@ matrix:
   include:
     - language: python
       python: "3.4"
+      install: sudo -H pip3 install regex brotli
     - language: python
       python: "3.6"
+      install: sudo -H pip3 install regex brotli
     - language: generic
       os: osx
       before_install:
@@ -11,4 +13,5 @@ matrix:
         - brew install python3
         - virtualenv env -p python3
         - source env/bin/activate
+      install: sudo -H pip3 install regex brotli
 script: python test.py
