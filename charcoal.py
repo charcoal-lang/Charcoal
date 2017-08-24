@@ -962,6 +962,8 @@ with a character automatically selected from -|/\\.
                     return ""  # TODO
                 return string.to_number()
             return string
+        if callable(string) and not isinstance(string, Whatever):
+            string = string()
         string = simplify(string)
         if isinstance(string, float):
             string = int(string)

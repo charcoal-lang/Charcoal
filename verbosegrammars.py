@@ -108,7 +108,8 @@ VerboseGrammars = {
         ["eval"], ["Pop"], ["Lowercase"], ["Uppercase"], ["Minimum"],
         ["Maximum"], ["Character"], ["Ordinal"], ["chr"], ["ord"], ["Reverse"],
         ["GetVariable"], ["Repeated"], ["RepeatedNull"], ["Slice"],
-        ["InclusiveRange"], ["Range"], ["~"], ["BitwiseNot"]
+        ["InclusiveRange"], ["Range"], ["~"], ["BitwiseNot"],
+        ["PythonEvaluate"], ["pyeval"]
     ],
     CT.Binary: [
         ["**"], ["+"], ["Add"], ["Plus"], ["-"], ["Subtract"], ["Minus"],
@@ -300,6 +301,8 @@ VerboseGrammars = {
         ["SetVariable", "(", CT.Expression, CT.Expression, ")"],
         ["MapAssignLeft", "(", CT.Binary, CT.Expression, CT.Name, ")"],
         ["MapAssignRight", "(", CT.Binary, CT.Expression, CT.Name, ")"],
-        ["MapAssign", "(", CT.Unary, CT.Name, ")"]
+        ["MapAssign", "(", CT.Unary, CT.Name, ")"],
+        ["PythonExecute", "(", CT.Expression, ")"],
+        ["pyexec", "(", CT.Expression, ")"],
     ]
 }

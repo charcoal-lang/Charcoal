@@ -1625,6 +1625,10 @@ O---
         self.assertEqual(Run("Ａ⟦³¦²¦¹⟧β≧⁻¹ββ"), "--\n- \n  ")
         self.assertEqual(Run("Ａ⟦³¦²¦¹⟧β≦⁻³ββ"), "  \n- \n--")
 
+    def test_lambda(self):
+        self.assertEqual(Run("«a"), "a")
+        self.assertEqual(Run("↓«abc"), "a\nb\nc")
+
     def test_compression(self):
         self.assertEqual(Run("”yＡ⟦³¦²¦¹⟧β▷sβ”"), "Ａ⟦³¦²¦¹⟧β▷sβ")
         self.assertEqual(Run("\

@@ -152,6 +152,9 @@ StringifierProcessor = {
     CT.Unary: [
         (lambda i: lambda r: "±Ｌ¬Ｉ‽ＶＶ⊟↧↥⌊⌈℅℅℅℅⮌≕″‴✂…·…～～"[i])(i)
         for i in range(25)
+    ] + [
+        lambda i: lambda r: "ＵＶ",
+        lambda i: lambda r: "ＵＶ"
     ],
     CT.Binary: [
         (lambda i: lambda r: "Ｘ⁺⁺⁺⁻⁻⁻×××÷∕∕∕÷÷﹪﹪⁼⁼‹‹››＆＆｜｜"[i])(i)
@@ -314,6 +317,8 @@ StringifierProcessor = {
         lambda r: "≔" + r[2] + r[3],
         lambda r: "≦" + r[2] + r[3] + r[4],
         lambda r: "≧" + r[2] + r[3] + r[4],
-        lambda r: "≦" + r[2] + r[3]
+        lambda r: "≦" + r[2] + r[3],
+        lambda r: "ＵＸ" + r[2],
+        lambda r: "ＵＸ" + r[2]
     ]
 }

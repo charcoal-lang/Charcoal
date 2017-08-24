@@ -273,7 +273,8 @@ InterpreterProcessor = {
             ~item
             if isinstance(item, int) or isinstance(item, float) else
             (~(float(str(item)) if "." in item else int(str(item))))
-        )
+        ),
+        lambda r: lambda item, c: eval(item)
     ],
     CharcoalToken.Binary: [
         lambda r: lambda left, right, c: c.Add(left, right),
@@ -499,6 +500,7 @@ InterpreterProcessor = {
         lambda r: lambda c: c.MapAssignLeft(r[3], r[2](c), r[1]),
         lambda r: lambda c: c.MapAssign(r[2], r[1]),
         lambda r: lambda c: c.MapAssignRight(r[3], r[2](c), r[1]),
-        lambda r: lambda c: c.MapAssign(r[2], r[1])
+        lambda r: lambda c: c.MapAssign(r[2], r[1]),
+        lambda r: lambda c: exec(r[1](c))
     ]
 }

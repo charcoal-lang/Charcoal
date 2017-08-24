@@ -88,6 +88,6 @@ UnicodeCommandRegex = "Ａ-Ｚ⁰¹²³⁴-⁹α-ξπ-ω⟦⟧⦃⦄«»⁺⁻×
 sCommand = "[%s]" % UnicodeCommandRegex
 sOperator = """\
 [ＳＮ‽¬Ｉ‽Ｖ⊟➙⧴″‴↧↥⌊⌈℅⮌⁺⁻×÷∕﹪⁼‹›＆｜～…Ｘ§？⪫⪪⌕◧◨№⎇Ｅ∧∨▷≕✂⊙⬤ⅈⅉ；]\
-|Ｋ.|±Ｌ|⊞Ｏ|⌕Ａ"""
+|Ｋ.|±Ｌ|⊞Ｏ|⌕Ａ|ＵＶ"""
 rCommand = re.compile("(%s)" % sCommand)
 rOperator = re.compile("(%s)" % sOperator)
