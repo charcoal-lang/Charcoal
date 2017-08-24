@@ -35,7 +35,7 @@ foo\
 
 ## FAQ
 - When I run Charcoal it throws some errors about UTF-8 characters and exits.
-	- Maybe you don't have Python 3 installed. Try installing Python 3 from [here](https://www.python.org/downloads/windows/).
+	- Maybe you don't have Python 3 installed. Try installing Python 3 from [here](https://www.python.org/downloads/).
 - When I run Charcoal it throws some errors and exits.
 	- If the message comes with a stack trace, it looks like you have found a bug. File a bug report [here](https://github.com/somebody1234/Charcoal/issues), and we'll come back to you as soon as we can.
 
