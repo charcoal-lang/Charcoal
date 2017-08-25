@@ -8,7 +8,7 @@ matrix:
         apt:
           packages:
             - python3-setuptools
-      install: easy_install3 regex brotli
+      install: sudo easy_install3 regex brotli
     - language: python
       python: "3.6"
       dist: trusty
@@ -17,7 +17,7 @@ matrix:
         apt:
           packages:
             - python3-setuptools
-      install: easy_install3 regex brotli
+      install: sudo easy_install3 regex brotli
     - language: generic
       os: osx
       before_install:
