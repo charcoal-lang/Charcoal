@@ -2,15 +2,21 @@ matrix:
   include:
     - language: python
       python: "3.4"
-      before_install:
-        - sudo apt-get -qq update
-        - sudo apt-get install -y python3-setuptools
+      dist: trusty
+      sudo: false
+      addons:
+        apt:
+          packages:
+            - python3-setuptools
       install: easy_install3 regex brotli
     - language: python
       python: "3.6"
-      before_install:
-        - sudo apt-get -qq update
-        - sudo apt-get install -y python3-setuptools
+      dist: trusty
+      sudo: false
+      addons:
+        apt:
+          packages:
+            - python3-setuptools
       install: easy_install3 regex brotli
     - language: generic
       os: osx
