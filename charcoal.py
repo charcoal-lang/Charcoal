@@ -3038,6 +3038,9 @@ whether the output wil be right-padded.
         If is_command is false, return the result.
 
         """
+        if type(code) == Expression:
+            code = code.run()
+        code = str(code)
         if is_command:
             Run(code, charcoal=self)
             return

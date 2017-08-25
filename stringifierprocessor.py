@@ -47,9 +47,7 @@ StringifierProcessor = {
     ],
     CT.String: [
         lambda r: [Compressed(
-            rCommand.sub(r"´\1", r[0])
-                    .replace("\n", "¶")
-                    .replace("\r", "⸿"),
+            r[0].replace("\n", "¶").replace("\r", "⸿"),
             True
         )]
     ],

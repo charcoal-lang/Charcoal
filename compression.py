@@ -1,4 +1,4 @@
-from codepage import OrdinalLookup, Codepage
+from codepage import OrdinalLookup, Codepage, rCommand
 from string import ascii_lowercase, ascii_uppercase, digits
 import re
 import lzma
@@ -47,7 +47,7 @@ def Compressed(string, escape=False):
             return "”" + Codepage[RAW_ENCODING] + string + "”"
         return (
             "´" * (string[0] in "+X*|-\\/<>^KLTVY7¬") +
-            re.sub("[^ -~¶⸿]", "´\1", string)
+            rCommand.sub("´\1", string)
         )
     original_string, string = string, re.sub(
         "¶", "\n", re.sub("⸿", "\r", string)
@@ -71,7 +71,7 @@ def Compressed(string, escape=False):
             return "”" + Codepage[RAW_ENCODING] + original_string + "”"
         return (
             "´" * (original_string[0] in "+X*|-\\/<>^KLTVY7¬") +
-            re.sub("[^ -~¶⸿]", "´\1", original_string)
+            rCommand.sub("´\1", original_string)
         )
     if len(compressed) == minimum_length:
         return "“" + compressed + "”"
