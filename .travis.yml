@@ -2,10 +2,16 @@ matrix:
   include:
     - language: python
       python: "3.4"
-      install: sudo -H pip3 install regex brotli
+      before_install:
+        - sudo apt-get -qq update
+        - sudo apt-get install -y python3-setuptools
+      install: easy_install3 regex brotli
     - language: python
       python: "3.6"
-      install: sudo -H pip3 install regex brotli
+      before_install:
+        - sudo apt-get -qq update
+        - sudo apt-get install -y python3-setuptools
+      install: easy_install3 regex brotli
     - language: generic
       os: osx
       before_install:
