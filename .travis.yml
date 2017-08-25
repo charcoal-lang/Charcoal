@@ -3,7 +3,7 @@ matrix:
     - language: python
       python: "3.4"
       dist: trusty
-      sudo: false
+      sudo: required
       addons:
         apt:
           packages:
@@ -12,7 +12,7 @@ matrix:
     - language: python
       python: "3.6"
       dist: trusty
-      sudo: false
+      sudo: required
       addons:
         apt:
           packages:
