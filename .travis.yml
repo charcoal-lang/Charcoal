@@ -11,5 +11,5 @@ matrix:
         - brew install python3
         - virtualenv env -p python3
         - source env/bin/activate
-      install: sudo pip3 install -r requirements.txt
+      install: sudo -H pip3 install -r requirements.txt
 script: python test.py
