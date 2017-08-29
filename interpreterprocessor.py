@@ -5,9 +5,10 @@ from charcoaltoken import CharcoalToken
 from unicodegrammars import UnicodeGrammars
 from wolfram import (
     String, Rule, DelayedRule, Span, Repeated, RepeatedNull, PatternTest,
-    Number
+    Number, Expression
 )
 import re
+from math import floor, ceil
 
 
 def FindAll(haystack, needle):
@@ -26,6 +27,257 @@ def FindAll(haystack, needle):
 
 def ListFind(haystack, needle):
     return haystack.index(needle) if needle in haystack else -1
+
+
+def iter_apply(iterable, function):
+    clone = iterable[:]
+    clone[:] = [function(item) for item in clone]
+    return clone
+
+
+def negate_str(string):
+    try:
+        return float(string) if "." in string else int(string)
+    except:
+        return string[::-1]
+
+
+def abs_str(string):
+    try:
+        return abs(float(string) if "." in string else int(string))
+    except:
+        return string  # ???
+
+
+def _int(obj):
+    if isinstance(obj, str) and re.match("\d+\.?\d*$", obj):
+        return int(float(obj))
+    return int(obj)
+
+
+def product(item):
+    result = 1
+    for part in item:
+        result *= part
+    return result
+
+
+def Negate(item):
+    if isinstance(item, int) or isinstance(item, float):
+        return -item
+    if isinstance(item, str):
+        return negate_str(item)
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        return String(negate_str(str(item)))
+    if hasattr(item, "__iter__"):
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return iter_apply(item, Negate)
+
+
+def Abs(item):
+    if isinstance(item, int) or isinstance(item, float):
+        return abs(item)
+    if isinstance(item, str):
+        return abs_str(item)
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        return String(abs_str(str(item)))
+    if hasattr(item, "__iter__"):
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return iter_apply(item, Abs)
+
+
+def Sum(item):
+    if isinstance(item, float):
+        item = int(item)
+    if isinstance(item, int):
+        result = 0
+        while item:
+            result += item % 10
+            item //= 10
+        return result
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        item = str(item)
+    if isinstance(item, str):
+        if all([c in "0123456789." for c in item]) and item.count(".") < 1:
+            return sum([0 if c == "." else int(c) for c in item])
+        return sum([
+            float(c) if "." in c else int(c)
+            for c in re.findall("\d+\.?\d*|\.\d+", item)
+        ])
+    if hasattr(item, "__iter__") and item:
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        if isinstance(item[0], str):
+            return "".join(item)
+        if isinstance(item[0], String):
+            return "".join(map(str, item))
+        return sum(item)
+
+
+def Product(item):
+    if isinstance(item, float):
+        item = int(item)
+    if isinstance(item, int):
+        result = 1
+        while item:
+            result *= item % 10
+            item //= 10
+        return result
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        item = str(item)
+    if isinstance(item, str):
+        if all([c in "0123456789." for c in item]) and item.count(".") < 1:
+            return product([0 if c == "." else int(c) for c in item])
+        return product([
+            float(c) if "." in c else int(c)
+            for c in re.findall("\d+\.?\d*|\.\d+", item)
+        ])
+    if hasattr(item, "__iter__") and item:
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        # if isinstance(item[0], str):
+        #     return "".join(item)
+        # if isinstance(item[0], String):
+        #     return "".join(map(str, item))
+        return product(item)
+
+
+def Incremented(item):
+    if isinstance(item, float) or isinstance(item, int):
+        return round(item + 1, 15)
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        item = str(item)
+    if isinstance(item, str):
+        item = float(item) if "." in item else int(item)
+        return Incremented(item)
+    if hasattr(item, "__iter__") and item:
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return iter_apply(item, Incremented)
+
+
+def Decremented(item):
+    if isinstance(item, float) or isinstance(item, int):
+        return round(item - 1, 15)
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        item = str(item)
+    if isinstance(item, str):
+        item = float(item) if "." in item else int(item)
+        return Decremented(item)
+    if hasattr(item, "__iter__") and item:
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return iter_apply(item, Decremented)
+
+
+def Doubled(item):
+    if isinstance(item, float) or isinstance(item, int):
+        return round(item * 2, 15)
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        item = str(item)
+    if isinstance(item, str):
+        item = float(item) if "." in item else int(item)
+        return Doubled(item)
+    if hasattr(item, "__iter__") and item:
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return iter_apply(item, Doubled)
+
+
+def Halved(item):
+    if isinstance(item, float) or isinstance(item, int):
+        return round(item / 2, 15)
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        item = str(item)
+    if isinstance(item, str):
+        item = float(item) if "." in item else int(item)
+        return Halved(item)
+    if hasattr(item, "__iter__") and item:
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return iter_apply(item, Halved)
+
+
+def Lower(item):
+    if isinstance(item, int) or isinstance(item, float):
+        return str(item)
+    if isinstance(item, str):
+        return item.lower()
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        item = String(str(item).lower())
+    if isinstance(item, str):
+        return item.lower()
+    if hasattr(item, "__iter__") and item:
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return iter_apply(item, Lower)
+
+
+def Min(item):
+    if isinstance(item, int) or isinstance(item, float):
+        return floor(item)
+    if isinstance(item, str):
+        return chr(min(map(ord, item)))
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        return String(Min(str(item)))
+    if hasattr(item, "__iter__") and item:
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return min(item)
+
+
+def Max(item):
+    if isinstance(item, int) or isinstance(item, float):
+        return ceil(item)
+    if isinstance(item, str):
+        return chr(max(map(ord, item)))
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        item = String(str(item).lower())
+    if isinstance(item, str):
+        return item.lower()
+    if hasattr(item, "__iter__") and item:
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return max(item)
+
+
+def Upper(item):
+    if isinstance(item, int) or isinstance(item, float):
+        return str(item)
+    if isinstance(item, str):
+        return item.upper()
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        item = String(str(item).upper())
+    if hasattr(item, "__iter__") and item:
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return iter_apply(item, Upper)
 
 
 def direction(dir):
@@ -127,10 +379,12 @@ InterpreterProcessor = {
         lambda r: lambda c: [Direction.down_left, Direction.left] + r[1](c),
         lambda r: lambda c: [Direction.down, Direction.left] + r[1](c),
         lambda r: lambda c: r[1](c),
+        lambda r: lambda c: r[1](c),
         lambda r: lambda c: [direction(item) for item in r[1](c)],
         lambda r: lambda c: []
     ],
     CharcoalToken.Side: [lambda r: lambda c: (r[0](c), r[1](c))],
+    CharcoalToken.EOF: [lambda r: None],
     CharcoalToken.String: [lambda r: r],
     CharcoalToken.Number: [lambda r: r],
     CharcoalToken.Name: [lambda r: r],
@@ -174,15 +428,15 @@ InterpreterProcessor = {
     CharcoalToken.List: [
         lambda r: lambda c: r[1](c),
         lambda r: lambda c: []
-    ],
+    ] * 2,
     CharcoalToken.WolframList: [
         lambda r: lambda c: r[1](c),
         lambda r: lambda c: []
-    ],
+    ] * 2,
     CharcoalToken.Dictionary: [
         lambda r: lambda c: dict(r[1](c)),
         lambda r: lambda c: {}
-    ],
+    ] * 2,
 
     CharcoalToken.WolframExpression: [
         lambda r: lambda c: r[0](c),
@@ -194,7 +448,9 @@ InterpreterProcessor = {
         lambda r: lambda c: c.Retrieve(r[0]),
         lambda r: lambda c: r[0](c),
         lambda r: lambda c: r[1](c),
+        lambda r: lambda c: r[1](c),
         lambda r: lambda c: r[0](c),
+        lambda r: lambda c: c.Lambdafy(r[1]),
         lambda r: lambda c: c.Lambdafy(r[1]),
         lambda r: lambda c: r[0](c),
         lambda r: lambda c: r[0](r[1], r[2], r[3], r[4], c),
@@ -220,14 +476,14 @@ InterpreterProcessor = {
     ],
     CharcoalToken.Unary: [
         lambda r: lambda item, c: (
-            item[::-1]
+            iter_apply(item, lambda x: -x)
             if hasattr(item, "__iter__") else
             (-item)
             if (
                 isinstance(item, int) or isinstance(item, float) or
                 isinstance(item, Number)
             ) else
-            str(item)[::-1]
+            negate_str(str(item))
         ),
         lambda r: lambda item, c: (
             len(item) if hasattr(item, "__iter__") else len(str(item))
@@ -237,10 +493,10 @@ InterpreterProcessor = {
         lambda r: lambda item, c: c.Random(item),
         lambda r: lambda item, c: c.Evaluate(item),
         lambda r: lambda item, c: item.pop(),
-        lambda r: lambda item, c: str(item).lower(),
-        lambda r: lambda item, c: str(item).upper(),
-        lambda r: lambda item, c: min(item),
-        lambda r: lambda item, c: max(item),
+        lambda r: lambda item, c: Lower(item),
+        lambda r: lambda item, c: Upper(item),
+        lambda r: lambda item, c: Min(item),
+        lambda r: lambda item, c: Max(item),
         lambda r: lambda item, c: c.ChrOrd(item),
         lambda r: lambda item, c: (
             item[::-1]
@@ -274,6 +530,13 @@ InterpreterProcessor = {
             if isinstance(item, int) or isinstance(item, float) else
             (~(float(str(item)) if "." in item else int(str(item))))
         ),
+        lambda r: lambda item, c: Abs(item),
+        lambda r: lambda item, c: Sum(item),
+        lambda r: lambda item, c: Product(item),
+        lambda r: lambda item, c: Incremented(item),
+        lambda r: lambda item, c: Decremented(item),
+        lambda r: lambda item, c: Doubled(item),
+        lambda r: lambda item, c: Halved(item),
         lambda r: lambda item, c: eval(item)
     ],
     CharcoalToken.Binary: [
@@ -333,12 +596,14 @@ InterpreterProcessor = {
         lambda r: lambda left, right, c: Rule(left, right),
         lambda r: lambda left, right, c: DelayedRule(left, right),
         lambda r: lambda left, right, c: PatternTest(left, right),
-        lambda r: lambda left, right, c: left[right:],
+        lambda r: lambda left, right, c: left[_int(right):],
         lambda r: lambda left, right, c: c.Any(left, right),
         lambda r: lambda left, right, c: c.All(left, right)
     ],
-    CharcoalToken.Ternary: [lambda r: lambda x, y, z, c: x[y:z]],
-    CharcoalToken.Quarternary: [lambda r: lambda x, y, z, w, c: x[y:z:w]],
+    CharcoalToken.Ternary: [lambda r: lambda x, y, z, c: x[_int(y):_int(z)]],
+    CharcoalToken.Quarternary: [lambda r: lambda x, y, z, w, c: x[
+        _int(y):_int(z):_int(w)
+    ]],
     CharcoalToken.LazyUnary: [],
     CharcoalToken.LazyBinary: [
         lambda r: lambda left, right, c: left(c) and right(c),
@@ -360,6 +625,7 @@ InterpreterProcessor = {
         lambda r: lambda c: None
     ],
     CharcoalToken.Body: [
+        lambda r: lambda c: r[1](c),
         lambda r: lambda c: r[1](c),
         lambda r: lambda c: r[0](c)
     ],
@@ -474,7 +740,7 @@ InterpreterProcessor = {
         lambda r: lambda c: c.If(r[1], r[2], lambda c: None),
         lambda r: lambda c: c.Assign(r[1](c), r[2](c), r[3](c)),
         lambda r: lambda c: c.Assign(r[1](c), r[2]),
-        lambda r: lambda c: c.Assign(r[1](c), r[2](c)),
+        lambda r: lambda c: c.Assign(r[2](c), r[1](c)),
         lambda r: lambda c: c.Fill(r[1](c)),
         lambda r: lambda c: c.SetBackground(r[1](c)),
         lambda r: lambda c: c.Dump(),
@@ -488,15 +754,16 @@ InterpreterProcessor = {
         lambda r: lambda c: c.Clear(False),
         lambda r: lambda c: c.Extend(r[1](c), r[2](c)),
         lambda r: lambda c: c.Extend(r[1](c)),
-        lambda r: lambda c: r[1](c).append(r[2](c)),
+        lambda r: lambda c: r[1](c).append(r[2](c))
+    ] + [
         lambda r: lambda c: dict(r[2](c)).get(r[1](c), r[3])(c),
         lambda r: lambda c: dict(r[2](c)).get(
             r[1](c), lambda *arguments: None
-        )(c),
+        )(c)
+    ] * 3 + [
         lambda r: lambda c: c.Map(r[1](c), r[2], True),
         lambda r: lambda c: c.ExecuteVariable(r[1](c), r[2](c)),
         lambda r: lambda c: c.ExecuteVariable(r[1](c), [r[2](c)]),
-        lambda r: lambda c: c.Assign(r[2](c), r[1](c)),
         lambda r: lambda c: c.MapAssignLeft(r[3], r[2](c), r[1]),
         lambda r: lambda c: c.MapAssign(r[2], r[1]),
         lambda r: lambda c: c.MapAssignRight(r[3], r[2](c), r[1]),

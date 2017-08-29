@@ -26,6 +26,7 @@ UnicodeGrammars = {
         ["7", CT.Multidirectional],
         ["¬", CT.Multidirectional],
         ["⟦", CT.Multidirectional, "⟧"],
+        ["⟦", CT.Multidirectional, CT.EOF],
         ["✳✳", CT.Expression],
         [CT.Separator]
     ],
@@ -55,9 +56,24 @@ UnicodeGrammars = {
     ],
     CT.Cases: [[CT.Expression, CT.Body, CT.Cases], []],
 
-    CT.WolframList: [["⟦", CT.WolframExpressions, "⟧"], ["⟦", "⟧"]],
-    CT.List: [["⟦", CT.Expressions, "⟧"], ["⟦", "⟧"]],
-    CT.Dictionary: [["⦃", CT.PairExpressions, "⦄"], ["⦃", "⦄"]],
+    CT.WolframList: [
+        ["⟦", CT.WolframExpressions, "⟧"],
+        ["⟦", "⟧"],
+        ["⟦", CT.WolframExpressions, CT.EOF],
+        ["⟦", CT.EOF]
+    ],
+    CT.List: [
+        ["⟦", CT.Expressions, "⟧"],
+        ["⟦", "⟧"],
+        ["⟦", CT.Expressions, CT.EOF],
+        ["⟦", CT.EOF]
+    ],
+    CT.Dictionary: [
+        ["⦃", CT.PairExpressions, "⦄"],
+        ["⦃", "⦄"],
+        ["⦃", CT.PairExpressions, CT.EOF],
+        ["⦃", CT.EOF]
+    ],
 
     CT.WolframExpression: [[CT.Span, CT.Separator], [CT.Expression]],
     CT.Expression: [
@@ -66,8 +82,10 @@ UnicodeGrammars = {
         [CT.Name, CT.Separator],
         [CT.List, CT.Separator],
         ["⟦", CT.Multidirectional, "⟧", CT.Separator],
+        ["⟦", CT.Multidirectional, CT.EOF],
         [CT.Dictionary, CT.Separator],
         ["«", CT.Program, "»", CT.Separator],
+        ["«", CT.Program, CT.EOF],
         [CT.OtherOperator, CT.Separator],
         [
             CT.LazyQuarternary, CT.Expression, CT.Expression, CT.Expression,
@@ -91,7 +109,7 @@ UnicodeGrammars = {
     CT.Unary: [
         ["±"], ["Ｌ"], ["¬"], ["Ｉ"], ["‽"], ["Ｖ"], ["⊟"], ["↧"], ["↥"], ["⌊"],
         ["⌈"], ["℅"], ["⮌"], ["≕"], ["″"], ["‴"], ["✂"], ["…·"], ["…"], ["～"],
-        ["ＵＶ"]
+        ["↔"], ["Σ"], ["Π"], ["⊕"], ["⊖"], ["⊗"], ["⊘"], ["ＵＶ"]
     ],
     CT.Binary: [
         ["⁺"], ["⁻"], ["×"], ["÷"], ["∕"], ["﹪"], ["⁼"], ["‹"], ["›"], ["＆"],
@@ -113,7 +131,11 @@ UnicodeGrammars = {
     ],
 
     CT.Program: [[CT.Command, CT.Separator, CT.Program], []],
-    CT.Body: [["«", CT.Program, "»"], [CT.Command, CT.Separator]],
+    CT.Body: [
+        ["«", CT.Program, "»"],
+        ["«", CT.Program, CT.EOF],
+        [CT.Command, CT.Separator]
+    ],
     CT.Command: [
         ["Ｓ", CT.Name],
         ["Ｎ", CT.Name],
@@ -209,9 +231,9 @@ UnicodeGrammars = {
         ["Ｗ", CT.Expression, CT.Body],
         ["¿", CT.Expression, CT.Body, CT.Body],
         ["¿", CT.Expression, CT.Body],
-        ["Ａ§", CT.Expression, CT.Expression, CT.Expression],
-        ["Ａ", CT.Expression, CT.Name],
-        ["Ａ", CT.Expression, CT.Expression],
+        ["≔§", CT.Expression, CT.Expression, CT.Expression],
+        ["≔", CT.Expression, CT.Name],
+        ["≔", CT.Expression, CT.Expression],
         ["¤", CT.Expression],
         ["ＵＢ", CT.Expression],
         ["Ｄ"],
@@ -226,12 +248,15 @@ UnicodeGrammars = {
         ["ＵＥ", CT.Expression, CT.Expression],
         ["ＵＥ", CT.Expression],
         ["⊞", CT.Expression, CT.Expression],
+        ["≡", "«", CT.Expression, CT.Cases, CT.Body, "»"],
+        ["≡", "«", CT.Expression, CT.Cases, "»"],
+        ["≡", "«", CT.Expression, CT.Cases, CT.Body, CT.EOF],
+        ["≡", "«", CT.Expression, CT.Cases, CT.EOF],
         ["≡", CT.Expression, CT.Cases, CT.Body],
         ["≡", CT.Expression, CT.Cases],
         ["ＵＭ", CT.Expression, CT.Expression],
         ["▶", CT.Expression, CT.WolframList],
         ["▶", CT.Expression, CT.WolframExpression],
-        ["≔", CT.Expression, CT.Expression],
         ["≦", CT.Binary, CT.Expression, CT.Name],
         ["≦", CT.Unary, CT.Name],
         ["≧", CT.Binary, CT.Expression, CT.Name],

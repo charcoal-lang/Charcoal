@@ -24,6 +24,7 @@ ASTProcessor = {
     ] * (len(UnicodeGrammars[CharcoalToken.Multidirectional]) - 4) + [
         lambda r: r[1],
         lambda r: r[1],
+        lambda r: r[1],
         lambda r: ["Multidirectional"]
     ],
     CharcoalToken.Side: [lambda r: ["Side"] + r],
@@ -76,15 +77,15 @@ ASTProcessor = {
     CharcoalToken.List: [
         lambda r: ["List"] + r[1][1:],
         lambda r: ["List"]
-    ],
+    ] * 2,
     CharcoalToken.WolframList: [
         lambda r: ["Wolfram list"] + r[1][1:],
         lambda r: ["Wolfram list"]
-    ],
+    ] * 2,
     CharcoalToken.Dictionary: [
         lambda r: ["Dictionary"] + r[1][1:],
         lambda r: ["Dictionary"]
-    ],
+    ] * 2,
 
     CharcoalToken.WolframExpression: [
         lambda r: r[0],
@@ -96,7 +97,9 @@ ASTProcessor = {
         lambda r: r[0],
         lambda r: r[0],
         lambda r: r[1],
+        lambda r: r[1],
         lambda r: r[0],
+        lambda r: r[1],
         lambda r: r[1],
         lambda r: r[0],
         lambda r: r,
@@ -135,7 +138,18 @@ ASTProcessor = {
         lambda r: r[0] + ": Get variable",
         lambda r: r[0] + ": Repeated",
         lambda r: r[0] + ": Repeated null",
-        lambda r: r[0] + ": Slice"
+        lambda r: r[0] + ": Slice",
+        lambda r: r[0] + ": Inclusive range",
+        lambda r: r[0] + ": Range",
+        lambda r: r[0] + ": Not",
+        lambda r: r[0] + ": Abs",
+        lambda r: r[0] + ": Sum",
+        lambda r: r[0] + ": Product",
+        lambda r: r[0] + ": Incremented",
+        lambda r: r[0] + ": Decremented",
+        lambda r: r[0] + ": Doubled",
+        lambda r: r[0] + ": Halved",
+        lambda r: r[0] + ": eval"
     ],
     CharcoalToken.Binary: [
         lambda r: r[0] + ": Sum",
@@ -187,6 +201,7 @@ ASTProcessor = {
         lambda r: ["Program"]
     ],
     CharcoalToken.Body: [
+        lambda r: r[1],
         lambda r: r[1],
         lambda r: r[0]
     ],
@@ -272,6 +287,10 @@ ASTProcessor = {
         lambda r: [r[0] + ": Map"] + r[1:],
         lambda r: [r[0] + ": Execute variable"] + r[1:],
         lambda r: [r[0] + ": Execute variable"] + r[1:],
-        lambda r: [r[0] + ": Set variable"] + r[1:]
+        lambda r: [r[0] + ": Map assign left"] + r[1:],
+        lambda r: [r[0] + ": Map assign"] + r[1:],
+        lambda r: [r[0] + ": Map assign right"] + r[1:],
+        lambda r: [r[0] + ": Map assign"] + r[1:],
+        lambda r: [r[0] + ": exec"] + r[1:],
     ]
 }

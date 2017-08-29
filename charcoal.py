@@ -31,7 +31,7 @@ from directiondictionaries import *
 from unicodegrammars import UnicodeGrammars
 from verbosegrammars import VerboseGrammars
 from astprocessor import ASTProcessor
-from interpreterprocessor import InterpreterProcessor
+from interpreterprocessor import InterpreterProcessor, iter_apply
 from stringifierprocessor import StringifierProcessor
 from codepage import (
     UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage, sOperator
@@ -57,6 +57,42 @@ for alias, builtin in [
     ("x", max), ("z", zip)
 ]:
     setattr(builtins, alias, builtin)
+
+_h = h
+
+
+def h(item):
+    if isinstance(item, int):
+        return hex(item)
+    if isinstance(item, float):
+        return item.hex()
+    if isinstance(item, String):
+        item = str(item)
+    if isinstance(item, str):
+        item = float(item) if "." in item else int(item)
+        return h(item)
+    if hasattr(item, "__iter__"):
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return iter_apply(item, h)
+
+_b = b
+
+
+def b(item):
+    if isinstance(item, float):
+        item = int(item)
+    if isinstance(item, int):
+        return bin(item)
+    if isinstance(item, String):
+        item = str(item)
+    if isinstance(item, str):
+        item = float(item) if "." in item else int(item)
+        return b(item)
+    if hasattr(item, "__iter__"):
+        if isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return iter_apply(item, b)
 
 imports = {}
 python_function_is_command = {}
@@ -3718,7 +3754,13 @@ starting from the token given as grammar.
                             success = False
                             break
                 else:
-                    if token == CharcoalToken.String:
+                    if token == CharcoalToken.EOF:
+                        if index == len(code):
+                            tokens += [""]
+                        else:
+                            success = False
+                            break
+                    elif token == CharcoalToken.String:
                         if index == len(code):
                             success = False
                             break
@@ -3732,17 +3774,22 @@ starting from the token given as grammar.
                             character = code[index]
                         if old_index == index:
                             if character == "“" or character == "”":
+                                insert_endquote = False
                                 index += 1
                                 character = code[index]
                                 while character != "”":
                                     index += 1
                                     if index >= len(code):
+                                        insert_endquote = True
                                         break
                                     character = code[index]
                                 if index < len(code):
                                     index += 1
                                 tokens += processor[token][0]([
-                                    Decompressed(code[old_index:index])
+                                    Decompressed(
+                                        code[old_index:index] +
+                                        "”" * insert_endquote
+                                    )
                                 ])
                             else:
                                 success = False
@@ -3963,7 +4010,6 @@ symbols they represent.
         code = Degrave(code)
     for python_function in re.findall("ＵＰ[ -~]+", code):
         AddPythonFunction(python_function)
-    code += "»" * code.count("«")
     result = ParseExpression(code, 0, grammar, grammars, processor)
     if not result:
         return result

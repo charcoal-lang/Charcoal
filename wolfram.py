@@ -538,10 +538,12 @@ class List(Expression):
         return len(self.leaves)
 
     def __getitem__(self, i):
+        if isinstance(i, slice):
+            return List(*self.leaves.__getitem__())
         return self.leaves[i]
 
     def __setitem__(self, i, value):
-        self.leaves[i] = value
+        self.leaves.__setitem__(i, value)
 
     def __iter__(self):
         return iter(self.leaves)

@@ -35,6 +35,8 @@ CharcoalTokenNames = [
     "Program",
     "Body",
     "Command",
+
+    "EOF",
 ]
 
 

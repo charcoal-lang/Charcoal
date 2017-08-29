@@ -108,7 +108,9 @@ VerboseGrammars = {
         ["eval"], ["Pop"], ["Lowercase"], ["Uppercase"], ["Minimum"],
         ["Maximum"], ["Character"], ["Ordinal"], ["chr"], ["ord"], ["Reverse"],
         ["GetVariable"], ["Repeated"], ["RepeatedNull"], ["Slice"],
-        ["InclusiveRange"], ["Range"], ["~"], ["BitwiseNot"],
+        ["InclusiveRange"], ["Range"], ["~"], ["BitwiseNot"], ["Absolute"],
+        ["abs"], ["Sum"], ["Product"], ["Incremented"], ["++"],
+        ["Decremented"], ["--"], ["Doubled"], ["***"], ["Halved"], ["\\\\"],
         ["PythonEvaluate"], ["pyeval"]
     ],
     CT.Binary: [
@@ -273,7 +275,7 @@ VerboseGrammars = {
             ")"
         ],
         ["Assign", "(", CT.Expression, CT.Name, ")"],
-        ["Assign", "(", CT.Expression, CT.Expression, ")"],
+        ["SetVariable", "(", CT.Expression, CT.Expression, ")"],
         ["Fill", "(", CT.Expression, ")"],
         ["SetBackground", "(", CT.Expression, ")"],
         ["Dump", "(", ")"],
@@ -298,7 +300,6 @@ VerboseGrammars = {
         ["execvar", "(", CT.Expression, CT.WolframList, ")"],
         ["ExecuteVariable", "(", CT.Expression, CT.Expression, ")"],
         ["execvar", "(", CT.Expression, CT.Expression, ")"],
-        ["SetVariable", "(", CT.Expression, CT.Expression, ")"],
         ["MapAssignLeft", "(", CT.Binary, CT.Expression, CT.Name, ")"],
         ["MapAssignRight", "(", CT.Binary, CT.Expression, CT.Name, ")"],
         ["MapAssign", "(", CT.Unary, CT.Name, ")"],

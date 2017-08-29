@@ -148,8 +148,9 @@ StringifierProcessor = {
         lambda r: "ⅉ"
     ],
     CT.Unary: [
-        (lambda i: lambda r: "±Ｌ¬Ｉ‽ＶＶ⊟↧↥⌊⌈℅℅℅℅⮌≕″‴✂…·…～～"[i])(i)
-        for i in range(25)
+        (lambda i: lambda r: "±Ｌ¬Ｉ‽ＶＶ⊟↧↥⌊⌈℅℅℅℅⮌≕″‴✂…·…～～↔↔ΣΠ\
+⊕⊕⊖⊖⊗⊗⊘⊘"[i])(i)
+        for i in range(33)
     ] + [
         lambda i: lambda r: "ＵＶ",
         lambda i: lambda r: "ＵＶ"
@@ -288,9 +289,9 @@ StringifierProcessor = {
         lambda r: "Ｗ" + r[2] + r[4],
         lambda r: "¿" + r[2] + r[4] + r[6],
         lambda r: "¿" + r[2] + r[4],
-        lambda r: "Ａ§" + r[2] + r[3] + r[4],
-        lambda r: "Ａ" + r[2] + r[3],
-        lambda r: "Ａ" + r[2] + r[3],
+        lambda r: "≔§" + r[2] + r[3] + r[4],
+        lambda r: "≔" + r[2] + r[3],
+        lambda r: "≔" + r[2] + r[3],
         lambda r: "¤" + r[2],
         lambda r: "ＵＢ" + r[2],
         lambda r: "Ｄ",
@@ -312,7 +313,6 @@ StringifierProcessor = {
         lambda r: "▶" + r[2] + r[3],
         lambda r: "▶" + r[2] + r[3],
         lambda r: "▶" + r[2] + r[3],
-        lambda r: "≔" + r[2] + r[3],
         lambda r: "≦" + r[2] + r[3] + r[4],
         lambda r: "≧" + r[2] + r[3] + r[4],
         lambda r: "≦" + r[2] + r[3],

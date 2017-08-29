@@ -7,8 +7,6 @@ Contains unit tests, and runs them when invoked.
 
 """
 
-# TODO: test capitalum (crlf)
-
 from charcoal import Run
 import unittest
 import sys
@@ -80,6 +78,7 @@ Print('abc');Move(:Left);Move(:Left);Move(:Left);Print('abc')""",
 * *  
 *  * 
 *   *""")
+        self.assertEqual(Run("foo ¦bar⸿baz"), "foo bar\nbaz    ")
         self.assertEqual(Run("Multiprint('abc')", verbose=True), "abc")
         self.assertEqual(Run("Multiprint(:Right, 'abc')", verbose=True), "abc")
         self.assertEqual(
@@ -129,6 +128,7 @@ ab
     def test_eval(self):
         self.assertEqual(Run("ＶＳ", "abc←←Ｍ←abc"), "abc")
         self.assertEqual(Run("↓ＶＳ", "⁺⁵¦⁵"), ("|\n" * 10)[:-1])
+        self.assertEqual(Run("ＵＶ'foobar'"), "foobar")
         self.assertEqual(
             Run("Evaluate(InputString())", "abc←←Ｍ←abc", verbose=True),
             "abc"
@@ -405,7 +405,7 @@ cbabc
     def test_for(self):
         self.assertEqual(Run("Ｆ⁵a"), "aaaaa")
         self.assertEqual(Run("ＦabcιＦdefι"), "abcdef")
-        self.assertEqual(Run("Ａ⁵ιＦＳκ", "foobar"), "foobar")
+        self.assertEqual(Run("≔⁵ιＦＳκ", "foobar"), "foobar")
         self.assertEqual(Run("≔i«ικλ»▶i⟦a¦bc¦d⟧"), "abcd")
         self.assertEqual(Run("for(5)Print('a')", verbose=True), "aaaaa")
         self.assertEqual(
@@ -418,7 +418,7 @@ cbabc
         )
 
     def test_while(self):
-        self.assertEqual(Run("Ａ⁵βＷβ«abＡ⁻β¹β»"), "ababababab")
+        self.assertEqual(Run("≔⁵βＷβ«ab≔⁻β¹β»"), "ababababab")
         self.assertEqual(
             Run("""\
 Assign(5, b);
@@ -447,6 +447,9 @@ if (0) {
     def test_slice(self):
         self.assertEqual(Run("✂abc"), "abc")
         self.assertEqual(Run("✂abcd²"), "cd")
+        self.assertEqual(Run("✂abcd²·²"), "cd")
+        self.assertEqual(Run("✂abcd¦2"), "cd")
+        self.assertEqual(Run("✂abcd¦2.2"), "cd")
         self.assertEqual(Run("✂abc⁰¦²"), "ab")
         self.assertEqual(Run("✂abcdefg⁰¦⁹¦²"), "aceg")
 
@@ -1468,9 +1471,13 @@ b   a   z
 
     def test_minimum(self):
         self.assertEqual(Run("Ｉ⌊⟦¹¦²¦³¦±¹⟧"), "-1")
+        self.assertEqual(Run("Ｉ⌊⁹⁹·⁵"), "99")
+        self.assertEqual(Run("⌊foobar"), "a")
 
     def test_maximum(self):
         self.assertEqual(Run("⌈⟦¹¦²¦³¦±¹⟧"), "---")
+        self.assertEqual(Run("Ｉ⌈⁹⁹·⁵"), "100")
+        self.assertEqual(Run("⌈foobar"), "r")
 
     def test_join(self):
         self.assertEqual(Run("⪫⟦a¦b¦c⟧foo"), "afoobfooc")
@@ -1488,11 +1495,11 @@ b   a   z
         self.assertEqual(Run("Ｘ²¦³"), "--------")
 
     def test_push(self):
-        self.assertEqual(Run("Ａ⟦¹¦²¦³⟧α⊞Ｏα¦⁴"), "-   \n--  \n--- \n----")
-        self.assertEqual(Run("Ａ⟦¹¦²¦³⟧α⊞α¦⁴α"), "-   \n--  \n--- \n----")
+        self.assertEqual(Run("≔⟦¹¦²¦³⟧α⊞Ｏα¦⁴"), "-   \n--  \n--- \n----")
+        self.assertEqual(Run("≔⟦¹¦²¦³⟧α⊞α¦⁴α"), "-   \n--  \n--- \n----")
 
     def test_pop(self):
-        self.assertEqual(Run("Ａ⟦¹¦²¦³⟧α⊟α"), "---")
+        self.assertEqual(Run("≔⟦¹¦²¦³⟧α⊟α"), "---")
 
     def test_negate(self):
         self.assertEqual(Run("±±¹"), "-")
@@ -1619,18 +1626,30 @@ O---
     def test_ij(self):
         self.assertEqual(Run("→→→ⅈ"), "--")
         self.assertEqual(Run("↓↓↓ⅉ"), " \n \n|\n|")
+        
+    def test_increment_decrement_halve_double(self):
+        self.assertEqual(Run("Ｉ⊕2.2"), "3.2")
+        self.assertEqual(Run("Ｉ⊕⟦2.1³·²4.3⟧"), "3.1\n4.2\n5.3")
+        self.assertEqual(Run("Ｉ⊕2.2"), "3.2")
+        self.assertEqual(Run("Ｉ⊖2.2"), "1.2")
+        self.assertEqual(Run("Ｉ⊖²·²"), "1.2")
+        self.assertEqual(Run("Ｉ⊗¹·²"), "2.4")
+        self.assertEqual(Run("Ｉ⊗1.2"), "2.4")
+        self.assertEqual(Run("Ｉ⊘¹·²"), "0.6")
+        self.assertEqual(Run("Ｉ⊘1.2"), "0.6")
 
     def test_map_assign(self):
-        self.assertEqual(Run("Ａ⟦³¦²¦¹⟧β≧×²ββ"), "------\n----  \n--    ")
-        self.assertEqual(Run("Ａ⟦³¦²¦¹⟧β≧⁻¹ββ"), "--\n- \n  ")
-        self.assertEqual(Run("Ａ⟦³¦²¦¹⟧β≦⁻³ββ"), "  \n- \n--")
+        self.assertEqual(Run("≔⟦³¦²¦¹⟧β≧×²ββ"), "------\n----  \n--    ")
+        self.assertEqual(Run("≔⟦³¦²¦¹⟧β≧⁻¹ββ"), "--\n- \n  ")
+        self.assertEqual(Run("≔⟦³¦²¦¹⟧β≦⁻³ββ"), "  \n- \n--")
 
     def test_lambda(self):
         self.assertEqual(Run("«a"), "a")
         self.assertEqual(Run("↓«abc"), "a\nb\nc")
 
     def test_compression(self):
-        self.assertEqual(Run("”yＡ⟦³¦²¦¹⟧β▷sβ”"), "Ａ⟦³¦²¦¹⟧β▷sβ")
+        self.assertEqual(Run("”y≔⟦³¦²¦¹⟧β▷sβ”"), "≔⟦³¦²¦¹⟧β▷sβ")
+        self.assertEqual(Run("”y≔⟦³¦²¦¹⟧β▷sβ"), "≔⟦³¦²¦¹⟧β▷sβ")
         self.assertEqual(Run("\
 Print('zzyzyzyzyzyzyzyzzzzzzzzyzyz')", verbose=True), "\
 zzyzyzyzyzyzyzyzzzzzzzzyzyz")
@@ -1690,8 +1709,8 @@ Print('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')",
         self.assertEqual(
             Run("ＵＰrandom.seed⟦⁰⟧ＩＵＰrandom.random"), "0.8444218515250481"
         )
-        self.assertEqual(Run("Ａ⟦³¦²¦¹⟧βＵＰsβ"), "-  \n-- \n---")
-        self.assertEqual(Run("Ａ⟦³¦²¦¹⟧β▷sβ"), "-  \n-- \n---")
+        self.assertEqual(Run("≔⟦³¦²¦¹⟧βＵＰsβ"), "-  \n-- \n---")
+        self.assertEqual(Run("≔⟦³¦²¦¹⟧β▷sβ"), "-  \n-- \n---")
 
     def test_wolfram(self):
         # TODO: official examples for number things
@@ -1809,7 +1828,7 @@ abcddXcXbacbbaa")
         self.assertEqual(Run("\
 ▷StringReplace⟦abcdabcdaabcabcd⟦➙abc¦Y➙d¦XXX⟧⟧"), "\
 YXXXYXXXaYYXXX")
-        self.assertEqual(Run("▷StringReplace⟦product: A ⊕ B➙⊕¦x⟧"), "\
+        self.assertEqual(Run("▷StringReplace⟦product: A ´⊕ B➙´⊕¦x⟧"), "\
 product: A x B")
         self.assertEqual(Run("\
 ▷StringReplace⟦The cat in the hat.➙the¦a➙≕IgnoreCase≕True⟧"), "\
@@ -2047,7 +2066,7 @@ a a a""")
         self.assertEqual(Run("\xFF\xA4\xEC", normal_encoding=True), "╬")
 
     def test_challenges(self):
-        self.assertEqual(Run("Ａp....Pβrnbkqbnr↙↷²×⁺β¶⁷β↶²RNBKQBNR"), """\
+        self.assertEqual(Run("≔p....Pβrnbkqbnr↙↷²×⁺β¶⁷β↶²RNBKQBNR"), """\
 rnbkqbnr
 pppppppp
 ........
@@ -2112,7 +2131,7 @@ Fill('3.141592653589793238462643383279502884197169')""", verbose=True),
         self.assertEqual(
             Run(
                 """\
-ＮβＡ-~-¶θ¿‹β⁰Ｆ³θ¿β«θＦβ⁺-~-|$¶θ»↓\
+Ｎβ≔-~-¶θ¿‹β⁰Ｆ³θ¿β«θＦβ⁺-~-|$¶θ»↓\
 Congratulations on your new baby! :D⟲²""",
                 "4"
             ), """\
