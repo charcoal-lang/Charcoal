@@ -4223,7 +4223,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"), "γ"),
                     "\\1\\2"
                 ),
                 ("(%s)¦(%s)" % (sOperator, sOperator), "\\1\\2"),
-                ("([^´])[»⟧⦄]+$", "\1")
+                ("([^´])[»⟧⦄]+$", "\\1")
             ):
                 old = codes[i]
                 codes[i] = re.sub(regex, replacement, codes[i])
