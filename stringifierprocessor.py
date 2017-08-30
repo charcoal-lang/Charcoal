@@ -8,30 +8,17 @@ SuperscriptToNormal = "⁰¹²³⁴⁵⁶⁷⁸⁹"
 
 StringifierProcessor = {
     CT.Arrow: [
-        (lambda i: lambda r: "↖↗↘↙←↑→↓↓"[i])(i)
-        for i in range(8)
+        (lambda i: lambda r: ("↖↗↘↙←↑→↓" * 2)[i])(i)
+        for i in range(16)
     ] + [
         lambda r: "✳" + r[2],
     ],
     CT.Multidirectional: [
-        lambda r: r[0] + r[1] + r[2],
-        lambda r: "+" + r[1] + r[2],
-        lambda r: "X" + r[1] + r[2],
-        lambda r: "*" + r[1] + r[2],
-        lambda r: "|" + r[1] + r[2],
-        lambda r: "-" + r[1] + r[2],
-        lambda r: "\\" + r[1] + r[2],
-        lambda r: "/" + r[1] + r[2],
-        lambda r: "<" + r[1] + r[2],
-        lambda r: ">" + r[1] + r[2],
-        lambda r: "^" + r[1] + r[2],
-        lambda r: "K" + r[1] + r[2],
-        lambda r: "L" + r[1] + r[2],
-        lambda r: "T" + r[1] + r[2],
-        lambda r: "V" + r[1] + r[2],
-        lambda r: "Y" + r[1] + r[2],
-        lambda r: "7" + r[1] + r[2],
-        lambda r: "¬" + r[1] + r[2],
+        lambda r: r[0] + r[1] + r[2]
+    ] + [
+        (lambda i: lambda r: "+X**||--\\/<>^KLTVY7¬"[i])(i)
+        for i in range(20)
+    ] + [
         lambda r: "⟦" + r[1] + "⟧",
         lambda r: "✳✳" + r[2],
         lambda r: r[0]

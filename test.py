@@ -1308,6 +1308,10 @@ abcgk
 
     def test_reflect_butterfly(self):
         self.assertEqual(Run("<<|\\‖Ｂ→"), "<<|\|>>")
+        self.assertEqual(Run("foobar¶‖Ｂ↓a"), """\
+foobar
+a     
+foobar""")
 
     def test_rotate(self):
         self.assertEqual(Run("abc¶def¶ghi⟲²"), "cfi\nbeh\nadg")

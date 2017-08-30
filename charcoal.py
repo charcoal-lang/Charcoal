@@ -1022,9 +1022,8 @@ with a character automatically selected from -|/\\.
             self.PrintLine(directions, length, string, multiprint=multiprint)
             self.last_printed = original
             return
-        lines = re.split("[\n\r]", string)
-        seps = re.findall("[\n\r]", string)
-        r_index = seps.index("\r") if "\r" in seps else -1
+        lines = re.split("\n|\r", string)
+        seps = re.findall("\n|\r", string)
         for direction in directions:
             self.x = old_x
             self.y = old_y
@@ -1033,7 +1032,7 @@ with a character automatically selected from -|/\\.
                 for i in range(len(lines)):
                     line = lines[i]
                     self.PrintLine({Direction.right}, len(line), line)
-                    if i == r_index:
+                    if i < len(seps) and seps[i] == "\r":
                         initial_x = 0
                     self.x = initial_x
                     self.y += 1
@@ -1045,7 +1044,7 @@ with a character automatically selected from -|/\\.
                 for i in range(len(lines)):
                     line = lines[i]
                     self.PrintLine({Direction.left}, len(line), line)
-                    if i == r_index:
+                    if i < len(seps) and seps[i] == "\r":
                         initial_x = 0
                     self.x = initial_x
                     self.y -= 1
@@ -1068,7 +1067,7 @@ with a character automatically selected from -|/\\.
                     self.x = line_start_x
                     self.y = line_start_y
                     self.Move(newline_direction)
-                    if i == r_index:
+                    if i < len(seps) and seps[i] == "\r":
                         if delta_x:
                             if delta_y:
                                 n = (self.x * delta_x + self.y * delta_y) // 2
@@ -1894,7 +1893,7 @@ but not if it overwrites the original.
                 self.right_indices
             )
         elif direction == Direction.down:
-            self.y += (len(self.lines) - self.y) * 2
+            self.y += (self.top + len(self.lines) - self.y) * 2 - 1 - overlap
             self.lines += (
                 [
                     "".join(
@@ -4224,13 +4223,15 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"), "γ"),
                     "\\1\\2"
                 ),
                 ("(%s)¦(%s)" % (sOperator, sOperator), "\\1\\2"),
-                ("»+$", "")
+                ("([^´])[»⟧⦄]+$", "\1")
             ):
                 old = codes[i]
                 codes[i] = re.sub(regex, replacement, codes[i])
                 if codes[i] != old:
                     success = True
     code = "".join(codes)
+    if code[-1] == "”" and code[-2] != "´":
+        return code[:-1]
     return code
 
 
