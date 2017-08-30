@@ -1,6 +1,8 @@
 from charcoaltoken import CharcoalToken as CT
 
 VerboseGrammars = {
+    CT.LP: [["("], []],
+    CT.RP: [[")"], []],
     CT.Arrow: [
         [":UpLeft"],
         [":UpRight"],
@@ -18,7 +20,7 @@ VerboseGrammars = {
         [":U"],
         [":R"],
         [":D"],
-        ["Direction", "(", CT.Expression, ")"]
+        ["Direction", CT.LP, CT.Expression, CT.RP]
     ],
     CT.Multidirectional: [
         [CT.Arrows, CT.Separator, CT.Multidirectional],
@@ -43,7 +45,7 @@ VerboseGrammars = {
         [":7", CT.Separator, CT.Multidirectional],
         [":¬", CT.Separator, CT.Multidirectional],
         ["[", CT.Multidirectional, "]"],
-        ["Directions", "(", CT.Expression, ")"],
+        ["Directions", CT.LP, CT.Expression, CT.RP],
         [CT.Separator]
     ],
     CT.Side: [
@@ -89,40 +91,45 @@ VerboseGrammars = {
         ["{", CT.Program, "}", CT.Separator],
         [CT.OtherOperator, CT.Separator],
         [
-            CT.LazyQuarternary, "(", CT.Expression, CT.Expression,
-            CT.Expression, CT.Expression, ")", CT.Separator
+            CT.LazyQuarternary, CT.LP, CT.Expression, CT.Expression,
+            CT.Expression, CT.Expression, CT.RP, CT.Separator
         ],
         [
-            CT.Quarternary, "(", CT.Expression, CT.Expression, CT.Expression,
-            CT.Expression, ")", CT.Separator
+            CT.Quarternary, CT.LP, CT.Expression, CT.Expression, CT.Expression,
+            CT.Expression, CT.RP, CT.Separator
         ],
         [
-            CT.LazyTernary, "(", CT.Expression, CT.Expression, CT.Expression,
-            ")", CT.Separator
+            CT.LazyTernary, CT.LP, CT.Expression, CT.Expression, CT.Expression,
+            CT.RP, CT.Separator
         ],
         [
-            CT.Ternary, "(", CT.Expression, CT.Expression, CT.Expression, ")",
+            CT.Ternary, CT.LP, CT.Expression, CT.Expression, CT.Expression,
+            CT.RP, CT.Separator
+        ],
+        [
+            CT.LazyBinary, CT.LP, CT.Expression, CT.Expression, CT.RP,
             CT.Separator
         ],
-        [CT.LazyBinary, "(", CT.Expression, CT.Expression, ")", CT.Separator],
-        [CT.Binary, "(", CT.Expression, CT.Expression, ")", CT.Separator],
-        [CT.LazyUnary, "(", CT.Expression, ")", CT.Separator],
-        [CT.Unary, "(", CT.Expression, ")", CT.Separator],
-        [CT.Nilary, "(", ")", CT.Separator]
+        [CT.Binary, CT.LP, CT.Expression, CT.Expression, CT.RP, CT.Separator],
+        [CT.LazyUnary, CT.LP, CT.Expression, CT.RP, CT.Separator],
+        [CT.Unary, CT.LP, CT.Expression, CT.RP, CT.Separator],
+        [CT.Nilary, CT.LP, CT.RP, CT.Separator],
     ],
     CT.Nilary: [
-        ["InputString"], ["InputNumber"], ["Random"], ["PeekAll"],
-        ["PeekMoore"], ["PeekVonNeumann"], ["Peek"], ["x"], ["y"], ["i"], ["j"]
+        ["InputString"], ["input"], ["InputNumber"], ["Random"], ["rand"],
+        ["PeekAll"], ["PeekMoore"], ["PeekVonNeumann"], ["Peek"], ["x"], ["y"],
+        ["i"], ["j"]
     ],
     CT.Unary: [
-        ["Negate"], ["Length"], ["Not"], ["Cast"], ["Random"], ["Evaluate"],
-        ["eval"], ["Pop"], ["Lowercase"], ["Uppercase"], ["Minimum"],
-        ["Maximum"], ["Character"], ["Ordinal"], ["chr"], ["ord"], ["Reverse"],
-        ["GetVariable"], ["Repeated"], ["RepeatedNull"], ["Slice"],
-        ["InclusiveRange"], ["Range"], ["~"], ["BitwiseNot"], ["Absolute"],
-        ["abs"], ["Sum"], ["Product"], ["Incremented"], ["++"],
-        ["Decremented"], ["--"], ["Doubled"], ["***"], ["Halved"], ["\\\\"],
-        ["PythonEvaluate"], ["pyeval"]
+        ["Negate"], ["Length"], ["Not"], ["Cast"], ["Random"], ["rand"],
+        ["Evaluate"], ["eval"], ["Pop"], ["Lowercase"], ["Uppercase"],
+        ["Minimum"], ["min"], ["Floor"], ["floor"], ["Maximum"], ["max"],
+        ["Ceiling"], ["ceil"], ["Character"], ["chr"], ["Ordinal"], ["ord"],
+        ["Reverse"], ["rev"], ["GetVariable"], ["getvar"], ["Repeated"],
+        ["RepeatedNull"], ["Slice"], ["InclusiveRange"], ["Range"], ["~"],
+        ["BitwiseNot"], ["Absolute"], ["abs"], ["Sum"], ["Product"],
+        ["Incremented"], ["++"], ["Decremented"], ["--"], ["Doubled"], ["***"],
+        ["Halved"], ["\\\\"], ["PythonEvaluate"], ["pyeval"]
     ],
     CT.Binary: [
         ["**"], ["+"], ["Add"], ["Plus"], ["-"], ["Subtract"], ["Minus"],
@@ -142,179 +149,186 @@ VerboseGrammars = {
     CT.LazyTernary: [["Ternary"]],
     CT.LazyQuarternary: [],
     CT.OtherOperator: [
-        ["PeekDirection", "(", CT.Expression, CT.Arrow, ")"],
-        ["Each", "(", CT.Expression, CT.Expression, ")"],
-        ["Map", "(", CT.Expression, CT.Expression, ")"],
-        ["PythonFunction", "(", CT.Expression, CT.List, ")"],
-        ["PythonFunction", "(", CT.Expression, ")"],
-        ["EvaluateVariable", "(", CT.Expression, CT.WolframList, ")"],
-        ["evalvar", "(", CT.Expression, CT.WolframList, ")"],
-        ["EvaluateVariable", "(", CT.Expression, CT.Expression, ")"],
-        ["evalvar", "(", CT.Expression, CT.Expression, ")"]
+        ["PeekDirection", CT.LP, CT.Expression, CT.Arrow, CT.RP],
+        ["Each", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Map", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["PythonFunction", CT.LP, CT.Expression, CT.List, CT.RP],
+        ["PythonFunction", CT.LP, CT.Expression, CT.RP],
+        ["EvaluateVariable", CT.LP, CT.Expression, CT.WolframList, CT.RP],
+        ["evalvar", CT.LP, CT.Expression, CT.WolframList, CT.RP],
+        ["EvaluateVariable", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["evalvar", CT.LP, CT.Expression, CT.Expression, CT.RP]
     ],
     CT.Program: [[CT.Command, CT.Separator, CT.Separator, CT.Program], []],
     CT.Body: [["{", CT.Program, "}"], [CT.Command]],
     CT.Command: [
-        ["PythonFunction", "(", CT.Expression, CT.Expression, ")"],
-        ["PythonFunction", "(", CT.Expression, ")"],
-        ["InputString", "(", CT.Name, ")"],
-        ["InputNumber", "(", CT.Name, ")"],
-        ["Evaluate", "(", CT.Expression, ")"],
-        ["eval", "(", CT.Expression, ")"],
-        ["Print", "(", CT.Arrow, CT.Separator, CT.Expression, ")"],
-        ["Print", "(", CT.Expression, ")"],
+        ["PythonFunction", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["PythonFunction", CT.LP, CT.Expression, CT.RP],
+        ["InputString", CT.LP, CT.Name, CT.RP],
+        ["input", CT.LP, CT.Name, CT.RP],
+        ["InputNumber", CT.LP, CT.Name, CT.RP],
+        ["Evaluate", CT.LP, CT.Expression, CT.RP],
+        ["eval", CT.LP, CT.Expression, CT.RP],
+        ["Print", CT.LP, CT.Arrow, CT.Separator, CT.Expression, CT.RP],
+        ["Print", CT.LP, CT.Expression, CT.RP],
+        ["print", CT.LP, CT.Arrow, CT.Separator, CT.Expression, CT.RP],
+        ["print", CT.LP, CT.Expression, CT.RP],
         [
-            "Multiprint", "(", CT.Multidirectional, CT.Separator,
-            CT.Expression, ")"
+            "Multiprint", CT.LP, CT.Multidirectional, CT.Separator,
+            CT.Expression, CT.RP
         ],
-        ["Multiprint", "(", CT.Expression, ")"],
-        ["Polygon", "(", CT.Sides, CT.Separator, CT.Expression, ")"],
+        ["Multiprint", CT.LP, CT.Expression, CT.RP],
+        ["Polygon", CT.LP, CT.Sides, CT.Separator, CT.Expression, CT.RP],
         [
-            "Polygon", "(", CT.Multidirectional, CT.Separator, CT.Expression,
-            CT.Expression, ")"
+            "Polygon", CT.LP, CT.Multidirectional, CT.Separator, CT.Expression,
+            CT.Expression, CT.RP
         ],
-        ["PolygonHollow", "(", CT.Sides, CT.Separator, CT.Expression, ")"],
+        ["PolygonHollow", CT.LP, CT.Sides, CT.Separator, CT.Expression, CT.RP],
         [
-            "PolygonHollow", "(", CT.Multidirectional, CT.Separator,
-            CT.Expression, CT.Expression, ")"
+            "PolygonHollow", CT.LP, CT.Multidirectional, CT.Separator,
+            CT.Expression, CT.Expression, CT.RP
         ],
-        ["Rectangle", "(", CT.Expression, CT.Expression, ")"],
-        ["Rectangle", "(", CT.Expression, ")"],
-        ["Oblong", "(", CT.Expression, CT.Expression, CT.Expression, ")"],
-        ["Oblong", "(", CT.Expression, CT.Expression, ")"],
-        ["Box", "(", CT.Expression, CT.Expression, CT.Expression, ")"],
-        ["Box", "(", CT.Expression, CT.Expression, ")"],
-        ["Move", "(", CT.Arrow, ")"],
-        ["Move", "(", CT.Expression, CT.Arrow, ")"],
-        ["Move", "(", CT.Expression, CT.Expression, ")"],
-        ["Jump", "(", CT.Expression, CT.Expression, ")"],
-        ["PivotLeft", "(", CT.Expression, ")"],
-        ["PivotLeft", "(", ")"],
-        ["PivotRight", "(", CT.Expression, ")"],
-        ["PivotRight", "(", ")"],
-        ["JumpTo", "(", CT.Expression, CT.Expression, ")"],
-        ["RotateTransform", "(", CT.Expression, ")"],
-        ["RotateTransform", "(", ")"],
-        ["ReflectTransform", "(", CT.Multidirectional, ")"],
-        ["ReflectTransform", "(", CT.Arrow, ")"],
-        ["ReflectTransform", "(", ")"],
-        ["RotatePrism", "(", CT.Arrow, CT.Separator, CT.Expression, ")"],
-        ["RotatePrism", "(", CT.Arrow, ")"],
-        ["RotatePrism", "(", CT.Expression, ")"],
-        ["RotatePrism", "(", ")"],
-        ["ReflectMirror", "(", CT.Multidirectional, ")"],
-        ["ReflectMirror", "(", CT.Arrow, ")"],
-        ["ReflectMirror", "(", ")"],
-        ["RotateCopy", "(", CT.Arrow, CT.Separator, CT.Expression, ")"],
-        ["RotateCopy", "(", CT.Arrow, ")"],
-        ["RotateCopy", "(", CT.Expression, ")"],
-        ["RotateCopy", "(", ")"],
-        ["ReflectCopy", "(", CT.Multidirectional, ")"],
-        ["ReflectCopy", "(", CT.Arrow, ")"],
-        ["ReflectCopy", "(", ")"],
+        ["Rectangle", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Rectangle", CT.LP, CT.Expression, CT.RP],
+        ["Oblong", CT.LP, CT.Expression, CT.Expression, CT.Expression, CT.RP],
+        ["Oblong", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Box", CT.LP, CT.Expression, CT.Expression, CT.Expression, CT.RP],
+        ["Box", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Move", CT.LP, CT.Arrow, CT.RP],
+        ["Move", CT.LP, CT.Expression, CT.Arrow, CT.RP],
+        ["Move", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Jump", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["PivotLeft", CT.LP, CT.Expression, CT.RP],
+        ["PivotLeft", CT.LP, CT.RP],
+        ["PivotRight", CT.LP, CT.Expression, CT.RP],
+        ["PivotRight", CT.LP, CT.RP],
+        ["JumpTo", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["RotateTransform", CT.LP, CT.Expression, CT.RP],
+        ["RotateTransform", CT.LP, CT.RP],
+        ["ReflectTransform", CT.LP, CT.Multidirectional, CT.RP],
+        ["ReflectTransform", CT.LP, CT.Arrow, CT.RP],
+        ["ReflectTransform", CT.LP, CT.RP],
+        ["RotatePrism", CT.LP, CT.Arrow, CT.Separator, CT.Expression, CT.RP],
+        ["RotatePrism", CT.LP, CT.Arrow, CT.RP],
+        ["RotatePrism", CT.LP, CT.Expression, CT.RP],
+        ["RotatePrism", CT.LP, CT.RP],
+        ["ReflectMirror", CT.LP, CT.Multidirectional, CT.RP],
+        ["ReflectMirror", CT.LP, CT.Arrow, CT.RP],
+        ["ReflectMirror", CT.LP, CT.RP],
+        ["RotateCopy", CT.LP, CT.Arrow, CT.Separator, CT.Expression, CT.RP],
+        ["RotateCopy", CT.LP, CT.Arrow, CT.RP],
+        ["RotateCopy", CT.LP, CT.Expression, CT.RP],
+        ["RotateCopy", CT.LP, CT.RP],
+        ["ReflectCopy", CT.LP, CT.Multidirectional, CT.RP],
+        ["ReflectCopy", CT.LP, CT.Arrow, CT.RP],
+        ["ReflectCopy", CT.LP, CT.RP],
         [
-            "RotateOverlapOverlap", "(", CT.Arrow, CT.Separator, CT.Number,
-            CT.Separator, CT.Expression, CT.Separator, CT.Expression, ")"
-        ],
-        [
-            "RotateOverlapOverlap", "(", CT.Arrow, CT.Separator, CT.Expression,
-            CT.Separator, CT.Expression, ")"
-        ],
-        [
-            "RotateOverlapOverlap", "(", CT.Arrow, CT.Separator, CT.Expression,
-            ")"
-        ],
-        ["RotateOverlapOverlap", "(", CT.Expression, CT.Expression, ")"],
-        ["RotateOverlapOverlap", "(", CT.Expression, ")"],
-        ["RotateOverlap", "(", CT.Arrow, CT.Separator, CT.Expression, ")"],
-        ["RotateOverlap", "(", CT.Arrow, ")"],
-        ["RotateOverlap", "(", CT.Expression, ")"],
-        ["RotateOverlap", "(", ")"],
-        [
-            "RotateShutterOverlap", "(", CT.Arrow, CT.Separator, CT.Number,
-            CT.Separator, CT.Expression, CT.Separator, CT.Expression, ")"
+            "RotateOverlapOverlap", CT.LP, CT.Arrow, CT.Separator, CT.Number,
+            CT.Separator, CT.Expression, CT.Separator, CT.Expression, CT.RP
         ],
         [
-            "RotateShutterOverlap", "(", CT.Arrow, CT.Separator, CT.Expression,
-            CT.Separator, CT.Expression, ")"
+            "RotateOverlapOverlap", CT.LP, CT.Arrow, CT.Separator, CT.Expression,
+            CT.Separator, CT.Expression, CT.RP
         ],
         [
-            "RotateShutterOverlap", "(", CT.Arrow, CT.Separator, CT.Expression,
-            ")"
+            "RotateOverlapOverlap", CT.LP, CT.Arrow, CT.Separator, CT.Expression,
+            CT.RP
         ],
-        ["RotateShutterOverlap", "(", CT.Expression, CT.Expression, ")"],
-        ["RotateShutterOverlap", "(", CT.Expression, ")"],
-        ["RotateShutter", "(", CT.Arrow, CT.Separator, CT.Expression, ")"],
-        ["RotateShutter", "(", CT.Arrow, ")"],
-        ["RotateShutter", "(", CT.Expression, ")"],
-        ["RotateShutter", "(", ")"],
+        ["RotateOverlapOverlap", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["RotateOverlapOverlap", CT.LP, CT.Expression, CT.RP],
+        ["RotateOverlap", CT.LP, CT.Arrow, CT.Separator, CT.Expression, CT.RP],
+        ["RotateOverlap", CT.LP, CT.Arrow, CT.RP],
+        ["RotateOverlap", CT.LP, CT.Expression, CT.RP],
+        ["RotateOverlap", CT.LP, CT.RP],
         [
-            "ReflectOverlapOverlap", "(", CT.Multidirectional, CT.Separator,
-            CT.Expression, ")"
-        ],
-        [
-            "ReflectOverlapOverlap", "(", CT.Arrow, CT.Separator,
-            CT.Expression, ")"
-        ],
-        ["ReflectOverlapOverlap", "(", CT.Expression, ")"],
-        ["ReflectOverlap", "(", CT.Multidirectional, ")"],
-        ["ReflectOverlap", "(", CT.Arrow, ")"],
-        ["ReflectOverlap", "(", ")"],
-        [
-            "ReflectButterflyOverlap", "(", CT.Multidirectional, CT.Separator,
-            CT.Expression, ")"
+            "RotateShutterOverlap", CT.LP, CT.Arrow, CT.Separator, CT.Number,
+            CT.Separator, CT.Expression, CT.Separator, CT.Expression, CT.RP
         ],
         [
-            "ReflectButterflyOverlap", "(", CT.Arrow, CT.Separator,
-            CT.Expression, ")"
+            "RotateShutterOverlap", CT.LP, CT.Arrow, CT.Separator, CT.Expression,
+            CT.Separator, CT.Expression, CT.RP
         ],
-        ["ReflectButterflyOverlap", "(", CT.Expression, ")"],
-        ["ReflectButterfly", "(", CT.Multidirectional, ")"],
-        ["ReflectButterfly", "(", CT.Arrow, ")"],
-        ["ReflectButterfly", "(", ")"],
-        ["Rotate", "(", CT.Expression, ")"],
-        ["Rotate", "(", ")"],
-        ["Reflect", "(", CT.Arrow, ")"],
-        ["Reflect", "(", ")"],
-        ["Copy", "(", CT.Expression, CT.Expression, ")"],
-        ["for", "(", CT.Expression, ")", CT.Body],
-        ["while", "(", CT.Expression, ")", CT.Body],
-        ["if", "(", CT.Expression, ")", CT.Body, "else", CT.Body],
-        ["if", "(", CT.Expression, ")", CT.Body],
         [
-            "AssignAtIndex", "(", CT.Expression, CT.Expression, CT.Expression,
-            ")"
+            "RotateShutterOverlap", CT.LP, CT.Arrow, CT.Separator, CT.Expression,
+            CT.RP
         ],
-        ["Assign", "(", CT.Expression, CT.Name, ")"],
-        ["SetVariable", "(", CT.Expression, CT.Expression, ")"],
-        ["Fill", "(", CT.Expression, ")"],
-        ["SetBackground", "(", CT.Expression, ")"],
-        ["Dump", "(", ")"],
-        ["RefreshFor", "(", CT.Expression, CT.Expression, ")", CT.Body],
-        ["RefreshWhile", "(", CT.Expression, CT.Expression, ")", CT.Body],
-        ["Refresh", "(", CT.Expression, ")"],
-        ["Refresh", "(", ")"],
-        ["ToggleTrim", "(", ")"],
-        ["Trim", "(", CT.Expression, CT.Expression, ")"],
-        ["Trim", "(", CT.Expression, ")"],
-        ["Clear", "(", ")"],
-        ["Extend", "(", CT.Expression, CT.Expression, ")"],
-        ["Extend", "(", CT.Expression, ")"],
-        ["Push", "(", CT.Expression, CT.Expression, ")"],
+        ["RotateShutterOverlap", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["RotateShutterOverlap", CT.LP, CT.Expression, CT.RP],
+        ["RotateShutter", CT.LP, CT.Arrow, CT.Separator, CT.Expression, CT.RP],
+        ["RotateShutter", CT.LP, CT.Arrow, CT.RP],
+        ["RotateShutter", CT.LP, CT.Expression, CT.RP],
+        ["RotateShutter", CT.LP, CT.RP],
         [
-            "switch", "(", CT.Expression, ")", "{", CT.Cases, "default", ":",
+            "ReflectOverlapOverlap", CT.LP, CT.Multidirectional, CT.Separator,
+            CT.Expression, CT.RP
+        ],
+        [
+            "ReflectOverlapOverlap", CT.LP, CT.Arrow, CT.Separator,
+            CT.Expression, CT.RP
+        ],
+        ["ReflectOverlapOverlap", CT.LP, CT.Expression, CT.RP],
+        ["ReflectOverlap", CT.LP, CT.Multidirectional, CT.RP],
+        ["ReflectOverlap", CT.LP, CT.Arrow, CT.RP],
+        ["ReflectOverlap", CT.LP, CT.RP],
+        [
+            "ReflectButterflyOverlap", CT.LP, CT.Multidirectional, CT.Separator,
+            CT.Expression, CT.RP
+        ],
+        [
+            "ReflectButterflyOverlap", CT.LP, CT.Arrow, CT.Separator,
+            CT.Expression, CT.RP
+        ],
+        ["ReflectButterflyOverlap", CT.LP, CT.Expression, CT.RP],
+        ["ReflectButterfly", CT.LP, CT.Multidirectional, CT.RP],
+        ["ReflectButterfly", CT.LP, CT.Arrow, CT.RP],
+        ["ReflectButterfly", CT.LP, CT.RP],
+        ["Rotate", CT.LP, CT.Expression, CT.RP],
+        ["Rotate", CT.LP, CT.RP],
+        ["Reflect", CT.LP, CT.Arrow, CT.RP],
+        ["Reflect", CT.LP, CT.RP],
+        ["Copy", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["for", CT.LP, CT.Expression, CT.RP, CT.Body],
+        ["while", CT.LP, CT.Expression, CT.RP, CT.Body],
+        ["if", CT.LP, CT.Expression, CT.RP, CT.Body, "else", CT.Body],
+        ["if", CT.LP, CT.Expression, CT.RP, CT.Body],
+        [
+            "AssignAtIndex", CT.LP, CT.Expression, CT.Expression, CT.Expression,
+            CT.RP
+        ],
+        ["Assign", CT.LP, CT.Expression, CT.Name, CT.RP],
+        ["SetVariable", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["setvar", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Fill", CT.LP, CT.Expression, CT.RP],
+        ["SetBackground", CT.LP, CT.Expression, CT.RP],
+        ["bg", CT.LP, CT.Expression, CT.RP],
+        ["Dump", CT.LP, CT.RP],
+        ["RefreshFor", CT.LP, CT.Expression, CT.Expression, CT.RP, CT.Body],
+        ["RefreshWhile", CT.LP, CT.Expression, CT.Expression, CT.RP, CT.Body],
+        ["Refresh", CT.LP, CT.Expression, CT.RP],
+        ["Refresh", CT.LP, CT.RP],
+        ["ToggleTrim", CT.LP, CT.RP],
+        ["Trim", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Trim", CT.LP, CT.Expression, CT.RP],
+        ["Clear", CT.LP, CT.RP],
+        ["Extend", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Extend", CT.LP, CT.Expression, CT.RP],
+        ["Push", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        [
+            "switch", CT.LP, CT.Expression, CT.RP, "{", CT.Cases, "default", ":",
             CT.Body, "}"
         ],
-        ["switch", "(", CT.Expression, ")", "{", CT.Cases, "}"],
-        ["MapCommand", "(", CT.Expression, CT.Expression, ")"],
-        ["ExecuteVariable", "(", CT.Expression, CT.WolframList, ")"],
-        ["execvar", "(", CT.Expression, CT.WolframList, ")"],
-        ["ExecuteVariable", "(", CT.Expression, CT.Expression, ")"],
-        ["execvar", "(", CT.Expression, CT.Expression, ")"],
-        ["MapAssignLeft", "(", CT.Binary, CT.Expression, CT.Name, ")"],
-        ["MapAssignRight", "(", CT.Binary, CT.Expression, CT.Name, ")"],
-        ["MapAssign", "(", CT.Unary, CT.Name, ")"],
-        ["PythonExecute", "(", CT.Expression, ")"],
-        ["pyexec", "(", CT.Expression, ")"],
+        ["switch", CT.LP, CT.Expression, CT.RP, "{", CT.Cases, "}"],
+        ["MapCommand", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["ExecuteVariable", CT.LP, CT.Expression, CT.WolframList, CT.RP],
+        ["execvar", CT.LP, CT.Expression, CT.WolframList, CT.RP],
+        ["ExecuteVariable", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["execvar", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["MapAssignLeft", CT.LP, CT.Binary, CT.Expression, CT.Name, CT.RP],
+        ["MapAssignRight", CT.LP, CT.Binary, CT.Expression, CT.Name, CT.RP],
+        ["MapAssign", CT.LP, CT.Unary, CT.Name, CT.RP],
+        ["PythonExecute", CT.LP, CT.Expression, CT.RP],
+        ["pyexec", CT.LP, CT.Expression, CT.RP],
+        [CT.Arrow, CT.Separator, CT.Expression],
+        [CT.Expression],
     ]
 }

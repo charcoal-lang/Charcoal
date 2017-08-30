@@ -7,6 +7,8 @@ import re
 SuperscriptToNormal = "⁰¹²³⁴⁵⁶⁷⁸⁹"
 
 StringifierProcessor = {
+    CT.LP: [lambda r: ""] * 2,
+    CT.RP: [lambda r: ""] * 2,
     CT.Arrow: [
         (lambda i: lambda r: ("↖↗↘↙←↑→↓" * 2)[i])(i)
         for i in range(16)
@@ -123,7 +125,9 @@ StringifierProcessor = {
     ],
     CT.Nilary: [
         lambda r: "Ｓ",
+        lambda r: "Ｓ",
         lambda r: "Ｎ",
+        lambda r: "‽",
         lambda r: "‽",
         lambda r: "ＫＡ",
         lambda r: "ＫＭ",
@@ -135,13 +139,12 @@ StringifierProcessor = {
         lambda r: "ⅉ"
     ],
     CT.Unary: [
-        (lambda i: lambda r: "±Ｌ¬Ｉ‽ＶＶ⊟↧↥⌊⌈℅℅℅℅⮌≕″‴✂…·…～～↔↔ΣΠ\
+        (lambda i: lambda r: "±Ｌ¬Ｉ‽‽ＶＶ⊟↧↥⌊⌊⌊⌊⌈⌈⌈⌈℅℅℅℅⮌⮌≕≕″‴✂…·…～～↔↔ΣΠ\
 ⊕⊕⊖⊖⊗⊗⊘⊘"[i])(i)
-        for i in range(33)
+        for i in range(40)
     ] + [
-        lambda i: lambda r: "ＵＶ",
         lambda i: lambda r: "ＵＶ"
-    ],
+    ] * 2,
     CT.Binary: [
         (lambda i: lambda r: "Ｘ⁺⁺⁺⁻⁻⁻×××÷∕∕∕÷÷﹪﹪⁼⁼‹‹››＆＆｜｜"[i])(i)
         for i in range(28)
@@ -192,9 +195,12 @@ StringifierProcessor = {
         lambda r: "ＵＰ" + r[2] + r[3],
         lambda r: "ＵＰ" + r[2],
         lambda r: "Ｓ" + r[2],
+        lambda r: "Ｓ" + r[2],
         lambda r: "Ｎ" + r[2],
         lambda r: "Ｖ" + r[2],
         lambda r: "Ｖ" + r[2],
+        lambda r: r[2] + r[4],
+        lambda r: r[2],
         lambda r: r[2] + r[4],
         lambda r: r[2],
         lambda r: "Ｐ" + r[2] + r[4],
@@ -279,7 +285,9 @@ StringifierProcessor = {
         lambda r: "≔§" + r[2] + r[3] + r[4],
         lambda r: "≔" + r[2] + r[3],
         lambda r: "≔" + r[2] + r[3],
+        lambda r: "≔" + r[2] + r[3],
         lambda r: "¤" + r[2],
+        lambda r: "ＵＢ" + r[2],
         lambda r: "ＵＢ" + r[2],
         lambda r: "Ｄ",
         lambda r: "ＲＦ" + r[2] + r[3] + r[5],
@@ -304,6 +312,8 @@ StringifierProcessor = {
         lambda r: "≧" + r[2] + r[3] + r[4],
         lambda r: "≦" + r[2] + r[3],
         lambda r: "ＵＸ" + r[2],
-        lambda r: "ＵＸ" + r[2]
+        lambda r: "ＵＸ" + r[2],
+        lambda r: r[0] + r[2],
+        lambda r: r[0],
     ]
 }

@@ -36,6 +36,9 @@ CharcoalTokenNames = [
     "Body",
     "Command",
 
+    "LP",
+    "RP",
+
     "EOF",
 ]
 

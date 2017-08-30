@@ -4230,7 +4230,10 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"), "γ"),
                 if codes[i] != old:
                     success = True
     code = "".join(codes)
-    if code[-1] == "”" and code[-2] != "´":
+    if (
+        len(code) > 2 and code.count("”") > 2 and
+        code[-1] == "”" and code[-2] != "´"
+    ):
         return code[:-1]
     return code
 
