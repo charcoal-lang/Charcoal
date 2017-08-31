@@ -1631,7 +1631,7 @@ O---
         self.assertEqual(Run("→→→ⅈ"), "--")
         self.assertEqual(Run("↓↓↓ⅉ"), " \n \n|\n|")
         
-    def test_increment_decrement_halve_double(self):
+    def test_incremented_decremented_halved_doubled(self):
         self.assertEqual(Run("Ｉ⊕2.2"), "3.2")
         self.assertEqual(Run("Ｉ⊕⟦2.1³·²4.3⟧"), "3.1\n4.2\n5.3")
         self.assertEqual(Run("Ｉ⊕2.2"), "3.2")
@@ -1641,6 +1641,7 @@ O---
         self.assertEqual(Run("Ｉ⊗1.2"), "2.4")
         self.assertEqual(Run("Ｉ⊘¹·²"), "0.6")
         self.assertEqual(Run("Ｉ⊘1.2"), "0.6")
+        self.assertEqual(Run("cast halved 1.2", verbose="True"), "0.6")
 
     def test_map_assign(self):
         self.assertEqual(Run("≔⟦³¦²¦¹⟧β≧×²ββ"), "------\n----  \n--    ")

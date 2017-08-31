@@ -3880,7 +3880,7 @@ starting from the token given as grammar.
             elif isinstance(token, str):
                 old_index = index
                 index += len(token)
-                if code[old_index:index] == token:
+                if code[old_index:index].lower() == token.lower():
                     tokens += [token]
                 else:
                     success = False
@@ -3906,7 +3906,6 @@ starting from the token given as grammar.
             parse_trace
         )
     ), False, original_index)
-
 
 def Decode(code):
     """

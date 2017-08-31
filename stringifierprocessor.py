@@ -139,12 +139,14 @@ StringifierProcessor = {
         lambda r: "ⅉ"
     ],
     CT.Unary: [
-        (lambda i: lambda r: "±Ｌ¬Ｉ‽‽ＶＶ⊟↧↥⌊⌊⌊⌊⌈⌈⌈⌈℅℅℅℅⮌⮌≕≕″‴✂…·…～～↔↔ΣΠ\
+        (lambda i: lambda r: "±Ｌ¬Ｉ‽‽ＶＶ⊟↧↥⌊⌊⌊⌊⌈⌈⌈⌈℅℅℅℅⮌⮌≕≕″‴✂…～～↔↔ΣΠ\
 ⊕⊕⊖⊖⊗⊗⊘⊘"[i])(i)
-        for i in range(40)
+        for i in range(46)
     ] + [
+        lambda i: lambda r: "…·",
+        lambda i: lambda r: "ＵＶ",
         lambda i: lambda r: "ＵＶ"
-    ] * 2,
+    ],
     CT.Binary: [
         (lambda i: lambda r: "Ｘ⁺⁺⁺⁻⁻⁻×××÷∕∕∕÷÷﹪﹪⁼⁼‹‹››＆＆｜｜"[i])(i)
         for i in range(28)

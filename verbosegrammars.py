@@ -126,10 +126,11 @@ VerboseGrammars = {
         ["Minimum"], ["min"], ["Floor"], ["floor"], ["Maximum"], ["max"],
         ["Ceiling"], ["ceil"], ["Character"], ["chr"], ["Ordinal"], ["ord"],
         ["Reverse"], ["rev"], ["GetVariable"], ["getvar"], ["Repeated"],
-        ["RepeatedNull"], ["Slice"], ["InclusiveRange"], ["Range"], ["~"],
+        ["RepeatedNull"], ["Slice"], ["Range"], ["~"],
         ["BitwiseNot"], ["Absolute"], ["abs"], ["Sum"], ["Product"],
         ["Incremented"], ["++"], ["Decremented"], ["--"], ["Doubled"], ["***"],
-        ["Halved"], ["\\\\"], ["PythonEvaluate"], ["pyeval"]
+        ["Halved"], ["\\\\"], ["InclusiveRange"], ["PythonEvaluate"],
+        ["pyeval"]
     ],
     CT.Binary: [
         ["**"], ["+"], ["Add"], ["Plus"], ["-"], ["Subtract"], ["Minus"],
