@@ -327,9 +327,15 @@ VerboseGrammars = {
         ["execvar", CT.LP, CT.Expression, CT.WolframList, CT.RP],
         ["ExecuteVariable", CT.LP, CT.Expression, CT.Expression, CT.RP],
         ["execvar", CT.LP, CT.Expression, CT.Expression, CT.RP],
-        ["MapAssignLeft", CT.LP, CT.Binary, CT.Expression, CT.Name, CT.RP],
-        ["MapAssignRight", CT.LP, CT.Binary, CT.Expression, CT.Name, CT.RP],
-        ["MapAssign", CT.LP, CT.Unary, CT.Name, CT.RP],
+        [
+            "MapAssignLeft", CT.LP, CT.Binary, CT.Separator, CT.Expression,
+            CT.Name, CT.RP
+        ],
+        [
+            "MapAssignRight", CT.LP, CT.Binary, CT.Separator, CT.Expression,
+            CT.Name, CT.RP
+        ],
+        ["MapAssign", CT.LP, CT.Unary, CT.Separator, CT.Name, CT.RP],
         ["PythonExecute", CT.LP, CT.Expression, CT.RP],
         ["pyexec", CT.LP, CT.Expression, CT.RP],
         [CT.Arrow, CT.Separator, CT.Expression],

@@ -231,7 +231,7 @@ UnicodeGrammars = {
         ["Ｗ", CT.Expression, CT.Body],
         ["¿", CT.Expression, CT.Body, CT.Body],
         ["¿", CT.Expression, CT.Body],
-        ["≔§", CT.Expression, CT.Expression, CT.Expression],
+        ["§≔", CT.Expression, CT.Expression, CT.Expression],
         ["≔", CT.Expression, CT.Name],
         ["≔", CT.Expression, CT.Expression],
         ["¤", CT.Expression],
