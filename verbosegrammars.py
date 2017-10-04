@@ -16,7 +16,7 @@ VerboseGrammars = {
         [":UR"],
         [":DR"],
         [":DL"],
-        [":L"],
+        [":Le"],
         [":U"],
         [":R"],
         [":D"],
@@ -74,7 +74,10 @@ VerboseGrammars = {
         [CT.Expression, ":", CT.Expression]
     ],
     CT.Cases: [
-        ["case", CT.Expression, ":", CT.Body, CT.Separator, CT.Cases],
+        [
+            "case", CT.Expression, ":", CT.Body, CT.Separator, CT.Separator,
+            CT.Cases
+        ],
         []
     ],
     CT.List: [["[", CT.Expressions, "]"], ["[", "]"]],
@@ -116,7 +119,7 @@ VerboseGrammars = {
         [CT.Nilary, CT.LP, CT.RP, CT.Separator],
     ],
     CT.Nilary: [
-        ["InputString"], ["input"], ["InputNumber"], ["Random"], ["rand"],
+        ["InputString"], ["InputNumber"], ["input"], ["Random"], ["rand"],
         ["PeekAll"], ["PeekMoore"], ["PeekVonNeumann"], ["Peek"], ["x"], ["y"],
         ["i"], ["j"]
     ],
@@ -166,8 +169,8 @@ VerboseGrammars = {
         ["PythonFunction", CT.LP, CT.Expression, CT.Expression, CT.RP],
         ["PythonFunction", CT.LP, CT.Expression, CT.RP],
         ["InputString", CT.LP, CT.Name, CT.RP],
-        ["input", CT.LP, CT.Name, CT.RP],
         ["InputNumber", CT.LP, CT.Name, CT.RP],
+        ["input", CT.LP, CT.Name, CT.RP],
         ["Evaluate", CT.LP, CT.Expression, CT.RP],
         ["eval", CT.LP, CT.Expression, CT.RP],
         ["Print", CT.LP, CT.Arrow, CT.Separator, CT.Expression, CT.RP],

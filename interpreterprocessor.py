@@ -106,12 +106,12 @@ def Sum(item):
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
-        if all([c in "0123456789." for c in item]) and item.count(".") < 1:
+        if all(c in "0123456789." for c in item) and item.count(".") < 2:
             return sum([0 if c == "." else int(c) for c in item])
-        return sum([
+        return sum(
             float(c) if "." in c else int(c)
             for c in re.findall("\d+\.?\d*|\.\d+", item)
-        ])
+        )
     if hasattr(item, "__iter__") and item:
         if isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
@@ -136,12 +136,12 @@ def Product(item):
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
-        if all([c in "0123456789." for c in item]) and item.count(".") < 1:
+        if all(c in "0123456789." for c in item) and item.count(".") < 2:
             return product([0 if c == "." else int(c) for c in item])
-        return product([
+        return product(
             float(c) if "." in c else int(c)
             for c in re.findall("\d+\.?\d*|\.\d+", item)
-        ])
+        )
     if hasattr(item, "__iter__") and item:
         if isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
@@ -583,7 +583,13 @@ InterpreterProcessor = {
         ),
         lambda r: lambda left, right, c: left.append(right) or left,
         lambda r: lambda left, right, c: right.join(left),
-        lambda r: lambda left, right, c: left.split(right),
+        lambda r: lambda left, right, c: (
+            itersplit(left, int(right))
+            if isinstance(right, int) or isinstance(right, float) else
+            list(map(int, str(left).split(str(right))))
+            if isinstance(left, int) or isinstance(left, float) else
+            left.split(right)
+        ),
         lambda r: lambda left, right, c: FindAll(left, right),
         lambda r: lambda left, right, c: (
             left.find(right)

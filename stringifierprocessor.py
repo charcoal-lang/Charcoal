@@ -43,7 +43,11 @@ StringifierProcessor = {
     CT.Number: [
         lambda r: ["".join(
             ("·" if n == "." else SuperscriptToNormal[int(n)])
-            for n in str(r[0])
+            for n in (
+                str(r[0]).strip("0")
+                if "." in str(r[0]) else
+                str(r[0]).lstrip("0")
+            ) or "0"
         )]
     ],
     CT.Name: [
@@ -83,7 +87,7 @@ StringifierProcessor = {
         lambda r: r[0] + r[1]
     ],
     CT.Cases: [
-        lambda r: r[1] + r[3] + r[5],
+        lambda r: r[1] + r[3] + r[5] + r[6],
         lambda r: ""
     ],
 
@@ -125,8 +129,8 @@ StringifierProcessor = {
     ],
     CT.Nilary: [
         lambda r: "Ｓ",
-        lambda r: "Ｓ",
         lambda r: "Ｎ",
+        lambda r: "Ｓ",
         lambda r: "‽",
         lambda r: "‽",
         lambda r: "ＫＡ",
@@ -197,8 +201,8 @@ StringifierProcessor = {
         lambda r: "ＵＰ" + r[2] + r[3],
         lambda r: "ＵＰ" + r[2],
         lambda r: "Ｓ" + r[2],
-        lambda r: "Ｓ" + r[2],
         lambda r: "Ｎ" + r[2],
+        lambda r: "Ｓ" + r[2],
         lambda r: "Ｖ" + r[2],
         lambda r: "Ｖ" + r[2],
         lambda r: r[2] + r[4],

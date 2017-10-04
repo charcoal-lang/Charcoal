@@ -286,11 +286,12 @@ whatever = Whatever()
 
 
 class Coordinates(object):
-    __slots__ = ("top", "coordinates")
+    __slots__ = ("top", "coordinates", "list")
 
     def __init__(self):
         self.top = 0
         self.coordinates = [[]]
+        self.list = []
 
     def FillLines(self, y):
         if y > self.top + len(self.coordinates) - 1:
@@ -306,6 +307,7 @@ class Coordinates(object):
     def Add(self, x, y):
         self.FillLines(y)
         self.coordinates[y - self.top] += [x]
+        self.list += [(x, y)]
 
 
 class Scope(object):
@@ -1103,7 +1105,7 @@ after it is finished.
         """
         self.Print(string, directions, multiprint=True)
 
-    def Polygon(self, sides, character, fill=True):
+    def Polygon(self, sides, character, fill=True, border_only=False):
         """
         Polygon(sides, character, fill=True)
 
@@ -1114,32 +1116,43 @@ a horizontal, vertical or diagonal line.
 
         """
         multichar_fill = len(character) > 1
-        if multichar_fill:
+        lines = None
+        if multichar_fill and not border_only:
             lines = character.split("\n")
             character = "*"
-        initial_x = self.x
-        initial_y = self.y
+        initial_x, initial_y, counter = self.x, self.y, 0
         coordinates = Coordinates()
         for i in range(len(sides)):
-            side = sides[i]
-            direction = side[0]
-            length = int(side[1])
+            direction, length = sides[i]
+            length = int(length)
             if length < 0:
                 direction = NewlineDirection[NewlineDirection[direction]]
                 length *= -1
             self.PrintLine(
                 {direction},
                 length - (i < len(sides) - 1),
-                character,
+                (
+                    (character[counter:] + character[:counter])
+                    if border_only else
+                    character
+                ),
                 coordinates=coordinates,
                 move_at_end=(i < len(sides) - 1),
                 multichar_fill=multichar_fill
             )
+            if border_only:
+                counter = (
+                    (counter + length - (i < len(sides) - 1)) % len(character)
+                )
             if Info.step_canvas in self.info:
                 self.RefreshFastText("Polygon side", self.canvas_step)
             elif Info.dump_canvas in self.info:
                 print("Polygon side")
                 print(str(self))
+        if border_only:
+            if self.x == initial_x and self.y == initial_y:
+                self.Put(character[0])
+            return
         delta_x = initial_x - self.x
         sign_x = Sign(delta_x)
         delta_y = initial_y - self.y
@@ -1150,6 +1163,12 @@ a horizontal, vertical or diagonal line.
             not fill or
             delta_x and delta_y and delta_x * sign_x != delta_y * sign_y
         ):
+            self.x = initial_x
+            self.y = initial_y
+            self.Polygon(
+                sides, "\n".join(lines) if lines is not None else character,
+                fill, border_only=True
+            )
             return
         final_x = self.x
         final_y = self.y
@@ -1804,7 +1823,7 @@ characters to the axis are on the axis.
         If transform is true, reflect characters in the copy, \
 but not if it overwrites the original.
 
-        Leaves out the specified overlap of characters closest to the axis. 
+        Overlaps the axis by the specified number of characters.
 
         """
         if not overlap:
@@ -1817,96 +1836,77 @@ but not if it overwrites the original.
                 for direction_ in direction:
                     self.ReflectOverlap(direction_, transform, overlap)
             return
-        finished = True
+        finished, initial_x, initial_y = True, self.x, self.y
         if direction == Direction.left:
+            self.y = self.top
             left = min(self.indices)
-            self.x -= (self.x - left) * 2
-            self.lines = [
-                (
-                    "".join(
-                        HorizontalFlip.get(character, character)
-                        for character in
-                        (line[::-1] + "\000" * (index - left))[:-overlap]
-                    )
-                    if transform else
-                    (line[::-1] + "\000" * (index - left))[:-overlap]
-                ) +
-                "\000" * (index - left) +
-                line
-                for line, index in zip(self.lines, self.indices)
-            ]
             self.background_inside = True
-            self.lengths = [
-                (length + index - left) * 2 - 1
-                for length, index in zip(self.lengths, self.indices)
-            ]
-            self.indices = [
-                left * 2 - right_index + 1
-                for right_index in self.right_indices
-            ]
+            for line, length, index in zip(
+                self.lines[:], self.lengths[:], self.indices[:]
+            ):
+                self.x = left * 2 - index + overlap - 1
+                string = (
+                    "".join(HorizontalFlip.get(c, c) for c in line)
+                    if transform else line
+                )
+                self.PrintLine(
+                    {Direction.left}, len(string), string, overwrite=False
+                )
+                self.y += 1
+            self.x, self.y = initial_x - (initial_x - left) * 2, initial_y
         elif direction == Direction.right:
+            self.y = self.top
             right = max(self.right_indices)
-            self.x += (right - self.x - 1) * 2
-            self.lines = [
-                line +
-                "\000" * (right - right_index) +
-                (
-                    "".join(
-                        HorizontalFlip.get(character, character)
-                        for character in
-                        ("\000" * (right - right_index) + line[::-1])[overlap:]
-                    )
-                    if transform else
-                    ("\000" * (right - right_index) + line[::-1])[overlap:]
-                )
-                for line, right_index in zip(self.lines, self.right_indices)
-            ]
             self.background_inside = True
-            self.lengths = [
-                (length + right - right_index) * 2 - 1
-                for length, right_index in zip(
-                    self.lengths,
-                    self.right_indices
+            for line, length, index in zip(
+                self.lines[:], self.lengths[:], self.indices[:]
+            ):
+                self.x = right * 2 - index - overlap - 1
+                string = (
+                    "".join(HorizontalFlip.get(c, c) for c in line)
+                    if transform else line
                 )
-            ]
-            self.right_indices = [
-                right * 2 - index - 1
-                for index in self.indices
-            ]
+                self.PrintLine(
+                    {Direction.left}, len(string), string, overwrite=False
+                )
+                self.y += 1
+            self.x = initial_x + (right - initial_x - 1) * 2 + 1 - overlap
+            self.y = initial_y
         elif direction == Direction.up:
-            self.y -= (self.top - self.y) * 2
-            self.top -= len(self.lines) - 1
-            self.lines = (
-                [
-                    "".join(
-                        VerticalFlip.get(character, character)
-                        for character in line
-                    ) for line in self.lines[:overlap - 1:-1]
-                ]
-                if transform else
-                self.lines[:overlap - 1:-1]
-            ) + self.lines
-            self.indices = self.indices[:overlap - 1:-1] + self.indices
-            self.lengths = self.lengths[:overlap - 1:-1] + self.lengths
-            self.right_indices = (
-                self.right_indices[:overlap - 1:-1] +
-                self.right_indices
-            )
+            self.y = self.top + overlap - 1
+            self.background_inside = True
+            for line, length, index in zip(
+                self.lines[:], self.lengths[:], self.indices[:]
+            ):
+                self.x = index
+                string = (
+                    "".join(VerticalFlip.get(c, c) for c in line)
+                    if transform else line
+                )
+                self.PrintLine(
+                    {Direction.right}, len(string), string, overwrite=False
+                )
+                self.y -= 1
+            self.x = initial_x
+            self.y = initial_y * 3 - self.top * 2 - 1 + overlap
         elif direction == Direction.down:
-            self.y += (self.top + len(self.lines) - self.y) * 2 - 1 - overlap
-            self.lines += (
-                [
-                    "".join(
-                        VerticalFlip.get(character, character)
-                        for character in line
-                    ) for line in self.lines[-1 - overlap::-1]
-                ]
-                if transform else
-                self.lines[-1 - overlap::-1]
-            )
-            self.indices += self.indices[-1 - overlap::-1]
-            self.lengths += self.lengths[-1 - overlap::-1]
-            self.right_indices += self.right_indices[-1 - overlap::-1]
+            line_count = len(self.lines)
+            self.y = self.top + line_count * 2 - overlap - 1
+            self.background_inside = True
+            for line, length, index in zip(
+                self.lines[:], self.lengths[:], self.indices[:]
+            ):
+                self.x = index
+                string = (
+                    "".join(VerticalFlip.get(c, c) for c in line)
+                    if transform else line
+                )
+                self.PrintLine(
+                    {Direction.right}, len(string), string, overwrite=False
+                )
+                self.y -= 1
+            self.x = initial_x
+            self.y = (self.top + line_count) * 2 - initial_y - 1 - overlap # -initial_y + 2 * self.top + 2 * len(self.lines) - 1 - overlap
         else:
             finished = False
         if finished:
@@ -1924,8 +1924,6 @@ but not if it overwrites the original.
                 )
                 print(str(self))
             return
-        initial_x = self.x
-        initial_y = self.y
         self.Trim()
         if direction == Direction.up_left:
             top_left, negative_x = min(
@@ -2778,7 +2776,11 @@ or into a number if it was a string.
             return [self.Cast(item) for item in variable]
         if isinstance(variable, str):
             return float(variable) if "." in variable else int(variable or "0")
-        if isinstance(variable, int) or isinstance(variable, float):
+        if isinstance(variable, float):
+            if not round(variable, 15) % 1:
+                return str(int(variable))
+            return str(variable)
+        if isinstance(variable, int):
             return str(variable)
         if isinstance(variable, String):
             return int(str(variable) or "0")
@@ -3730,8 +3732,11 @@ starting from the token given as grammar.
                             break
                         character = code[index]
                         if (
-                            character in "abgdezhqiklmnxprsvtufcyw" and not
-                            code[index + 1] in "abcdefghijklmnopqrstuvwxyz"
+                            character in "abgdezhqiklmnxprsvtufcyw" and (
+                                index == len(code) - 1 or
+                                code[index + 1] not in "\
+abcdefghijklmnopqrstuvwxyz"
+                            )
                         ):
                             tokens += processor[token][0]([character])
                             index += 1
@@ -4549,9 +4554,9 @@ non-raw file input and file output."""
         help="Show the xxd hexdump of the code."
     )
     argv, info = parser.parse_args(), set()
-    argv.repl = argv.repl or all(list(map(
-        lambda x: x in ["-g", "-grave", "--v", "--verbose"], sys.argv[1:]
-    )))
+    argv.repl = argv.repl or all(
+        x in ["-g", "--grave", "-v", "--verbose"] for x in sys.argv[1:]
+    )
     if argv.test:
         from test import CharcoalTests, RunTests
         RunTests()

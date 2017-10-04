@@ -11,6 +11,8 @@ from charcoal import Run
 import unittest
 import sys
 
+# test string+int split
+
 
 class CharcoalTest(unittest.TestCase):
     def test_print(self):
@@ -1305,13 +1307,49 @@ abcgk
  klmno
     o 
     - """)
+        self.assertEqual(Run("""\
+polygon :d :r 5 '*'
+reflectoverlapoverlap :d 5
+print 'a'""", verbose=True), """\
+****a
+**** 
+***  
+**** 
+*****""")
+        self.assertEqual(Run("""\
+polygon :L 5 '*'
+reflectoverlapoverlap :u 5
+print 'a'""", verbose=True), """\
+*****
+**** 
+***  
+**** 
+****a""")
+        self.assertEqual(Run("""\
+polygon :u :le 5 '*'
+reflectoverlapoverlap :le 5
+print 'a'""", verbose=True), """\
+a****
+*****
+*****
+** **
+*   *""")
+        self.assertEqual(Run("""\
+polygon :L 5 '*'
+reflectoverlapoverlap :r 5
+print 'a'""", verbose=True), """\
+a****
+*****
+*****
+** **
+*   *""")
 
     def test_reflect_butterfly(self):
         self.assertEqual(Run("<<|\\‖Ｂ→"), "<<|\|>>")
         self.assertEqual(Run("foobar¶‖Ｂ↓a"), """\
 foobar
 a     
-foobar""")
+foopar""")
 
     def test_rotate(self):
         self.assertEqual(Run("abc¶def¶ghi⟲²"), "cfi\nbeh\nadg")
@@ -1397,6 +1435,17 @@ aaaaa""")
   #########  
    #######   
     #####    """)
+        self.assertEqual(Run("ＧＨ↙→→↖⊕÷Ｌθ⁴θ", "\
+thisrepresentationisnotatriangle"), """\
+        t        
+       h e       
+      i   l      
+     s     g     
+    r       n    
+   e         a   
+  p           i  
+ r             r 
+esentationisnotat""")
 
     def test_cycle_chop(self):
         self.assertEqual(Run("…abc¹⁰"), "abcabcabca")
@@ -1584,6 +1633,13 @@ foofoofoofoofoo""")
 
     def test_map(self):
         self.assertEqual(Run("Ｅ⟦¹1²⟧Ｉι"), "1\n-\n2")
+        self.assertEqual(Run("map 6 * '🐐' i ", verbose=True), """\
+     
+🐐    
+🐐🐐   
+🐐🐐🐐  
+🐐🐐🐐🐐 
+🐐🐐🐐🐐🐐""")
 
     def test_reduce(self):
         self.assertEqual(Run("\
@@ -1642,6 +1698,19 @@ O---
         self.assertEqual(Run("Ｉ⊘¹·²"), "0.6")
         self.assertEqual(Run("Ｉ⊘1.2"), "0.6")
         self.assertEqual(Run("cast halved 1.2", verbose="True"), "0.6")
+
+    def test_sum_product(self):
+        self.assertEqual(Run("ＩΣ⟦³¦²¦¹⟧"), "6")
+        self.assertEqual(Run("ＩΣ3 2 1 4"), "10")
+        self.assertEqual(Run("ＩΣ5..4"), "5.4")
+        self.assertEqual(Run("ＩΣ⁰¹²³⁴⁵⁶⁷⁸⁹⁰¹²³⁴⁵⁶⁷⁸⁹"), "90")
+        self.assertEqual(Run("ＩΣ01234567890123456789"), "90")
+        self.assertEqual(Run("ＩΠ⟦³¦²¦¹⟧"), "6")
+        self.assertEqual(Run("ＩΠ3 2 1 4"), "24")
+        self.assertEqual(Run("ＩΠ3 2 1 4"), "24")
+        self.assertEqual(Run("ＩΠ5..4"), "2")
+        self.assertEqual(Run("ＩΠ12345"), "120")
+        self.assertEqual(Run("ＩΠ¹²³⁴⁵"), "120")
 
     def test_map_assign(self):
         self.assertEqual(Run("≔⟦³¦²¦¹⟧β≧×²ββ"), "------\n----  \n--    ")
