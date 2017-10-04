@@ -40,6 +40,8 @@ CharcoalTokenNames = [
     "RP",
 
     "EOF",
+
+    "MAX",
 ]
 
 

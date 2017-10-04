@@ -50,6 +50,50 @@ import sys
 import builtins
 import types
 
+command_abbreviations = {}
+
+for key in range(CharcoalToken.MAX - 1, -1, -1):
+    if not key in VerboseGrammars:
+        continue
+    new_verbose_grammars, new_stringifier_processor = {}, {}
+    for lexeme, stringify in zip(
+        VerboseGrammars[key][:], StringifierProcessor[key][:]
+    ):
+        new_verbose_grammars[key] = []
+        new_stringifier_processor[key] = []
+        count = 0
+        if (
+            len(lexeme) and
+            isinstance(lexeme[0], str) and
+            re.match("[a-z]*[A-Z][a-zA-Z]*$", lexeme[0])
+        ):
+            k = "".join(re.findall("[A-Z]", lexeme[0]))
+            while (
+                k in command_abbreviations and
+                command_abbreviations[k] != lexeme[0]
+            ):
+                count += 1
+                k = "".join(
+                    re.findall("[A-Z].{0,%s}" % count, lexeme[0])
+                )
+            if k not in command_abbreviations:
+                command_abbreviations[k] = lexeme[0]
+            new_verbose_grammars[key] += [[k] + lexeme[1:]]
+            new_stringifier_processor[key] += [stringify]
+        if key == CharcoalToken.Command:
+            VerboseGrammars[key] = (
+                VerboseGrammars[key][:-2] + new_verbose_grammars[key][::-1] +
+                VerboseGrammars[key][-2:]
+            )
+            StringifierProcessor[key] = (
+                StringifierProcessor[key][:-2] +
+                new_stringifier_processor[key][::-1] +
+                StringifierProcessor[key][-2:]
+            )
+        else:
+            VerboseGrammars[key] += new_verbose_grammars[key][::-1]
+            StringifierProcessor[key] += new_stringifier_processor[key][::-1]
+
 for alias, builtin in [
     ("a", abs), ("b", bin), ("c", complex), ("e", enumerate), ("f", format),
     ("g", range), ("h", hex), ("i", __import__), ("m", sum), ("n", min),
@@ -1906,7 +1950,7 @@ but not if it overwrites the original.
                 )
                 self.y -= 1
             self.x = initial_x
-            self.y = (self.top + line_count) * 2 - initial_y - 1 - overlap # -initial_y + 2 * self.top + 2 * len(self.lines) - 1 - overlap
+            self.y = (self.top + line_count) * 2 - initial_y - 1 - overlap
         else:
             finished = False
         if finished:

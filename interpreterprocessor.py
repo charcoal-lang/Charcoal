@@ -35,6 +35,14 @@ def iter_apply(iterable, function):
     return clone
 
 
+def itersplit(iterable, number):
+    result = []
+    while len(iterable):
+        result += [iterable[:number]]
+        iterable = iterable[number:]
+    return result
+
+
 def negate_str(string):
     try:
         return float(string) if "." in string else int(string)

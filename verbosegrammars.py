@@ -1,4 +1,5 @@
 from charcoaltoken import CharcoalToken as CT
+import re
 
 VerboseGrammars = {
     CT.LP: [["("], []],
@@ -126,7 +127,7 @@ VerboseGrammars = {
     CT.Unary: [
         ["Negate"], ["Length"], ["Not"], ["Cast"], ["Random"], ["rand"],
         ["Evaluate"], ["eval"], ["Pop"], ["Lowercase"], ["Uppercase"],
-        ["Minimum"], ["min"], ["Floor"], ["floor"], ["Maximum"], ["max"],
+        ["Minimum"], ["min"], ["Floor"], ["Maximum"], ["max"],
         ["Ceiling"], ["ceil"], ["Character"], ["chr"], ["Ordinal"], ["ord"],
         ["Reverse"], ["rev"], ["GetVariable"], ["getvar"], ["Repeated"],
         ["RepeatedNull"], ["Slice"], ["Range"], ["~"],
@@ -339,6 +340,6 @@ VerboseGrammars = {
         ["PythonExecute", CT.LP, CT.Expression, CT.RP],
         ["pyexec", CT.LP, CT.Expression, CT.RP],
         [CT.Arrow, CT.Separator, CT.Expression],
-        [CT.Expression],
+        [CT.Expression]
     ]
 }

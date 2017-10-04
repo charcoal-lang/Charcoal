@@ -120,6 +120,8 @@ ASTProcessor = {
         lambda r: r[0] + ": Peek Moore",
         lambda r: r[0] + ": Peek Von Neumann",
         lambda r: r[0] + ": Peek",
+        lambda r: r[0] + ": x position",
+        lambda r: r[0] + ": y position"
     ],
     CharcoalToken.Unary: [
         lambda r: r[0] + ": Negative",
@@ -178,7 +180,9 @@ ASTProcessor = {
         lambda r: r[0] + ": Rule",
         lambda r: r[0] + ": Delayed rule",
         lambda r: r[0] + ": Pattern test",
-        lambda r: r[0] + ": Slice"
+        lambda r: r[0] + ": Slice",
+        lambda r: r[0] + ": All",
+        lambda r: r[0] + ": Any"
     ],
     CharcoalToken.Ternary: [lambda r: r[0] + ": Slice"],
     CharcoalToken.Quarternary: [lambda r: r[0] + ": Slice"],
@@ -283,6 +287,11 @@ ASTProcessor = {
         lambda r: [r[0] + ": Extend", r[1], r[2]],
         lambda r: [r[0] + ": Extend", r[1]],
         lambda r: [r[0] + ": Push"] + r[1:],
+        lambda r: [r[0] + ": Switch"] + r[1:],
+        lambda r: [r[0] + ": Switch"] + r[1:],
+        lambda r: [r[0] + ": Switch"] + r[1:],
+        lambda r: [r[0] + ": Switch"] + r[1:],
+        lambda r: [r[0] + ": Switch"] + r[1:],
         lambda r: [r[0] + ": Switch"] + r[1:],
         lambda r: [r[0] + ": Map"] + r[1:],
         lambda r: [r[0] + ": Execute variable"] + r[1:],
