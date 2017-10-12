@@ -124,7 +124,19 @@ StringifierProcessor = {
         lambda r: r[0] + r[2] + r[3] + r[5],
         lambda r: r[0] + r[2] + r[4],
         lambda r: r[0] + r[2] + r[4],
-        lambda r: r[0] + r[3]
+        lambda r: r[0] + r[3],
+        lambda r: r[0] + r[2] + r[3] + r[4] + r[5] + r[7],
+        lambda r: r[0] + r[2] + r[3] + r[4] + r[5] + r[7],
+        lambda r: r[0] + r[2] + r[3] + r[4] + r[6],
+        lambda r: r[0] + r[2] + r[3] + r[4] + r[6],
+        lambda r: r[0] + r[2] + r[3] + r[5],
+        lambda r: r[0] + r[2] + r[3] + r[5],
+        lambda r: r[0] + r[2] + r[4],
+        lambda r: r[0] + r[2] + r[4]
+    ],
+    CT.ExpressionOrEOF: [
+        lambda r: r[0],
+        lambda r: ""
     ],
     CT.Nilary: [
         lambda r: "Ｓ",
@@ -180,6 +192,7 @@ StringifierProcessor = {
         lambda r: "ＫＤ" + r[2] + r[3],
         lambda r: "Ｅ" + r[2] + r[3],
         lambda r: "Ｅ" + r[2] + r[3],
+        lambda r: "⭆" + r[2] + r[3],
         lambda r: "ＵＰ" + r[2] + r[3],
         lambda r: "ＵＰ" + r[2],
         lambda r: "▷" + r[2] + r[3],

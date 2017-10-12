@@ -12,6 +12,7 @@ import unittest
 import sys
 
 # test string+int split
+# test auto-input
 
 
 class CharcoalTest(unittest.TestCase):
@@ -1640,6 +1641,10 @@ foofoofoofoofoo""")
 🐐🐐🐐  
 🐐🐐🐐🐐 
 🐐🐐🐐🐐🐐""")
+
+    def test_string_map(self):
+        self.assertEqual(Run("⭆Ｓ⎇﹪κＩηι×ιＩη", "['Hello, World!', '3']"), "\
+HHHellllo,   Worrrld!!!")
 
     def test_reduce(self):
         self.assertEqual(Run("\

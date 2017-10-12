@@ -469,7 +469,19 @@ InterpreterProcessor = {
         lambda r: lambda c: r[0](r[1](c), r[2](c), c),
         lambda r: lambda c: r[0](r[1], c),
         lambda r: lambda c: r[0](r[1](c), c),
-        lambda r: lambda c: r[0](c)
+        lambda r: lambda c: r[0](c),
+        lambda r: lambda c: r[0](r[1], r[2], r[3], r[4], c),
+        lambda r: lambda c: r[0](r[1](c), r[2](c), r[3](c), r[4](c), c),
+        lambda r: lambda c: r[0](r[1], r[2], r[3], c),
+        lambda r: lambda c: r[0](r[1](c), r[2](c), r[3](c), c),
+        lambda r: lambda c: r[0](r[1], r[2], c),
+        lambda r: lambda c: r[0](r[1](c), r[2](c), c),
+        lambda r: lambda c: r[0](r[1], c),
+        lambda r: lambda c: r[0](r[1](c), c)
+    ],
+    CharcoalToken.ExpressionOrEOF: [
+        lambda r: lambda c: r[0](c),
+        lambda r: lambda c: c.Input()
     ],
     CharcoalToken.Nilary: [
         lambda r: lambda c: c.InputString(),
@@ -630,6 +642,7 @@ InterpreterProcessor = {
     CharcoalToken.OtherOperator: [
         lambda r: lambda c: c.PeekDirection(r[1](c), r[2](c)),
         lambda r: lambda c: c.Map(r[1](c), r[2]),
+        lambda r: lambda c: c.Map(r[1](c), r[2], string_map=True),
         lambda r: lambda c: c.EvaluateVariable(r[1](c), r[2](c)),
         lambda r: lambda c: c.EvaluateVariable(r[1](c), [r[2](c)])
     ],

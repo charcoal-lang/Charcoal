@@ -99,30 +99,62 @@ VerboseGrammars = {
             CT.Expression, CT.Expression, CT.RP, CT.Separator
         ],
         [
-            CT.Quarternary, CT.LP, CT.Expression, CT.Expression, CT.Expression,
+            CT.Quarternary, CT.LP, CT.Expression, CT.Expression,
+            CT.Expression, CT.Expression, CT.RP, CT.Separator
+        ],
+        [
+            CT.LazyTernary, CT.LP, CT.Expression, CT.Expression,
             CT.Expression, CT.RP, CT.Separator
         ],
         [
-            CT.LazyTernary, CT.LP, CT.Expression, CT.Expression, CT.Expression,
+            CT.Ternary, CT.LP, CT.Expression, CT.Expression,
+            CT.Expression, CT.RP, CT.Separator
+        ],
+        [
+            CT.LazyBinary, CT.LP, CT.Expression, CT.Expression,
             CT.RP, CT.Separator
         ],
         [
-            CT.Ternary, CT.LP, CT.Expression, CT.Expression, CT.Expression,
-            CT.RP, CT.Separator
-        ],
-        [
-            CT.LazyBinary, CT.LP, CT.Expression, CT.Expression, CT.RP,
+            CT.Binary, CT.LP, CT.Expression, CT.Expression, CT.RP,
             CT.Separator
         ],
-        [CT.Binary, CT.LP, CT.Expression, CT.Expression, CT.RP, CT.Separator],
         [CT.LazyUnary, CT.LP, CT.Expression, CT.RP, CT.Separator],
-        [CT.Unary, CT.LP, CT.Expression, CT.RP, CT.Separator],
+        [CT.Unary, CT.LP, CT.ExpressionOrEOF, CT.RP, CT.Separator],
         [CT.Nilary, CT.LP, CT.RP, CT.Separator],
+        [
+            CT.LazyQuarternary, CT.LP, CT.ExpressionOrEOF, CT.ExpressionOrEOF,
+            CT.ExpressionOrEOF, CT.ExpressionOrEOF, CT.RP, CT.Separator
+        ],
+        [
+            CT.Quarternary, CT.LP, CT.ExpressionOrEOF, CT.ExpressionOrEOF,
+            CT.ExpressionOrEOF, CT.ExpressionOrEOF, CT.RP, CT.Separator
+        ],
+        [
+            CT.LazyTernary, CT.LP, CT.ExpressionOrEOF, CT.ExpressionOrEOF,
+            CT.ExpressionOrEOF, CT.RP, CT.Separator
+        ],
+        [
+            CT.Ternary, CT.LP, CT.ExpressionOrEOF, CT.ExpressionOrEOF,
+            CT.ExpressionOrEOF, CT.RP, CT.Separator
+        ],
+        [
+            CT.LazyBinary, CT.LP, CT.ExpressionOrEOF, CT.ExpressionOrEOF,
+            CT.RP, CT.Separator
+        ],
+        [
+            CT.Binary, CT.LP, CT.ExpressionOrEOF, CT.ExpressionOrEOF, CT.RP,
+            CT.Separator
+        ],
+        [CT.LazyUnary, CT.LP, CT.ExpressionOrEOF, CT.RP, CT.Separator],
+        [CT.Unary, CT.LP, CT.ExpressionOrEOF, CT.RP, CT.Separator]
+    ],
+    CT.ExpressionOrEOF: [
+        [CT.Expression],
+        [CT.EOF]
     ],
     CT.Nilary: [
         ["InputString"], ["InputNumber"], ["input"], ["Random"], ["rand"],
-        ["PeekAll"], ["PeekMoore"], ["PeekVonNeumann"], ["Peek"], ["x"], ["y"],
-        ["i"], ["j"]
+        ["PeekAll"], ["PeekMoore"], ["PeekVonNeumann"], ["Peek"], ["x"], ["y"]
     ],
     CT.Unary: [
         ["Negate"], ["Length"], ["Not"], ["Cast"], ["Random"], ["rand"],
@@ -157,6 +189,7 @@ VerboseGrammars = {
         ["PeekDirection", CT.LP, CT.Expression, CT.Arrow, CT.RP],
         ["Each", CT.LP, CT.Expression, CT.Expression, CT.RP],
         ["Map", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["StringMap", CT.LP, CT.Expression, CT.Expression, CT.RP],
         ["PythonFunction", CT.LP, CT.Expression, CT.List, CT.RP],
         ["PythonFunction", CT.LP, CT.Expression, CT.RP],
         ["EvaluateVariable", CT.LP, CT.Expression, CT.WolframList, CT.RP],

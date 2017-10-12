@@ -532,7 +532,14 @@ class List(Expression):
     # TODO: operators
     def __init__(self, *items):
         super().__init__(head=headify(List))
-        self.leaves = list(filter(lambda x: x is not None, items))
+        self.leaves = list(filter(
+            lambda x: x is not None,
+            (
+                items[0] if
+                len(items) == 1 and isinstance(items[0], list) else
+                items
+            )
+        ))
 
     def __len__(self):
         return len(self.leaves)

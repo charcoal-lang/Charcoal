@@ -411,7 +411,13 @@ class Scope(object):
 class Cells(list):
     __slots__ = ("xs", "ys", "charcoal")
 
-    def __init__(self, charcoal, value, xs, ys):
+    def __init__(self, charcoal, value, xs=None, ys=None):
+        if isinstance(value, Cells):
+            super().__init__(charcoal)
+            self.xs = value.xs
+            self.ys = value.ys
+            self.charcoal = value.charcoal
+            return
         super().__init__(value)
         self.xs = xs
         self.ys = ys
@@ -428,17 +434,16 @@ class Cells(list):
         self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
 
     def __getitem__(self, i):
-        super().__getitem__(i)
         if isinstance(i, slice):
             start = i.start or 0
             stop = len(self) if i.stop is None else i.stop
             return Cells(
                 self.charcoal,
-                self[start:stop],
+                super().__getitem__(slice(start, stop)),
                 self.xs[start:stop],
                 self.ys[start:stop]
             )
-        return self[i]
+        return super().__getitem__(i)
 
 
 class Charcoal(object):
@@ -2888,6 +2893,11 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
         """
         if key in self.scope:
             return self.scope[key]
+        if key in "θηζεδ":
+            index = "θηζεδ".index(key) + 1
+            while len(self.original_inputs) < index:
+                self.InputString()
+            return self.hidden[key]
         if key in self.hidden:
             return self.hidden[key]
         if key in Charcoal.secret:
@@ -2962,21 +2972,60 @@ else set the variable with the given name to the given value.
                 result = 0
             self.inputs = self.inputs[1:]
         elif Info.prompt in self.info:
+            inp = input("Enter number: ")
             try:
-                inp = input("Enter number: ")
                 result = (float if "." in inp else int)(inp)
-                self.original_inputs += [inp]
-                if len(self.original_inputs) < 5:
-                    self.all_inputs = self.original_inputs + [""] * (
-                        5 - len(self.original_inputs)
-                    )
-                    self.hidden["θ"] = self.all_inputs[0]
-                    self.hidden["η"] = self.all_inputs[1]
-                    self.hidden["ζ"] = self.all_inputs[2]
-                    self.hidden["ε"] = self.all_inputs[3]
-                    self.hidden["δ"] = self.all_inputs[4]
             except:
                 result = 0
+            self.original_inputs += [result]
+            if len(self.original_inputs) < 5:
+                self.all_inputs = self.original_inputs + [""] * (
+                    5 - len(self.original_inputs)
+                )
+                self.hidden["θ"] = self.all_inputs[0]
+                self.hidden["η"] = self.all_inputs[1]
+                self.hidden["ζ"] = self.all_inputs[2]
+                self.hidden["ε"] = self.all_inputs[3]
+                self.hidden["δ"] = self.all_inputs[4]
+        if key:
+            self.scope[key] = result
+        else:
+            return result
+
+    def Input(self, key=""):
+        """
+        Input(key="")
+
+        Gets next input as number if possible, else as a stirng.
+
+        If key is truthy, set the variable key to the input.
+
+        """
+        result = 0
+        if len(self.inputs):
+            try:
+                result = (float if "." in self.inputs[0] else int)(
+                    self.inputs[0]
+                )
+            except:
+                result = self.inputs[0]
+            self.inputs = self.inputs[1:]
+        elif Info.prompt in self.info:
+            inp = input("Enter input: ")
+            try:
+                result = (float if "." in inp else int)(inp)
+            except:
+                result = inp
+            self.original_inputs += [result]
+            if len(self.original_inputs) < 5:
+                self.all_inputs = self.original_inputs + [""] * (
+                    5 - len(self.original_inputs)
+                )
+                self.hidden["θ"] = self.all_inputs[0]
+                self.hidden["η"] = self.all_inputs[1]
+                self.hidden["ζ"] = self.all_inputs[2]
+                self.hidden["ε"] = self.all_inputs[3]
+                self.hidden["δ"] = self.all_inputs[4]
         if key:
             self.scope[key] = result
         else:
@@ -3404,14 +3453,14 @@ in the specified direction from the cursor.
             direction = NewlineDirection[direction]
         return Cells(self, result, xs, ys)
 
-    def Map(self, iterable, function, is_command=False):
+    def Map(self, iterable, function, is_command=False, string_map=False):
         """
         Map(iterable, function, is_command=False)
 
         Returns an iterable with the results of applying \
 function to each element of the iterable.
 
-        If is_command is false, it mutates the original \
+        If is_command is True, it mutates the original \
 iterable, else it returns the iterable.
 
         """
@@ -3432,16 +3481,21 @@ iterable, else it returns the iterable.
             self.scope[loop_variable] = iterable[i]
             self.scope[index_variable] = i
             result += [function(self)]
-        if isinstance(iterable, Cells):
-            clone = iterable[:]
-            clone[:] = result
+        if is_command and not isinstance(iterable, str):
+            iterable[:] = result
         self.scope = self.scope.parent
         if Info.step_canvas in self.info and isinstance(iterable, Cells):
             self.RefreshFastText("Map", self.canvas_step)
         elif Info.dump_canvas in self.info:
             print("Map")
             print(str(self))
-        return result
+        if not is_command:
+            if isinstance(iterable, str):
+                return "".join(result) if string_map else result
+            try:
+                return type(iterable)(result)
+            except:
+                return type(iterable)(result, iterable)
 
     def All(self, iterable, function):
         """
@@ -3711,7 +3765,13 @@ starting from the token given as grammar.
                     next_chars = code[index:index + 2]
             if isinstance(token, int):
                 if verbose:
-                    if token == CharcoalToken.String:
+                    if token == CharcoalToken.EOF:
+                        if index == len(code):
+                            tokens += [""]
+                        else:
+                            success = False
+                            break
+                    elif token == CharcoalToken.String:
                         if index == len(code):
                             success = False
                             break
@@ -4230,13 +4290,16 @@ def Degrave(code):
             "7": "↖", "9": "↗", "3": "↘", "1": "↙", "#": "№", "<": "↶",
             ">": "↷", "r": "⟲", "j": "⪫", "s": "⪪", "c": "℅", "o": "℅",
             "f": "⌕", "v": "⮌", "[": "◧", "]": "◨", "=": "≡", "t": "⎇",
-            "?": "‽", "&": "∧", "|": "∨", "d": "↧", "u": "↥", "_": "±",
-            "+": "⊞", "-": "⊟", "\\": "“", "/": "”", "n": "⌊", "x": "⌈"
+            "!": "‽", "&": "∧", "|": "∨", "l": "↧", "u": "↥", "_": "±",
+            "+": "⊞", "-": "⊟", "\\": "“", "/": "”", "n": "⌊", "x": "⌈",
+            "a": "⊙", "A": "⬤", "N": "¶", "R": "⸿", ";": "；", 
+            "'": "″", "\"": "‴", "0": "➙", "5": "⧴", "?": "＆", ":": "｜"
         }[match.group(1)]
         if match.group(1) else
         UnicodeLookup[chr(ord(match.group(2)) + 128)]
         if match.group(2) != "\n" else "¶"
     ), code)
+
 
 
 def Golf(code):
@@ -4271,18 +4334,12 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"), "γ"),
                     "\\1\\2"
                 ),
                 ("(%s)¦(%s)" % (sOperator, sOperator), "\\1\\2"),
-                ("([^´])[»⟧⦄]+$", "\\1")
             ):
                 old = codes[i]
                 codes[i] = re.sub(regex, replacement, codes[i])
                 if codes[i] != old:
                     success = True
-    code = "".join(codes)
-    if (
-        len(code) > 2 and code.count("”") > 2 and
-        code[-1] == "”" and code[-2] != "´"
-    ):
-        return code[:-1]
+    code = re.sub("([^´])[»⟧⦄”]+$", "\\1", "".join(codes))
     return code
 
 

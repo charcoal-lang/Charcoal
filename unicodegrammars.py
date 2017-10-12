@@ -89,19 +89,49 @@ UnicodeGrammars = {
         [CT.OtherOperator, CT.Separator],
         [
             CT.LazyQuarternary, CT.Expression, CT.Expression, CT.Expression,
-            CT.Expression
+            CT.Expression, CT.Separator
         ],
         [
             CT.Quarternary, CT.Expression, CT.Expression, CT.Expression,
-            CT.Expression
+            CT.Expression, CT.Separator
         ],
-        [CT.LazyTernary, CT.Expression, CT.Expression, CT.Expression],
-        [CT.Ternary, CT.Expression, CT.Expression, CT.Expression],
-        [CT.LazyBinary, CT.Expression, CT.Expression],
-        [CT.Binary, CT.Expression, CT.Expression],
-        [CT.LazyUnary, CT.Expression],
-        [CT.Unary, CT.Expression],
-        [CT.Nilary, CT.Separator]
+        [
+            CT.LazyTernary, CT.Expression, CT.Expression, CT.Expression,
+            CT.Separator
+        ],
+        [
+            CT.Ternary, CT.Expression, CT.Expression, CT.Expression,
+            CT.Separator
+        ],
+        [CT.LazyBinary, CT.Expression, CT.Expression, CT.Separator],
+        [CT.Binary, CT.Expression, CT.Expression, CT.Separator],
+        [CT.LazyUnary, CT.Expression, CT.Separator],
+        [CT.Unary, CT.Expression, CT.Separator],
+        [CT.Nilary, CT.Separator],
+        [
+            CT.LazyQuarternary, CT.ExpressionOrEOF, CT.ExpressionOrEOF,
+            CT.ExpressionOrEOF, CT.ExpressionOrEOF, CT.Separator
+        ],
+        [
+            CT.Quarternary, CT.ExpressionOrEOF, CT.ExpressionOrEOF,
+            CT.ExpressionOrEOF, CT.ExpressionOrEOF, CT.Separator
+        ],
+        [
+            CT.LazyTernary, CT.ExpressionOrEOF, CT.ExpressionOrEOF,
+            CT.ExpressionOrEOF, CT.Separator
+        ],
+        [
+            CT.Ternary, CT.ExpressionOrEOF, CT.ExpressionOrEOF,
+            CT.ExpressionOrEOF, CT.Separator
+        ],
+        [CT.LazyBinary, CT.ExpressionOrEOF, CT.ExpressionOrEOF, CT.Separator],
+        [CT.Binary, CT.ExpressionOrEOF, CT.ExpressionOrEOF, CT.Separator],
+        [CT.LazyUnary, CT.ExpressionOrEOF, CT.Separator],
+        [CT.Unary, CT.ExpressionOrEOF, CT.Separator]
+    ],
+    CT.ExpressionOrEOF: [
+        [CT.Expression],
+        [CT.EOF]
     ],
     CT.Nilary: [
         ["Ｓ"], ["Ｎ"], ["‽"], ["ＫＡ"], ["ＫＭ"], ["ＫＶ"], ["ＫＫ"],["ⅈ"], ["ⅉ"]
@@ -126,6 +156,7 @@ UnicodeGrammars = {
     CT.OtherOperator: [
         ["ＫＤ", CT.Expression, CT.Arrow],
         ["Ｅ", CT.Expression, CT.Expression],
+        ["⭆", CT.Expression, CT.Expression],
         ["▷", CT.Expression, CT.WolframList],
         ["▷", CT.Expression, CT.WolframExpression]
     ],

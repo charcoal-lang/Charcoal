@@ -101,16 +101,13 @@ ASTProcessor = {
         lambda r: r[0],
         lambda r: r[1],
         lambda r: r[1],
-        lambda r: r[0],
-        lambda r: r,
-        lambda r: r,
-        lambda r: r,
-        lambda r: r,
-        lambda r: r,
-        lambda r: r,
-        lambda r: r,
-        lambda r: r,
         lambda r: r[0]
+    ] + [
+        lambda r: r[:-1]
+    ] * 17,
+    CharcoalToken.ExpressionOrEOF: [
+        lambda r: r[0],
+        lambda r: [": Input"]
     ],
     CharcoalToken.Nilary: [
         lambda r: r[0] + ": Input string",
@@ -196,6 +193,7 @@ ASTProcessor = {
     CharcoalToken.OtherOperator: [
         lambda r: [r[0] + ": Peek direction"] + r[1:],
         lambda r: [r[0] + ": Map"] + r[1:],
+        lambda r: [r[0] + ": String map"] + r[1:],
         lambda r: [r[0] + ": Evaluate variable"] + r[1:],
         lambda r: [r[0] + ": Evaluate variable"] + r[1:]
     ],

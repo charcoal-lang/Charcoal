@@ -17,6 +17,7 @@ CharcoalTokenNames = [
 
     "WolframExpression",
     "Expression",
+    "ExpressionOrEOF",
     "Nilary",
     "Unary",
     "Binary",
