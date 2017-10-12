@@ -4560,27 +4560,27 @@ if __name__ == "__main__":
         help="Expected output."
     )
     parser.add_argument(
-        "-rif", "--rawinputfile", type=str, nargs="?", default="",
+        "--rif", "--rawinputfile", type=str, nargs="?", default="",
         help="Path to raw input file."
     )
     parser.add_argument(
-        "-if", "--inputfile", type=str, nargs="?", default="",
+        "--if", "--inputfile", type=str, nargs="?", default="",
         help="Path to input file."
     )
     parser.add_argument(
-        "-of", "--outputfile", type=str, nargs="?", default="",
+        "--of", "--outputfile", type=str, nargs="?", default="",
         help="Path to file with expected output."
     )
     parser.add_argument(
-        "-qt", "--quiettesting", action="store_true",
+        "--qt", "--quiettesting", action="store_true",
         help="Don't print output for each individual testcase."
     )
     parser.add_argument(
-        "-cs", "--canvasstep", type=int, nargs="?", default=500,
+        "--cs", "--canvasstep", type=int, nargs="?", default=500,
         help="Change canvas step interval."
     )
     parser.add_argument(
-        "-de", "--decode", action="store_true",
+        "--de", "--decode", action="store_true",
         help="Turn encoded code into unicode code."
     )
     parser.add_argument(
@@ -4591,7 +4591,7 @@ if __name__ == "__main__":
         "-a", "--astify", action="store_true", help="Print AST."
     )
     parser.add_argument(
-        "-oa", "--onlyastify", action="store_true", help="Print AST and exit."
+        "--oa", "--onlyastify", action="store_true", help="Print AST and exit."
     )
     parser.add_argument(
         "-p", "--prompt", action="store_true", help="Prompt for input."
@@ -4601,7 +4601,7 @@ if __name__ == "__main__":
         help="Open as REPL instead of interpreting."
     )
     parser.add_argument(
-        "-rs", "--restricted", action="store_true",
+        "--rs", "--restricted", action="store_true",
         help="""Disable prompt input, REPL mode, \
 non-raw file input and file output."""
     )
@@ -4610,7 +4610,7 @@ non-raw file input and file output."""
         help="Ignore all whitespace unless prefixed by a ´."
     )
     parser.add_argument(
-        "-Wam", "--Wambiguities", action="store_true",
+        "--Wam", "--Wambiguities", action="store_true",
         help="Warn the user of any ambiguities."
     )
     parser.add_argument(
@@ -4622,25 +4622,25 @@ non-raw file input and file output."""
         help="Dump canvas every time it is changed."
     )
     parser.add_argument(
-        "-nt", "--nothrottle", action="store_true",
+        "--nt", "--nothrottle", action="store_true",
         help="Don't throttle Dump."
     )
     parser.add_argument(
-        "-dv", "--deverbosify", action="store_true",
+        "--dv", "--deverbosify", action="store_true",
         help="Turn verbose code into normal code."
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Use verbose mode."
     )
     parser.add_argument(
-        "-dg", "--degrave", action="store_true",
+        "--dg", "--degrave", action="store_true",
         help="Turn grave mode code into normal code."
     )
     parser.add_argument(
         "-g", "--grave", action="store_true", help="Use grave mode."
     )
     parser.add_argument(
-        "-sl", "--showlength", action="store_true",
+        "-l", "--sl", "--showlength", action="store_true",
         help="Show the length of the code."
     )
     parser.add_argument(
@@ -4651,7 +4651,7 @@ non-raw file input and file output."""
         help="Disable compression when deverbosifying."
     )
     parser.add_argument(
-        "-hd", "--hexdump", action="store_true",
+        "-x", "--hd", "--hexdump", action="store_true",
         help="Show the xxd hexdump of the code."
     )
     argv, info = parser.parse_args(), set()
