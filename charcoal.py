@@ -4640,7 +4640,7 @@ non-raw file input and file output."""
         "-g", "--grave", action="store_true", help="Use grave mode."
     )
     parser.add_argument(
-        "-l", "--sl", "--showlength", action="store_true",
+        "-l", "--showlength", "--sl", action="store_true",
         help="Show the length of the code."
     )
     parser.add_argument(
