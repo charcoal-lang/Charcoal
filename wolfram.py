@@ -184,6 +184,9 @@ class Expression(object):
     def to_number(self):
         return self.run().to_number()
 
+    def __int__(self):
+        return self.to_number()
+
     def to_precision(self, precision=10):
         return self.run().to_precision(precision)
 
@@ -875,7 +878,7 @@ class Wolfram(object):
     def N(leaves, precision=10):
         # Leaves: number, precision (accuracy?)
         return [
-            None, lambda: leaves[0].run(10), lambda: leaves[0].run(leaves[1])
+            None, lambda: leaves[0].run(10), lambda: leaves[0].run(int(leaves[1]))
         ][len(leaves)]()
 
     def StringQ(leaves, precision=10):

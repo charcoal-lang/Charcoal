@@ -141,7 +141,7 @@ ASTProcessor = {
         lambda r: r[0] + ": Inclusive range",
         lambda r: r[0] + ": Range",
         lambda r: r[0] + ": Not",
-        lambda r: r[0] + ": Abs",
+        lambda r: r[0] + ": Absolute value",
         lambda r: r[0] + ": Sum",
         lambda r: r[0] + ": Product",
         lambda r: r[0] + ": Incremented",

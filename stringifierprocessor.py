@@ -155,8 +155,8 @@ StringifierProcessor = {
     ],
     CT.Unary: [
         (lambda i: lambda r: "±Ｌ¬Ｉ‽‽ＶＶ⊟↧↥⌊⌊⌊⌈⌈⌈⌈℅℅℅℅⮌⮌≕≕″‴✂…～～↔↔ΣΠ\
-⊕⊕⊖⊖⊗⊗⊘⊘"[i])(i)
-        for i in range(44)
+⊕⊕⊖⊖⊗⊗⊘⊘₂₂"[i])(i)
+        for i in range(46)
     ] + [
         lambda r: "…·",
         lambda r: "ＵＶ",
@@ -179,8 +179,8 @@ StringifierProcessor = {
         lambda r: "⪪",
         lambda r: "⌕Ａ",
     ] + [
-        (lambda i: lambda r: "⌕◧◨№➙⧴？✂⊙⊙⬤⬤"[i])(i)
-        for i in range(12)
+        (lambda i: lambda r: "⌕◧◨№➙⧴？✂⍘↨"[i])(i)
+        for i in range(10)
     ],
     CT.Ternary: [lambda r: "✂"],
     CT.Quarternary: [lambda r: "✂"],
@@ -192,7 +192,13 @@ StringifierProcessor = {
         lambda r: "ＫＤ" + r[2] + r[3],
         lambda r: "Ｅ" + r[2] + r[3],
         lambda r: "Ｅ" + r[2] + r[3],
+        lambda r: "⊙" + r[2] + r[3],
+        lambda r: "⊙" + r[2] + r[3],
+        lambda r: "⬤" + r[2] + r[3],
+        lambda r: "⬤" + r[2] + r[3],
         lambda r: "⭆" + r[2] + r[3],
+        lambda r: "⭆" + r[2] + r[3],
+        lambda r: "Φ" + r[2] + r[3],
         lambda r: "ＵＰ" + r[2] + r[3],
         lambda r: "ＵＰ" + r[2],
         lambda r: "▷" + r[2] + r[3],
@@ -318,7 +324,7 @@ StringifierProcessor = {
         lambda r: "⎚",
         lambda r: "ＵＥ" + r[2] + r[3],
         lambda r: "ＵＥ" + r[2],
-        lambda r: print(r) or "⊞" + r[2] + r[3],
+        lambda r: "⊞" + r[2] + r[3],
         lambda r: "≡" + r[2] + r[5] + r[8],
         lambda r: "≡" + r[2] + r[5],
         lambda r: "ＵＭ" + r[2] + r[3],

@@ -29,6 +29,19 @@ def ListFind(haystack, needle):
     return haystack.index(needle) if needle in haystack else -1
 
 
+def dedup(iterable):
+    iterable = iterable[:]
+    items = []
+    i = 0
+    for item in iterable:
+        if item in items:
+            del iterable[i]
+        else:
+            i += 1
+            items += [item]
+    return iterable
+
+
 def iter_apply(iterable, function):
     clone = iterable[:]
     clone[:] = [function(item) for item in clone]
@@ -508,7 +521,7 @@ InterpreterProcessor = {
         lambda r: lambda item, c: (
             len(item) if hasattr(item, "__iter__") else len(str(item))
         ),
-        lambda r: lambda item, c: not item,
+        lambda r: lambda item, c: int(not item),
         lambda r: lambda item, c: c.Cast(item),
         lambda r: lambda item, c: c.Random(item),
         lambda r: lambda item, c: c.Evaluate(item),
@@ -557,7 +570,8 @@ InterpreterProcessor = {
         lambda r: lambda item, c: Decremented(item),
         lambda r: lambda item, c: Doubled(item),
         lambda r: lambda item, c: Halved(item),
-        lambda r: lambda item, c: eval(item)
+        lambda r: lambda item, c: eval(item),
+        lambda r: lambda item, c: item ** 0.5
     ],
     CharcoalToken.Binary: [
         lambda r: lambda left, right, c: c.Add(left, right),
@@ -566,9 +580,9 @@ InterpreterProcessor = {
         lambda r: lambda left, right, c: c.Divide(left, right),
         lambda r: lambda left, right, c: c.Divide(left, right, False),
         lambda r: lambda left, right, c: left % right,
-        lambda r: lambda left, right, c: left == right,
-        lambda r: lambda left, right, c: left < right,
-        lambda r: lambda left, right, c: left > right,
+        lambda r: lambda left, right, c: int(left == right),
+        lambda r: lambda left, right, c: int(left < right),
+        lambda r: lambda left, right, c: int(left > right),
         lambda r: lambda left, right, c: left & right,
         lambda r: lambda left, right, c: (
             String(left) | String(right)
@@ -623,8 +637,8 @@ InterpreterProcessor = {
         lambda r: lambda left, right, c: DelayedRule(left, right),
         lambda r: lambda left, right, c: PatternTest(left, right),
         lambda r: lambda left, right, c: left[_int(right):],
-        lambda r: lambda left, right, c: c.Any(left, right),
-        lambda r: lambda left, right, c: c.All(left, right)
+        lambda r: lambda left, right, c: c.Base(left, right),
+        lambda r: lambda left, right, c: c.BaseString(left, right)
     ],
     CharcoalToken.Ternary: [lambda r: lambda x, y, z, c: x[_int(y):_int(z)]],
     CharcoalToken.Quarternary: [lambda r: lambda x, y, z, w, c: x[
@@ -643,6 +657,9 @@ InterpreterProcessor = {
         lambda r: lambda c: c.PeekDirection(r[1](c), r[2](c)),
         lambda r: lambda c: c.Map(r[1](c), r[2]),
         lambda r: lambda c: c.Map(r[1](c), r[2], string_map=True),
+        lambda r: lambda c: c.Any(r[1](c), r[2]),
+        lambda r: lambda c: c.All(r[1](c), r[2]),
+        lambda r: lambda c: c.Filter(r[1](c), r[2]),
         lambda r: lambda c: c.EvaluateVariable(r[1](c), r[2](c)),
         lambda r: lambda c: c.EvaluateVariable(r[1](c), [r[2](c)])
     ],
@@ -660,9 +677,9 @@ InterpreterProcessor = {
         lambda r: lambda c: c.InputString(r[1]),
         lambda r: lambda c: c.InputNumber(r[1]),
         lambda r: lambda c: c.Evaluate(r[1](c), True),
-        lambda r: lambda c: c.Print(r[1](c), directions={r[0](c)}),
+        lambda r: lambda c: c.Print(r[1](c), directions=[r[0](c)]),
         lambda r: lambda c: c.Print(r[0](c)),
-        lambda r: lambda c: c.Multiprint(r[2](c), directions=set(r[1](c))),
+        lambda r: lambda c: c.Multiprint(r[2](c), directions=dedup(r[1](c))),
         lambda r: lambda c: c.Multiprint(r[1](c)),
         lambda r: lambda c: c.Polygon(r[1](c), r[2](c)),
         lambda r: lambda c: c.Polygon(

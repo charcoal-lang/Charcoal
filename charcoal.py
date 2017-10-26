@@ -24,6 +24,10 @@ the CLI, and various classes used by the Charcoal class.
 # - from compression on
 # finish string ops in wolfram
 
+# implement filter
+# fix auto-input
+# why are sqrt and pyeval etc. not parsing correctly
+
 from direction import Direction, DirectionToString, Pivot
 from charcoaltoken import CharcoalToken, CharcoalTokenNames
 from charactertransformers import *
@@ -51,48 +55,6 @@ import builtins
 import types
 
 command_abbreviations = {}
-
-for key in range(CharcoalToken.MAX - 1, -1, -1):
-    if not key in VerboseGrammars:
-        continue
-    new_verbose_grammars, new_stringifier_processor = {}, {}
-    for lexeme, stringify in zip(
-        VerboseGrammars[key][:], StringifierProcessor[key][:]
-    ):
-        new_verbose_grammars[key] = []
-        new_stringifier_processor[key] = []
-        count = 0
-        if (
-            len(lexeme) and
-            isinstance(lexeme[0], str) and
-            re.match("[a-z]*[A-Z][a-zA-Z]*$", lexeme[0])
-        ):
-            k = "".join(re.findall("[A-Z]", lexeme[0]))
-            while (
-                k in command_abbreviations and
-                command_abbreviations[k] != lexeme[0]
-            ):
-                count += 1
-                k = "".join(
-                    re.findall("[A-Z].{0,%s}" % count, lexeme[0])
-                )
-            if k not in command_abbreviations:
-                command_abbreviations[k] = lexeme[0]
-            new_verbose_grammars[key] += [[k] + lexeme[1:]]
-            new_stringifier_processor[key] += [stringify]
-        if key == CharcoalToken.Command:
-            VerboseGrammars[key] = (
-                VerboseGrammars[key][:-2] + new_verbose_grammars[key][::-1] +
-                VerboseGrammars[key][-2:]
-            )
-            StringifierProcessor[key] = (
-                StringifierProcessor[key][:-2] +
-                new_stringifier_processor[key][::-1] +
-                StringifierProcessor[key][-2:]
-            )
-        else:
-            VerboseGrammars[key] += new_verbose_grammars[key][::-1]
-            StringifierProcessor[key] += new_stringifier_processor[key][::-1]
 
 for alias, builtin in [
     ("a", abs), ("b", bin), ("c", complex), ("e", enumerate), ("f", format),
@@ -3392,6 +3354,12 @@ in the specified direction from the cursor.
             ys += [y]
             x += delta_x
             y += delta_y
+        self.y = ys[-1]
+        if length:
+            self.FillLines()
+            self.x = xs[0]
+            self.y = ys[0]
+            self.FillLines()
         return Cells(self, result, xs, ys)
 
     def PeekAll(self):
@@ -3458,12 +3426,16 @@ in the specified direction from the cursor.
         Map(iterable, function, is_command=False)
 
         Returns an iterable with the results of applying \
-function to each element of the iterable.
+a function to each element of the iterable.
 
         If is_command is True, it mutates the original \
 iterable, else it returns the iterable.
 
+        If string_map is True, the iterable is turned into a string.
+
         """
+        if type(iterable) == Expression:
+            iterable = iterable.run()
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
         self.scope[loop_variable] = 1
@@ -3484,11 +3456,12 @@ iterable, else it returns the iterable.
         if is_command and not isinstance(iterable, str):
             iterable[:] = result
         self.scope = self.scope.parent
-        if Info.step_canvas in self.info and isinstance(iterable, Cells):
-            self.RefreshFastText("Map", self.canvas_step)
-        elif Info.dump_canvas in self.info:
-            print("Map")
-            print(str(self))
+        if isinstance(iterable, Cells):
+            if Info.step_canvas in self.info:
+                self.RefreshFastText("Map", self.canvas_step)
+            elif Info.dump_canvas in self.info:
+                print("Map")
+                print(str(self))
         if not is_command:
             if isinstance(iterable, str):
                 return "".join(result) if string_map else result
@@ -3496,6 +3469,42 @@ iterable, else it returns the iterable.
                 return type(iterable)(result)
             except:
                 return type(iterable)(result, iterable)
+
+    def Filter(self, iterable, function):
+        """
+        Filter(iterable, function)
+
+        Returns an iterable, keeping only elements where the result of \
+a function is truthy.
+
+        """
+        if type(iterable) == Expression:
+            iterable = iterable.run()
+        self.scope = Scope(self.scope)
+        loop_variable = self.GetFreeVariable()
+        self.scope[loop_variable] = 1
+        index_variable = self.GetFreeVariable()
+        result = []
+        if callable(iterable):
+            iterable, function = function, iterable
+        if type(iterable) == Expression:
+            iterable = iterable.run()
+        if isinstance(iterable, float):
+            iterable = int(iterable)
+        if isinstance(iterable, int):
+            iterable = list(range(iterable))
+        for i in range(len(iterable)):
+            self.scope[loop_variable] = iterable[i]
+            self.scope[index_variable] = i
+            if function(self):
+                result += [iterable[i]]
+        self.scope = self.scope.parent
+        if isinstance(iterable, str):
+            return "".join(result)
+        try:
+            return type(iterable)(result)
+        except:
+            return type(iterable)(result, iterable)
 
     def All(self, iterable, function):
         """
@@ -3505,11 +3514,21 @@ iterable, else it returns the iterable.
 iterable.
 
         """
-        if callable(iterable):
-            iterable, function = function, iterable
         if type(iterable) == Expression:
             iterable = iterable.run()
-        return all(function(item) for item in iterable)
+        result = 1
+        self.scope = Scope(self.scope)
+        loop_variable = self.GetFreeVariable()
+        self.scope[loop_variable] = 1
+        index_variable = self.GetFreeVariable()
+        for i in range(len(iterable)):
+            self.scope[loop_variable] = iterable[i]
+            self.scope[index_variable] = i
+            if not function(self):
+                result = 0
+                break
+        self.scope = self.scope.parent
+        return result
 
     def Any(self, iterable, function):
         """
@@ -3519,11 +3538,21 @@ iterable.
 iterable.
 
         """
-        if callable(iterable):
-            iterable, function = function, iterable
         if type(iterable) == Expression:
             iterable = iterable.run()
-        return any(function(item) for item in iterable)
+        result = 0
+        self.scope = Scope(self.scope)
+        loop_variable = self.GetFreeVariable()
+        self.scope[loop_variable] = 1
+        index_variable = self.GetFreeVariable()
+        for i in range(len(iterable)):
+            self.scope[loop_variable] = iterable[i]
+            self.scope[index_variable] = i
+            if function(self):
+                result = 1
+                break
+        self.scope = self.scope.parent
+        return result
 
     def Add(self, left, right):
         if isinstance(left, String):
@@ -3571,10 +3600,19 @@ iterable.
         right_is_iterable = (
             hasattr(right, "__iter__") and not isinstance(right, str)
         )
-        if left_is_iterable ^ right_is_iterable:
-            if left_is_iterable:
-                return [item - right for item in left]
-            return [left - item for item in right]
+        if left_is_iterable or right_is_iterable:
+            if left_is_iterable and right_is_iterable:
+                result = [item for item in left if item not in right]
+            else:
+                result = (
+                    [item - right for item in left]
+                    if left is iterable else
+                    [left - item for item in right]
+                )
+            try:
+                return type(iterable)(result)
+            except:
+                return type(iterable)(result, iterable)
         if (left_type == str) ^ (right_type == str):
             if left_type == str:
                 if right_type == int or right_type == float:
@@ -3692,6 +3730,48 @@ iterable.
             self.scope[key] = "".join(self.scope[key])
         if isinstance(iterable, String):
             self.scope[key] = String("".join(self.scope[key]))
+
+    def Base(self, item, base):
+        if hasattr(base, "__iter__"):
+            item, base = base, item
+        if hasattr(item, "__iter__"):
+            if isinstance(item, str):
+                return self.BaseString(item, base)
+            result = 0
+            for element in item:
+                result = result * base + (
+                    element if isinstance(element, float) else int(element)
+                )
+            return result
+        result = []
+        while item:
+            result = [item % base] + result
+            item //= base
+        return result
+
+    def BaseString(self, item, base):
+        if hasattr(base, "__iter__"):
+            item, base = base, item
+        if isinstance(item, str):
+            result = 0
+            for char in item:
+                result = result * base + max(
+                    0,
+                    "\
+0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".find(char)
+                )
+            return result
+        if hasattr(item, "__iter__"):
+            return self.Base(item, base)
+        result = ""
+        while item:
+            result = (
+                "\
+0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"[item % base] +
+                result
+            )
+            item //= base
+        return result
 
 
 def PassThrough(result):
@@ -4779,6 +4859,7 @@ non-raw file input and file output."""
         print("Charcoal, %i bytes: `%s`" % (length, re.sub("`", "\`", code)))
     if argv.hexdump:
         print_xxd(code)
+        sys.exit()
     if argv.astify or argv.onlyastify and not argv.repl:
         print("Program")
         result = Parse(

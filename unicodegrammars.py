@@ -129,23 +129,21 @@ UnicodeGrammars = {
         [CT.LazyUnary, CT.ExpressionOrEOF, CT.Separator],
         [CT.Unary, CT.ExpressionOrEOF, CT.Separator]
     ],
-    CT.ExpressionOrEOF: [
-        [CT.Expression],
-        [CT.EOF]
-    ],
+    CT.ExpressionOrEOF: [[CT.Expression], [CT.EOF]],
     CT.Nilary: [
-        ["Ｓ"], ["Ｎ"], ["‽"], ["ＫＡ"], ["ＫＭ"], ["ＫＶ"], ["ＫＫ"],["ⅈ"], ["ⅉ"]
+        ["Ｓ"], ["Ｎ"], ["‽"], ["ＫＡ"], ["ＫＭ"], ["ＫＶ"], ["ＫＫ"],
+        ["ⅈ"], ["ⅉ"]
     ],
     CT.Unary: [
         ["±"], ["Ｌ"], ["¬"], ["Ｉ"], ["‽"], ["Ｖ"], ["⊟"], ["↧"], ["↥"], ["⌊"],
         ["⌈"], ["℅"], ["⮌"], ["≕"], ["″"], ["‴"], ["✂"], ["…·"], ["…"], ["～"],
-        ["↔"], ["Σ"], ["Π"], ["⊕"], ["⊖"], ["⊗"], ["⊘"], ["ＵＶ"]
+        ["↔"], ["Σ"], ["Π"], ["⊕"], ["⊖"], ["⊗"], ["⊘"], ["ＵＶ"], ["₂"]
     ],
     CT.Binary: [
         ["⁺"], ["⁻"], ["×"], ["÷"], ["∕"], ["﹪"], ["⁼"], ["‹"], ["›"], ["＆"],
         ["｜"], ["…·"], ["…"], ["Ｘ"], ["§"], ["⊞Ｏ"], ["⪫"], ["⪪"], ["⌕Ａ"],
-        ["⌕"], ["◧"], ["◨"], ["№"], ["➙"], ["⧴"], ["？"], ["✂"], ["⊙"],
-        ["⬤"]
+        ["⌕"], ["◧"], ["◨"], ["№"], ["➙"], ["⧴"], ["？"], ["✂"],
+        ["↨"], ["⍘"]
     ],
     CT.Ternary: [["✂"]],
     CT.Quarternary: [["✂"]],
@@ -157,6 +155,9 @@ UnicodeGrammars = {
         ["ＫＤ", CT.Expression, CT.Arrow],
         ["Ｅ", CT.Expression, CT.Expression],
         ["⭆", CT.Expression, CT.Expression],
+        ["⊙", CT.Expression, CT.Expression],
+        ["⬤", CT.Expression, CT.Expression],
+        ["Φ", CT.Expression, CT.Expression],
         ["▷", CT.Expression, CT.WolframList],
         ["▷", CT.Expression, CT.WolframExpression]
     ],

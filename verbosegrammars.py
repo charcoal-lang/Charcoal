@@ -165,8 +165,8 @@ VerboseGrammars = {
         ["RepeatedNull"], ["Slice"], ["Range"], ["~"],
         ["BitwiseNot"], ["Absolute"], ["abs"], ["Sum"], ["Product"],
         ["Incremented"], ["++"], ["Decremented"], ["--"], ["Doubled"], ["***"],
-        ["Halved"], ["\\\\"], ["InclusiveRange"], ["PythonEvaluate"],
-        ["pyeval"]
+        ["Halved"], ["\\\\"], ["SquareRoot"], ["sqrt"], ["InclusiveRange"],
+        ["PythonEvaluate"], ["pyeval"]
     ],
     CT.Binary: [
         ["**"], ["+"], ["Add"], ["Plus"], ["-"], ["Subtract"], ["Minus"],
@@ -177,7 +177,7 @@ VerboseGrammars = {
         ["CycleChop"], ["Exponentiate"], ["Exponent"], ["Power"], ["AtIndex"],
         ["PushOperator"], ["Join"], ["Split"], ["FindAll"], ["Find"],
         ["PadLeft"], ["PadRight"], ["Count"], ["Rule"], ["DelayedRule"],
-        ["PatternTest"], ["Slice"], ["Any"], ["Some"], ["All"], ["Every"]
+        ["PatternTest"], ["Slice"], ["BaseString"], ["Base"]
     ],
     CT.Ternary: [["Slice"]],
     CT.Quarternary: [["Slice"]],
@@ -189,7 +189,13 @@ VerboseGrammars = {
         ["PeekDirection", CT.LP, CT.Expression, CT.Arrow, CT.RP],
         ["Each", CT.LP, CT.Expression, CT.Expression, CT.RP],
         ["Map", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Any", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Some", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Every", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["All", CT.LP, CT.Expression, CT.Expression, CT.RP],
         ["StringMap", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["SMap", CT.LP, CT.Expression, CT.Expression, CT.RP],
+        ["Filter", CT.LP, CT.Expression, CT.Expression, CT.RP],
         ["PythonFunction", CT.LP, CT.Expression, CT.List, CT.RP],
         ["PythonFunction", CT.LP, CT.Expression, CT.RP],
         ["EvaluateVariable", CT.LP, CT.Expression, CT.WolframList, CT.RP],

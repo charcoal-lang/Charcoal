@@ -1646,28 +1646,58 @@ foofoofoofoofoo""")
         self.assertEqual(Run("⭆Ｓ⎇﹪κＩηι×ιＩη", "['Hello, World!', '3']"), "\
 HHHellllo,   Worrrld!!!")
 
+    def test_base(self):
+        self.assertEqual(Run("\
+cast basestring 'asdf' 62", verbose=True), "2491733")
+        self.assertEqual(Run("cast base [1,2,3,4] 62", verbose=True), "246206")
+        self.assertEqual(Run("basestring 2491733, 62", verbose=True), "asdf")
+        self.assertEqual(Run("base 246206, 62", verbose=True), """\
+-   
+--  
+--- 
+----""")
+
+    def test_sqrt(self):
+        self.assertEqual(Run("sqrt 9", verbose=True), "---")
+        self.assertEqual(Run("sqrt 10", verbose=True), "---")
+
+    def test_abs(self):
+        self.assertEqual(Run("abs negate 9", verbose=True), "---------")
+
+    def test_filter(self):
+        self.assertEqual(Run("filter [1,2,3,4,0] i", verbose=True), """\
+-   
+--  
+--- 
+----""")
+        self.assertEqual(Run("filter [1,2,3,4,0] --i", verbose=True), """\
+--  
+--- 
+----
+    """)
+
     def test_reduce(self):
         self.assertEqual(Run("\
 Print(Cast(/([1,2,3,4,5,6,7],{Print(+(i,k))})))", verbose=True), "28")
 
     def test_any(self):
         self.assertEqual(
-            Run("Print(Any([0,0,1,0],{Print(i)}))", verbose=True),
+            Run("Print(Any([0,0,1,0],i))", verbose=True),
             "-"
         )
         self.assertEqual(
-            Run("Print(Any([0,0,0,0],{Print(i)}))", verbose=True),
+            Run("Print(Any([0,0,0,0],i))", verbose=True),
             ""
         )
         pass
 
     def test_all(self):
         self.assertEqual(
-            Run("Print(All([1,2,3,1],{Print(i)}))", verbose=True),
+            Run("Print(All([1,2,3,1],i))", verbose=True),
             "-"
         )
         self.assertEqual(
-            Run("Print(All([1,2,0,1],{Print(i)}))", verbose=True),
+            Run("Print(All([1,2,0,1],i))", verbose=True),
             ""
         )
         pass
@@ -2246,6 +2276,32 @@ r  a  t  s  t  a  r""")
 104841984443634632449684875602336248270419786232090021609902353043699418491463\
 140934317381436405462531520961836908887070167683964243781405927145635490613031\
 07208510383750510115747704171898610687396965521267154688957035035")
+        self.assertEqual(Run("""\
+while (InputString()) {
+	Assign(Cast(Split(i, " ")), i);
+	for (Range(AtIndex(i, 0), AtIndex(i, 2))) {
+		JumpTo(k, AtIndex(i, 1));
+		MapCommand(
+		    PeekDirection(Minus(AtIndex(i, 3), AtIndex(i, 1)), :Down),
+		    AtIndex("10", Sum(l))
+		);
+	}
+}""", """\
+0 0 9 9
+1 1 10 10
+2 2 11 11
+""", verbose=True), """\
+111111111  
+1000000001 
+10111111101
+10111111101
+10111111101
+10111111101
+10111111101
+10111111101
+10111111101
+ 1000000001
+  111111111""")
 
 CharcoalTests = unittest.TestLoader().loadTestsFromTestCase(CharcoalTest)
 
