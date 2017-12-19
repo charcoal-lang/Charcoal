@@ -154,7 +154,8 @@ VerboseGrammars = {
     ],
     CT.Nilary: [
         ["InputString"], ["InputNumber"], ["input"], ["Random"], ["rand"],
-        ["PeekAll"], ["PeekMoore"], ["PeekVonNeumann"], ["Peek"], ["x"], ["y"]
+        ["PeekAll"], ["PeekMoore"], ["PeekVonNeumann"], ["Peek"], ["x"], ["y"],
+        ["i"], ["j"]
     ],
     CT.Unary: [
         ["Negate"], ["Length"], ["Not"], ["Cast"], ["Random"], ["rand"],
