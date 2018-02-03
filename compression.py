@@ -152,7 +152,7 @@ def CompressBrotli(string):
 using Google's brotli compression method.
 
     """
-    compressed = brotli.compress(string)
+    compressed = brotli.compress(string.encode("ascii"))
     number = 1
     for c in compressed:
         number = number * 256 + c
