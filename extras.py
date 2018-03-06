@@ -1,4 +1,4 @@
-g = goat = """\
+go = goat = """\
    ___.
   //  \\\\
  ((   ''
@@ -14,9 +14,11 @@ g = goat = """\
    \\_\\ | |      || |
     \\Z | |      || |
        L_|      LL_|
-       LW/      LLW/"""
+       LW/      LLW/""" # evil sheep suck
 
-d = dennis = """\
+sh = sheep = "sheep suck"
+
+de = dennis = """\
                           _,-'''--,.__          _             
                         _.*''          __''>#=--""\"           
      _               ./"          _.-''        '\._           

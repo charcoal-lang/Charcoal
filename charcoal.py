@@ -7,29 +7,8 @@ the CLI, and various classes used by the Charcoal class.
 
 """
 
-# TODO List:
-# !WIKI!
-# bresenham
-# image to ascii
-# turn grammars into dictionaries (bison-style)
-# escape to produce unicode char
-# tests for reflect overlap overlap, floats, int divide and wolfram
-# command to get result from new Charcoal instance
-#   - will be default behavior when a command is passed a body
-# fill overload to fill as background instead of greedy fill
-# test list printing
-# only throw errors in debug mode
-# multiply/divide supporting float * string and list
-# remove redundant newlines in all other files apart from wolfram
-# - from compression on
-# finish string ops in wolfram
-
-# implement filter
-# fix auto-input
-# why are sqrt and pyeval etc. not parsing correctly
-
 from direction import Direction, DirectionToString, Pivot
-from charcoaltoken import CharcoalToken, CharcoalTokenNames
+from charcoaltoken import CharcoalToken as CT, CharcoalTokenNames as CTNames
 from charactertransformers import *
 from directiondictionaries import *
 from unicodegrammars import UnicodeGrammars
@@ -38,14 +17,15 @@ from astprocessor import ASTProcessor
 from interpreterprocessor import InterpreterProcessor, iter_apply
 from stringifierprocessor import StringifierProcessor
 from codepage import (
-    UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage, sOperator
+    UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage, sOperator,
+    rCommand
 )
 from compression import Decompressed, Compressed
 from wolfram import *
 from extras import *
 from enum import Enum
 from ast import literal_eval
-from time import sleep, clock
+from time import sleep, clock, time as now
 import random
 import re
 import argparse
@@ -53,21 +33,23 @@ import os
 import sys
 import builtins
 import types
+import zlib
+import base64
 
 command_abbreviations = {}
 
 for alias, builtin in [
-    ("a", abs), ("b", bin), ("c", complex), ("e", enumerate), ("f", format),
-    ("g", range), ("h", hex), ("i", __import__), ("m", sum), ("n", min),
-    ("o", oct), ("p", repr), ("r", reversed), ("s", sorted), ("v", eval),
-    ("x", max), ("z", zip)
+    ("A", abs), ("B", bin), ("C", complex), ("D", dict), ("E", enumerate),
+    ("F", format), ("G", range), ("H", hex), ("I", __import__), ("M", sum),
+    ("N", min), ("O", oct), ("P", repr), ("R", reversed), ("S", sorted),
+    ("V", eval), ("X", max), ("Z", zip)
 ]:
     setattr(builtins, alias, builtin)
 
-_h = h
+_H = H
 
 
-def h(item):
+def H(item):
     if isinstance(item, int):
         return hex(item)
     if isinstance(item, float):
@@ -80,12 +62,12 @@ def h(item):
     if hasattr(item, "__iter__"):
         if isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
-        return iter_apply(item, h)
+        return iter_apply(item, H)
 
-_b = b
+_B = B
 
 
-def b(item):
+def B(item):
     if isinstance(item, float):
         item = int(item)
     if isinstance(item, int):
@@ -98,7 +80,7 @@ def b(item):
     if hasattr(item, "__iter__"):
         if isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
-        return iter_apply(item, b)
+        return iter_apply(item, B)
 
 imports = {}
 python_function_is_command = {}
@@ -210,6 +192,42 @@ def large_range(number):
         yield n
         n += 1
 
+stringify_lookup = {
+    "e": "dflmnosv"
+}
+
+def StringifyCode(code):
+    result = []
+    stack = []
+    for i in range(len(code)):
+        item = code[i]
+        if item[0] != "!":
+            if item[0] != "a":
+                j = i + 1
+                while j < len(code) and code[j][0] == "!":
+                    j += 1
+                if (
+                    j < len(code) and
+                    code[j][0] == "s" and
+                    code[j][1][0] == "´" and
+                    not rCommand.match(code[j][1][1])
+                ):
+                    code[j] = (code[j][0], code[j][1][1:])
+            while stack:
+                notter = stack[0]
+                if item[0] in stringify_lookup.get(notter[1], notter[1]):
+                    result += [(";", "¦")]
+                stack = stack[1:]
+            stack = []
+            result += [item]
+        else:
+            stack += [item]
+    while len(result) and result[-1][0] == ">":
+        result.pop()
+    if len(result) and result[-1][0] == "c":
+        result[-1] = (result[-1][0], result[-1][1][:-1])
+    return "".join(item[1] for item in result)
+
 
 class Modifier(Enum):
     maybe = 1
@@ -287,6 +305,15 @@ class Whatever(object):
 
     def __rmod__(self, other):
         return other
+
+    def __int__(self):
+        return 0
+
+    def __str__(self):
+        return ""
+
+    def __repr__(self):
+        return ""
 
 whatever = Whatever()
 
@@ -368,6 +395,50 @@ class Scope(object):
 
     def delete(self, key):
         del self[key]
+
+
+def GetPythonFunction(name):
+    if isinstance(name, String):
+        name = str(name)
+    elif not isinstance(name, str):
+        return None
+    function, name, _name = None, name[:], name[:]
+    if "." in name:
+        try:
+            module, *parts = name.split(".")
+            if module not in imports:
+                imports[module] = __import__(module)
+            function = imports[module]
+            for part in parts:
+                function = getattr(function, part)
+            return function
+        except:
+            pass
+    if not function:
+        loc, glob = locals(), globals()
+        if "." not in name:
+            if name in loc:
+                function = loc[name]
+            elif name in glob:
+                function = glob[name]
+            elif hasattr(builtins, name):
+                function = getattr(builtins, name)
+            else:
+                return None
+            return function
+        else:
+            variable, *parts = name.split(".")
+            if variable in loc:
+                function = loc[variable]
+            elif variable in glob:
+                function = glob[variable]
+            elif hasattr(builtins, variable):
+                function = getattr(builtins, variable)
+            else:
+                return None
+            for part in parts:
+                function = function[part]
+            return function
 
 
 class Cells(list):
@@ -475,7 +546,7 @@ an object on which all canvas drawing methods exist.
         self.original_input = original_input
         self.inputs = inputs
         self.original_inputs = inputs[:]
-        self.all_inputs = inputs + [""] * (5 - len(inputs))
+        self.all_inputs = inputs + [Whatever()] * (5 - len(inputs))
         self.hidden = {
             "θ": self.all_inputs[0],
             "η": self.all_inputs[1],
@@ -613,7 +684,7 @@ an object on which all canvas drawing methods exist.
         """
         self.original_inputs += inputs
         self.inputs = self.original_inputs[:]
-        self.all_inputs = self.inputs + [""] * (5 - len(self.inputs))
+        self.all_inputs = self.inputs + [Whatever()] * (5 - len(self.inputs))
         self.hidden["θ"] = self.all_inputs[0]
         self.hidden["η"] = self.all_inputs[1]
         self.hidden["ζ"] = self.all_inputs[2]
@@ -629,7 +700,7 @@ an object on which all canvas drawing methods exist.
         """
         self.inputs = []
         self.original_inputs = []
-        self.all_inputs = [""] * 5
+        self.all_inputs = [Whatever()] * 5
         self.hidden["θ"] = ""
         self.hidden["η"] = ""
         self.hidden["ζ"] = ""
@@ -992,28 +1063,72 @@ with a character automatically selected from -|/\\.
         original = string
 
         def grid(matrix):
-            # matrix = [[str(item) for item in row] for row in matrix]
-            # maximum = max(max(len(item) for item in row) for row in matrix)
-            return matrix
+            
+            def pad(s, p, n):
+                return p * (n - len(s)) + s
+            matrix = [[str(item) for item in row] for row in matrix]
+            maximum = max(
+                max(len(item) for item in row + [""]) for row in matrix
+            )
+            return "\n".join(
+                " ".join(pad(item, " ", maximum) for item in row)
+                for row in matrix
+            )
 
         def simplify(string):
             if isinstance(string, Expression):
                 string = string.run()
                 string_type = type(string)
-                if string_type == String:
-                    #
-                    return str(string)
+                if (
+                    string_type == String or
+                    isinstance(string, Symbolic)
+                ):
+                    return (str(string), 0)
                 if string_type == List:
-                    # if isinstance(string[0], List):
-                    #     return grid(string)
-                    return [simplify(leaf) for leaf in string.leaves]
+                    if (
+                        len(string.leaves) and
+                        isinstance(string.leaves[0], List) and
+                        all(
+                            len(leaf.leaves) and
+                            all(
+                                not isinstance(leaf, List)
+                                for leaf in leaf.leaves
+                            ) for leaf in string.leaves
+                        )
+                    ):
+                        length = len(string.leaves[0])
+                        if all(
+                            len(leaf.leaves) == length
+                            for leaf in string.leaves
+                        ):
+                            return (grid([
+                                [
+                                    simplify(minileaf)[0]
+                                    for minileaf in leaf.leaves
+                                ]
+                                for leaf in string.leaves
+                            ]), 1)
+                    result = [simplify(leaf) for leaf in string.leaves]
+                    depth = 1 + max([item[1] for item in result] + [0])
+                    return (("\n" * depth).join(
+                        item[0] for item in result
+                    ), depth)
                 if string_type in [Rule, DelayedRule, Pattern]:
-                    return ""  # TODO
-                return string.to_number()
-            return string
-        if callable(string) and not isinstance(string, Whatever):
+                    return ("", 0)  # TODO
+                if string_type == WolframFalse:
+                    return ("False", 0)
+                if string_type == WolframTrue:
+                    return ("True", 0)
+                return (str(string), 0)
+            return (string, 0)
+        if (
+            callable(string) and
+            not isinstance(string, Whatever) and
+            not isinstance(string, SymbolicVariable)
+        ):
             string = string()
-        string = simplify(string)
+        if isinstance(string, Expression):
+            string = simplify(string)[0]
         if isinstance(string, float):
             string = int(string)
         if isinstance(string, int):
@@ -1029,6 +1144,8 @@ with a character automatically selected from -|/\\.
                 self.Print(element, directions, multiprint=True)
                 self.Move(newline_direction)
             return
+        if not isinstance(string, str):
+            string = str(string)
         old_x = self.x
         old_y = self.y
         if length and "\n" not in string:
@@ -2754,6 +2871,7 @@ if expression is a number.
         """
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
+        self.scope[loop_variable] = Whatever()
         self.scope[loop_variable] = condition(self)
         while self.scope[loop_variable]:
             body(self)
@@ -2805,7 +2923,7 @@ or into a number if it was a string.
                     int(variable or "0")
                 )
             if isinstance(variable, List):
-                return List(self.Cast(item) for item in variable)
+                return List(*(self.Cast(item) for item in variable))
             return str(variable)
 
     def ChrOrd(self, variable):
@@ -2864,6 +2982,11 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
             return self.hidden[key]
         if key in Charcoal.secret:
             return Charcoal.secret[key]
+        python_function = GetPythonFunction(key)
+        if python_function:
+            return python_function
+        if re.match("[a-zA-Z_]+$", key):
+            return SymbolicVariable(key)
         return whatever
 
     def Assign(self, value, key, value2=None):
@@ -2887,100 +3010,70 @@ else set the variable with the given name to the given value.
 
     def InputString(self, key=None):
         """
-        InputString(key="")
+        InputString(key=None)
 
         Gets next input as string.
 
         If key is truthy, set the variable key to the input.
 
         """
-        result = ""
-        if len(self.inputs):
-            result = self.inputs[0]
-            self.inputs = self.inputs[1:]
-        elif Info.prompt in self.info:
-            result = input("Enter string: ")
-            self.original_inputs += [result]
-            if len(self.original_inputs) < 5:
-                self.all_inputs = self.original_inputs + [""] * (
-                    5 - len(self.original_inputs)
-                )
-                self.hidden["θ"] = self.all_inputs[0]
-                self.hidden["η"] = self.all_inputs[1]
-                self.hidden["ζ"] = self.all_inputs[2]
-                self.hidden["ε"] = self.all_inputs[3]
-                self.hidden["δ"] = self.all_inputs[4]
-        if key:
-            self.scope[key] = result
-        else:
-            return result
+        return self.Input(key, string=True)
 
-    def InputNumber(self, key=""):
+    def InputNumber(self, key=None):
         """
-        InputNumber(key="")
+        InputNumber(key=None)
 
         Gets next input as number.
 
         If key is truthy, set the variable key to the input.
 
         """
-        result = 0
-        if len(self.inputs):
-            try:
-                result = (float if "." in self.inputs[0] else int)(
-                    self.inputs[0]
-                )
-            except:
-                result = 0
-            self.inputs = self.inputs[1:]
-        elif Info.prompt in self.info:
-            inp = input("Enter number: ")
-            try:
-                result = (float if "." in inp else int)(inp)
-            except:
-                result = 0
-            self.original_inputs += [result]
-            if len(self.original_inputs) < 5:
-                self.all_inputs = self.original_inputs + [""] * (
-                    5 - len(self.original_inputs)
-                )
-                self.hidden["θ"] = self.all_inputs[0]
-                self.hidden["η"] = self.all_inputs[1]
-                self.hidden["ζ"] = self.all_inputs[2]
-                self.hidden["ε"] = self.all_inputs[3]
-                self.hidden["δ"] = self.all_inputs[4]
-        if key:
-            self.scope[key] = result
-        else:
-            return result
+        return self.Input(key, number=True)
 
-    def Input(self, key=""):
+    def Input(self, key=None, number=False, string=False):
         """
-        Input(key="")
+        Input(key=None, number=False, string=False)
 
         Gets next input as number if possible, else as a stirng.
 
         If key is truthy, set the variable key to the input.
 
+        If number is truthy, return result as number.
+
+        If string is truthy, return result as string.
+
         """
         result = 0
         if len(self.inputs):
-            try:
-                result = (float if "." in self.inputs[0] else int)(
-                    self.inputs[0]
-                )
-            except:
-                result = self.inputs[0]
+            result = self.inputs[0]
+            if (
+                number and
+                not isinstance(result, int) and
+                not isinstance(result, float)
+            ):
+                try:
+                    result = (float if "." in result else int)(result)
+                except:
+                    result = 0
+            if string:
+                result = str(result)
             self.inputs = self.inputs[1:]
         elif Info.prompt in self.info:
-            inp = input("Enter input: ")
-            try:
-                result = (float if "." in inp else int)(inp)
-            except:
-                result = inp
+            result = input("Enter input: ")
+            if (
+                number and
+                not isinstance(result, int) and
+                not isinstance(result, float)
+            ):
+                try:
+                    result = (float if "." in result else int)(result)
+                except:
+                    result = 0
+            if string:
+                result = str(result)
             self.original_inputs += [result]
             if len(self.original_inputs) < 5:
-                self.all_inputs = self.original_inputs + [""] * (
+                self.all_inputs = self.original_inputs + [Whatever()] * (
                     5 - len(self.original_inputs)
                 )
                 self.hidden["θ"] = self.all_inputs[0]
@@ -3136,7 +3229,7 @@ whether the output wil be right-padded.
         if is_command:
             Run(code, charcoal=self)
             return
-        return Run(code, grammar=CharcoalToken.Expression)
+        return Run(code, grammar=CT.Expression)
 
     def EvaluateVariable(self, name, arguments):
         """
@@ -3154,12 +3247,18 @@ arguments.
         result = None
         if isinstance(name, Expression):
             result = name.run()(*arguments)
-        if name in self.scope:
+        elif name in self.scope:
             result = self.scope[name](*arguments)
-        if name in self.hidden:
+        elif name in self.hidden:
             result = self.hidden[name](*arguments)
-        if name in Charcoal.secret:
+        elif name in Charcoal.secret:
             result = Charcoal.secret[name](*arguments)
+        else:
+            python_function = GetPythonFunction(name)
+            if python_function:
+                return python_function(*arguments)
+            elif re.match("[a-zA-Z_]+$", name):
+                return SymbolicVariable(name)(arguments)
         self.charcoal = None
         return result
 
@@ -3182,6 +3281,10 @@ arguments.
             self.hidden[name](*arguments)
         elif name in Charcoal.secret:
             Charcoal.secret[name](*arguments)
+        else:
+            python_function = GetPythonFunction(name)
+            if python_function:
+                python_function(*arguments)
         self.charcoal = None
 
     def Lambdafy(self, function):
@@ -3239,23 +3342,20 @@ the list or string.
             height = width
         width, height = int(width), int(height)
         top_crop = max(0, self.y - self.top)
-        bottom_crop = min(len(self.lines), top_crop + height)
+        bottom_crop = max(0, self.y + height - self.top)
+        self.top += top_crop
         self.lines = self.lines[top_crop:bottom_crop]
         self.indices = self.indices[top_crop:bottom_crop]
         self.lengths = self.lengths[top_crop:bottom_crop]
         self.right_indices = self.right_indices[top_crop:bottom_crop]
-        self.y = 0
         for i in range(len(self.lines)):
             left_crop = max(0, self.x - self.indices[i])
-            right_crop = max(
-                0,
-                min(self.lengths[i], self.x + width - self.indices[i])
-            )
+            right_crop = max(0, self.x + width - self.indices[i])
             length = self.lengths[i]
             self.lines[i] = self.lines[i][left_crop:right_crop]
             self.indices[i] += left_crop
-            self.lengths[i] -= left_crop - right_crop + length
-            self.right_indices[i] += right_crop - length
+            self.lengths[i] = len(self.lines[i])
+            self.right_indices[i] = self.indices[i] + self.lengths[i]
         if Info.step_canvas in self.info:
             self.RefreshFastText("Crop", self.canvas_step)
         elif Info.dump_canvas in self.info:
@@ -3634,6 +3734,28 @@ iterable.
             left = left.run()
         if type(right) == Expression:
             right = right.run()
+        if isinstance(left, Expression) and not isinstance(right, Expression):
+            right = create_expression(right)
+        if isinstance(right, Expression) and not isinstance(left, Expression):
+            left = create_expression(left)
+        if (
+            isinstance(left, List) and
+            isinstance(right, SymbolicOperation) and
+            right.op == add and
+            len(left.leaves) == len(right.items)
+        ):
+            return SymbolicOperation(add,
+                *(l * r for l, r in zip(left.leaves, right.items))
+            )
+        if (
+            isinstance(left, SymbolicOperation) and
+            isinstance(right, List) and
+            left.op == add and
+            len(left.items) == len(right.leaves)
+        ):
+            return SymbolicOperation(add,
+                *(l * r for l, r in zip(left.items, right.leaves))
+            )
         left_type = type(left)
         right_type = type(right)
         left_is_iterable = hasattr(left, "__iter__")
@@ -3792,13 +3914,13 @@ SuperscriptToNormal = {
 def ParseExpression(
     code,
     index=0,
-    grammar=CharcoalToken.Program,
+    grammar=CT.Program,
     grammars=UnicodeGrammars,
     processor=ASTProcessor,
     verbose=False
 ):
     """
-    ParseExpression(code, index=0, grammar=CharcoalToken.Program, \
+    ParseExpression(code, index=0, grammar=CT.Program, \
 grammars=UnicodeGrammars, processor=ASTProcessor, verbose=False) -> Any
 
     Parse the given code starting from the given index, \
@@ -3845,13 +3967,11 @@ starting from the token given as grammar.
                     next_chars = code[index:index + 2]
             if isinstance(token, int):
                 if verbose:
-                    if token == CharcoalToken.EOF:
-                        if index == len(code):
-                            tokens += [""]
-                        else:
+                    if token == CT.EOF:
+                        if index != len(code):
                             success = False
                             break
-                    elif token == CharcoalToken.String:
+                    elif token == CT.String:
                         if index == len(code):
                             success = False
                             break
@@ -3882,10 +4002,12 @@ starting from the token given as grammar.
                         if index - old_index < 2:
                             success = False
                             break
-                        tokens += processor[token][0]([literal_eval(
-                            code[old_index:index]
-                        )])
-                    elif token == CharcoalToken.Number:
+                        tokens += [
+                            processor[token][0]([literal_eval(
+                                code[old_index:index]
+                            )])
+                        ]
+                    elif token == CT.Number:
                         if index == len(code):
                             success = False
                             break
@@ -3907,10 +4029,10 @@ starting from the token given as grammar.
                         if old_index == index:
                             success = False
                             break
-                        tokens += processor[token][0]([
-                            (int if integer else float)(code[old_index:index])
-                        ])
-                    elif token == CharcoalToken.Name:
+                        tokens += [
+                            processor[token][0]([code[old_index:index]])
+                        ]
+                    elif token == CT.Name:
                         if index == len(code):
                             success = False
                             break
@@ -3922,7 +4044,7 @@ starting from the token given as grammar.
 abcdefghijklmnopqrstuvwxyz"
                             )
                         ):
-                            tokens += processor[token][0]([character])
+                            tokens += [processor[token][0]([character])]
                             index += 1
                         else:
                             success = False
@@ -3934,6 +4056,7 @@ abcdefghijklmnopqrstuvwxyz"
                         if not result:
                             success = False
                             break
+                        
                         tokens += [result[0]]
                         index = result[1]
                         if index is False:
@@ -3942,13 +4065,11 @@ abcdefghijklmnopqrstuvwxyz"
                             success = False
                             break
                 else:
-                    if token == CharcoalToken.EOF:
-                        if index == len(code):
-                            tokens += [""]
-                        else:
+                    if token == CT.EOF:
+                        if index != len(code):
                             success = False
                             break
-                    elif token == CharcoalToken.String:
+                    elif token == CT.String:
                         if index == len(code):
                             success = False
                             break
@@ -3998,7 +4119,7 @@ abcdefghijklmnopqrstuvwxyz"
                                 )
                             )
                         )])
-                    elif token == CharcoalToken.Number:
+                    elif token == CT.Number:
                         if index == len(code):
                             success = False
                             break
@@ -4039,7 +4160,7 @@ abcdefghijklmnopqrstuvwxyz"
                             success = False
                             break
                         tokens += processor[token][0]([result])
-                    elif token == CharcoalToken.Name:
+                    elif token == CT.Name:
                         if index == len(code):
                             success = False
                             break
@@ -4089,7 +4210,7 @@ abcdefghijklmnopqrstuvwxyz"
         if not parse_index or parse_index == original_index else
         (
             ["%s: %s" % (
-                CharcoalTokenNames[grammar],
+                CTNames[grammar],
                 repr(code[original_index:parse_index])
             )] +
             parse_trace
@@ -4141,7 +4262,7 @@ def Decode(code):
 
 def Parse(
     code,
-    grammar=CharcoalToken.Program,
+    grammar=CT.Program,
     grammars=UnicodeGrammars,
     processor=ASTProcessor,
     whitespace=False,
@@ -4151,7 +4272,7 @@ def Parse(
     silent=False
 ):
     """
-    Parse(code, grammar=CharcoalToken.Program, \
+    Parse(code, grammar=CT.Program, \
 grammars=UnicodeGrammars, processor=ASTProcessor, whitespace=False, \
 normal_encoding=False, verbose=False, grave=False) -> Any
 
@@ -4187,23 +4308,21 @@ symbols they represent.
         )
         if parsed[1] is False and not silent:
             PrintParseTrace(parsed[0])
-            return processor[CharcoalToken.Program][-1]([])
+            return processor[CT.Program][-1]([])
         if parsed:
-            code = parsed[0]
+            code = StringifyCode(parsed[0])
         else:
             print("RuntimeError: Could not parse")
             sys.exit(1)
     elif grave:
         code = Degrave(code)
-    for python_function in re.findall("ＵＰ[ -~]+", code):
-        AddPythonFunction(python_function)
     result = ParseExpression(code, 0, grammar, grammars, processor)
     if not result:
         return result
     if result[1] is False and not silent:
         PrintParseTrace(result[0])
     return (
-        processor[CharcoalToken.Program][-1]([])
+        processor[CT.Program][-1]([])
         if result[1] is False else
         result[0]
     )
@@ -4263,7 +4382,7 @@ def ProcessInput(inputs):
     """
     new_inputs = inputs
     try:
-        new_inputs = list(map(str, literal_eval(inputs)))
+        new_inputs = literal_eval(inputs)
         if not isinstance(new_inputs, list):
             raise Exception()
     except:
@@ -4277,7 +4396,7 @@ def Run(
     code,
     inputs="",
     charcoal=None,
-    grammar=CharcoalToken.Program,
+    grammar=CT.Program,
     grammars=UnicodeGrammars,
     whitespace=False,
     normal_encoding=False,
@@ -4286,7 +4405,7 @@ def Run(
     silent=False
 ):
     """
-    Run(code, inputs="", charcoal=None, grammar=CharcoalToken.Program, \
+    Run(code, inputs="", charcoal=None, grammar=CT.Program, \
 grammars=UnicodeGrammars, whitespace=False, normal_encoding=False, \
 verbose=False, grave=False) -> Any
 
@@ -4318,7 +4437,7 @@ else the result of parsing.
         code, grammar, grammars, InterpreterProcessor, whitespace,
         normal_encoding, verbose, grave, silent
     )(charcoal)
-    if grammar == CharcoalToken.Program:
+    if grammar == CT.Program:
         return str(charcoal)
     return result
 
@@ -4327,7 +4446,7 @@ def GetProgram(
     code,
     inputs="",
     charcoal=None,
-    grammar=CharcoalToken.Program,
+    grammar=CT.Program,
     grammars=UnicodeGrammars,
     whitespace=False,
     normal_encoding=False,
@@ -4335,7 +4454,7 @@ def GetProgram(
     grave=False
 ):
     """
-    GetProgram(code, inputs="", charcoal=None, grammar=CharcoalToken.Program, \
+    GetProgram(code, inputs="", charcoal=None, grammar=CT.Program, \
 grammars=UnicodeGrammars, whitespace=False, normal_encoding=False, \
 verbose=False, grave=False) -> Any
 
@@ -4381,46 +4500,28 @@ def Degrave(code):
     ), code)
 
 
-
-def Golf(code):
-    for match, replacement in (
-        ("””", "ω"),
-        (Compressed(" !\"#$%&'()*+,-./0123456789:;<=>?@\
-ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"), "γ"),
-        (Compressed("abcdefghijklmnopqrstuvwxyz"), "β"),
-        (Compressed("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "α")
-    ):
-        code = code.replace(match, replacement)
-    codes = re.split("([“”][^”]*?”)", code)
-    success = True
-    while success:
-        success = False
-        for i in range(0, len(codes), 2):
-            # TODO: better unicode support
-            for regex, replacement in (
-                ("([^·⁰¹²³⁴-⁹]|^)¹⁰⁰⁰([^·⁰¹²³⁴-⁹]|$)", "\\1φ\\2"),
-                ("([^·⁰¹²³⁴-⁹]|^)¹⁰([^·⁰¹²³⁴-⁹]|$)", "\\1χ\\2"),
-                ("([^·⁰¹²³⁴-⁹ -~´⸿¶�])¦([^·⁰¹²³⁴-⁹ -~´⸿¶�])", "\\1\\2"),
-                ("([^·⁰¹²³⁴-⁹])¦([·⁰¹²³⁴-⁹])", "\\1\\2"),
-                ("([·⁰¹²³⁴-⁹])¦([^·⁰¹²³⁴-⁹])", "\\1\\2"),
-                ("([^´][^ -~´⸿¶�]|[^ -~´⸿¶�])¦([ -~´⸿¶�])", "\\1\\2"),
-                ("([ -~´⸿¶�])¦([^ -~´⸿¶�])", "\\1\\2"),
-                ("(^|[^ -~])´([ -~])", "\\1\\2"),
-                ("((?:^|[^´])[α-ξπ-ω])¦", "\\1"),
-                ("¦((?:^|[^´])[α-ξπ-ω])", "\\1"),
-                (
-                    "\
-(^|[^‖])Ｍ([←-↓↖-↙])(?!%s|[·⁰¹²³⁴-⁹ -~´⸿¶�])" % sOperator,
-                    "\\1\\2"
-                ),
-                ("(%s)¦(%s)" % (sOperator, sOperator), "\\1\\2"),
-            ):
-                old = codes[i]
-                codes[i] = re.sub(regex, replacement, codes[i])
-                if codes[i] != old:
-                    success = True
-    code = re.sub("([^´])[»⟧⦄”]+$", "\\1", "".join(codes))
-    return code
+def TIOEncode(code, inp=None, args=None):
+    sep = bytes((255,))
+    state = bytes("charcoal", "utf-8") + sep + sep + bytes(code, "utf-8")
+    if inp is not None:
+        state += sep
+        if isinstance(inp, list):
+            if len(inp) == 0:
+                inp = None
+            elif len(inp) == 1:
+                inp = inp[0]
+            else:
+                inp = repr(inp)
+        if inp is not None:
+            state += sep + bytes(inp, "utf-8")
+    if args is not None and isinstance(args, list) and len(args):
+        if inp is None:
+            state += sep + bytes([])
+        for arg in args:
+            state += sep + bytes(arg, "utf-8")
+    return "https://tio.run/##" + base64.urlsafe_b64encode(
+        zlib.compress(state, 9)[2:-4]
+    ).decode("ascii").replace("=", "")
 
 
 def AddAmbiguityWarnings():
@@ -4430,13 +4531,13 @@ def AddAmbiguityWarnings():
     Adds ambiguity warnings which are shown whenever the AST is printed.
 
     """
-    ASTProcessor[CharcoalToken.Monadic][4] = (
+    ASTProcessor[CT.Monadic][4] = (
         lambda result: "Random [Warning: May be ambiguous]"
     )
-    ASTProcessor[CharcoalToken.Command][59] = lambda result: [
+    ASTProcessor[CT.Command][59] = lambda result: [
         "Refresh [Warning: May be ambiguous]", result[1]
     ]
-    ASTProcessor[CharcoalToken.Command][60] = lambda result: [
+    ASTProcessor[CT.Command][60] = lambda result: [
         "Refresh [Warning: May be ambiguous]"
     ]
 
@@ -4451,124 +4552,6 @@ def RemoveThrottle():
     InterpreterProcessor[-5] = (
         lambda result: lambda charcoal: charcoal.DumpNoThrottle()
     )
-
-
-def AddPythonFunction(name):
-    """
-    AddPythonFunction(name)
-
-    Adds the Python function with the given name to all grammars \
-and processors.
-
-    """
-    if name in python_function_is_command:
-        return
-    function, name, _name = None, name[2:], name[2:]
-    if "." in name:
-        try:
-            module, *parts = name.split(".")
-            if module not in imports:
-                imports[module] = __import__(module)
-            function = imports[module]
-            for part in parts:
-                function = getattr(function, part)
-        except:
-            pass
-    if not function:
-        loc, glob = locals(), globals()
-        if "." not in name:
-            if name in loc:
-                function = loc[name]
-            elif name in glob:
-                function = glob[name]
-            elif hasattr(builtins, name):
-                function = getattr(builtins, name)
-        else:
-            variable, *parts = name.split(".")
-            if variable in loc:
-                function = loc[variable]
-            elif variable in glob:
-                function = glob[variable]
-            elif hasattr(builtins, variable):
-                function = getattr(builtins, variable)
-            for part in parts:
-                function = function[part]
-    is_operator = re.search(
-        "\
-(?i)return|disassemble|find|compute|build|make|convert|create|read|\*\*|->",
-        function.__doc__
-    )
-    python_function_is_command[name] = not is_operator
-    if is_operator:
-        UnicodeGrammars[CharcoalToken.OtherOperator] += [
-            ["ＵＰ" + _name, CharcoalToken.Separator, CharcoalToken.List],
-            [
-                "ＵＰ" + _name, CharcoalToken.Separator,
-                CharcoalToken.Expression
-            ],
-            ["ＵＰ" + _name, CharcoalToken.Separator]
-        ]
-        VerboseGrammars[CharcoalToken.OtherOperator] += [
-            [
-                "PythonFunction", "(", _name, CharcoalToken.Separator,
-                CharcoalToken.WolframList, ")"
-            ],
-            [
-                "PythonFunction", "(", _name, CharcoalToken.Separator,
-                CharcoalToken.WolframExpression, ")"
-            ],
-            ["PythonFunction", "(", _name, CharcoalToken.Separator, ")"]
-        ]
-        ASTProcessor[CharcoalToken.OtherOperator] += [
-            lambda result: ["Python function: \"%s\"" % name, result[2]],
-            lambda result: ["Python function: \"%s\"" % name, result[2]],
-            lambda result: ["Python function: \"%s\"" % name]
-        ]
-        StringifierProcessor[CharcoalToken.OtherOperator] += [
-            lambda result: "ＵＰ" + "".join(result[2:-1]),
-            lambda result: "ＵＰ" + "".join(result[2:-1]),
-            lambda result: "ＵＰ" + "".join(result[2:-1])
-        ]
-        InterpreterProcessor[CharcoalToken.OtherOperator] += [
-            lambda result: lambda charcoal: function(*result[2](charcoal)),
-            lambda result: lambda charcoal: function(result[2](charcoal)),
-            lambda result: lambda charcoal: function()
-        ]
-    else:
-        UnicodeGrammars[CharcoalToken.Command] += [
-            ["ＵＰ" + _name, CharcoalToken.Separator, CharcoalToken.List],
-            [
-                "ＵＰ" + _name, CharcoalToken.Separator,
-                CharcoalToken.Expression
-            ],
-            ["ＵＰ" + _name, CharcoalToken.Separator]
-        ]
-        VerboseGrammars[CharcoalToken.Command] += [
-            [
-                "PythonFunction", "(", _name, CharcoalToken.Separator,
-                CharcoalToken.WolframList, ")"
-            ],
-            [
-                "PythonFunction", "(", _name, CharcoalToken.Separator,
-                CharcoalToken.WolframExpression, ")"
-            ],
-            ["PythonFunction", "(", _name, CharcoalToken.Separator, ")"]
-        ]
-        ASTProcessor[CharcoalToken.Command] += [
-            lambda result: ["Python function: \"%s\"" % name, result[2]],
-            lambda result: ["Python function: \"%s\"" % name, result[2]],
-            lambda result: ["Python function: \"%s\"" % name]
-        ]
-        StringifierProcessor[CharcoalToken.Command] += [
-            lambda result: "ＵＰ" + "".join(result[2:-1]),
-            lambda result: "ＵＰ" + "".join(result[2:-1]),
-            lambda result: "ＵＰ" + "".join(result[2:-1])
-        ]
-        InterpreterProcessor[CharcoalToken.Command] += [
-            lambda result: lambda charcoal: function(*result[2](charcoal)),
-            lambda result: lambda charcoal: function(result[2](charcoal)),
-            lambda result: lambda charcoal: function()
-        ]
 
 # from https://gist.github.com/puentesarrin/6567480
 
@@ -4734,6 +4717,14 @@ non-raw file input and file output."""
         "-x", "--hexdump", "--hd", action="store_true",
         help="Show the xxd hexdump of the code."
     )
+    parser.add_argument(
+        "--tioencode", "--te", action="store_true",
+        help="Print a TIO link."
+    )
+    parser.add_argument(
+        "--ppcg", "--cg", action="store_true",
+        help="Output a PPCG-formatted post."
+    )
     argv, info = parser.parse_args(), set()
     argv.repl = argv.repl or all(
         x in ["-g", "--grave", "-v", "--verbose"] for x in sys.argv[1:]
@@ -4755,6 +4746,7 @@ non-raw file input and file output."""
         info.add(Info.prompt)
         info.add(Info.is_repl)
     code = argv.code
+    verbose = code
     if argv.file:
         openfile = openl1 if argv.normalencoding or argv.decode else open
         if os.path.isfile(argv.file):
@@ -4816,7 +4808,7 @@ non-raw file input and file output."""
         del raw_file_output
         del file_output
     if argv.disablecompression:
-        StringifierProcessor[CharcoalToken.String][0] = lambda result: [re.sub(
+        StringifierProcessor[CT.String][0] = lambda result: [re.sub(
             "\n", "¶", rCommand.sub(r"´\1", result[0])
         )]
     if argv.verbose or argv.deverbosify:
@@ -4824,10 +4816,14 @@ non-raw file input and file output."""
             code, grammars=VerboseGrammars, processor=StringifierProcessor,
             verbose=True
         )[0]
-        if isinstance(code, list):
+        if (
+            isinstance(code, list) and len(code) and
+            not isinstance(code[0], tuple)
+        ):
+            print(code)
             PrintParseTrace(code)
             sys.exit(1)
-        code = Golf(code)
+        code = StringifyCode(code)
         if argv.deverbosify:
             print(code)
     if argv.grave or argv.degrave:
@@ -4839,7 +4835,9 @@ non-raw file input and file output."""
         argv.normalencoding = False
         if argv.decode:
             print(code)
-    if argv.showlength:
+    if argv.tioencode:
+        print(TIOEncode("code"))
+    if argv.showlength or argv.ppcg:
 
         def charcoal_length(character):
             ordinal = ord(character)
@@ -4856,7 +4854,34 @@ non-raw file input and file output."""
                 length += charcoal_length(
                     ReverseLookup.get(character, character)
                 )
-        print("Charcoal, %i bytes: `%s`" % (length, re.sub("`", "\`", code)))
+        if argv.ppcg:
+            def b36(n):
+                r = ""
+                while n:
+                    r = "0123456789abcdefghijklmnopqrstuvwxyz"[n % 36] + r
+                    n //= 36
+                return r
+            nonce = b36(int(now()*1000))
+            print("""\
+[Charcoal], %s byte%s
+
+    %s
+
+[Try it online!][TIO-%s]
+
+[Charcoal]: https://github.com/somebody1234/Charcoal
+[TIO-%s]: %s""" % (
+    length, "" if len(code) == 1 else "s", code, nonce, nonce,
+    TIOEncode(
+        verbose if argv.verbose else code,
+        argv.input,
+        ["-v", "--sl"] if argv.verbose else []
+    )
+))
+        else:
+            print(
+                "Charcoal, %i bytes: `%s`" % (length, re.sub("`", "\`", code))
+            )
     if argv.hexdump:
         print_xxd(code)
         sys.exit()
@@ -4866,7 +4891,7 @@ non-raw file input and file output."""
             code, whitespace=argv.whitespace,
             normal_encoding=argv.normalencoding
         )
-        if isinstance(result[0], CharcoalToken):
+        if isinstance(result[0], CT):
             print("""\
 Parsing failed, parsed:
 %s
@@ -4892,11 +4917,10 @@ Parse trace:
             try:
                 code = old_input(prompt)
                 if argv.verbose:
-                    code = ParseExpression(
+                    code = StringifyCode(ParseExpression(
                         code, grammars=VerboseGrammars,
                         processor=StringifierProcessor, verbose=True
-                    )[0]
-                    code = Golf(code)
+                    )[0])
                 if argv.grave:
                     code = Degrave(code)
                 if argv.astify:

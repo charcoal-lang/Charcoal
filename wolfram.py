@@ -1,11 +1,12 @@
 from math import (
-    exp, log, log2, log10, sqrt, sin, cos, tan, asin, acos, atan, floor, ceil
+    exp, log, log2, log10, sqrt, sin, cos, tan, asin, acos, atan, floor, ceil,
+    isinf
 )
 from functools import reduce, lru_cache
 import unicodedata as ud
 try:
     from regex import (
-        match, search, split, sub, findall, finditer,
+        match, search, split, sub as re_sub, findall, finditer,
         compile as re_compile, escape as re_escape,
         M as multiline_flag
     )
@@ -15,21 +16,26 @@ try:
             kwargs['flags'] = multiline_flag
             return function(*args, **kwargs)
         return wrap_function
-    match, search, split, sub, findall, finditer = (
+    match, search, split, re_sub, findall, finditer = (
         multilineify(match),
         multilineify(search),
         multilineify(split),
-        multilineify(sub),
+        multilineify(re_sub),
         multilineify(findall),
         multilineify(finditer)
     )
-except:
+except Exception as e:
     print("Please install the 'regex' module: 'sudo -H pip3 install regex'")
     __import__("sys").exit()
 
 # TODO: chain plus/minus for less precision needed
 # TODO: tests for rational ops
 # TODO: feature parity for stringsplit, stringreplace and stringcases
+# TODO: handle infinite precision in arithmetic
+# TODO: complex
+# TODO: get literal for number creation whenever possible
+# TODO: not infinite precision Rational * and /
+
 
 generator = type(i for i in [])
 r_whitespace = re_compile("\s+")
@@ -75,17 +81,17 @@ heads = []
 headifies = []
 
 
-def headify(clazz):
+def headify(cls):
     global heads
     global headifies
-    if clazz not in heads:
-        heads += [clazz]
+    if cls not in heads:
+        heads += [cls]
 
-        def fn(leaves, precision=10):
-            return clazz(*leaves)
+        def fn(leaves, precision=None):
+            return cls(*leaves)
         headifies += [fn]
         return fn
-    return headifies[heads.index(clazz)]
+    return headifies[heads.index(cls)]
 
 
 def create_expression(value):
@@ -103,16 +109,18 @@ def create_expression(value):
     elif value_type == list or value_type == tuple or value_type == generator:
         return List(*[create_expression(item) for item in value])
     elif value_type != int and value % 1:
+        value = round(value, 15)
         exponent = 0
         while value % 1:
             value *= 10
             exponent -= 1
-        return Real(value, exponent)
+        return Real(int(value), exponent, float("inf"))
     else:
         exponent = 0
-        while not value % 10:
-            value //= 10
-            exponent += 1
+        if value:
+            while not value % 10:
+                value //= 10
+                exponent += 1
         return Integer(value, exponent)
 
 cx = create_expression
@@ -121,19 +129,148 @@ cx = create_expression
 def boolean(value):
     return _True if value else _False
 
+def simplify(left, right, fn, repeat=False):
+    if type(left) == Expression:
+        left = left.run()
+    if type(right) == Expression:
+        right = right.run()
+    if isinstance(left, List):
+        if isinstance(right, List):
+            if len(left.leaves) != len(right.leaves):
+                raise Exception("Lists have different length")
+            return SymbolicList(
+                *(simplify(l, r, fn, True) for l, r in zip(left, right))
+            )
+        return SymbolicList(*(simplify(l, right, fn, True) for l in left))
+    if isinstance(right, List):
+        return SymbolicList(*(simplify(left, r, fn, True) for r in right))
+    if repeat:
+        return fn(left, right)
+
+def simplify_multiple(items, fn):
+    items = list(items)
+    i, l = 0, len(items) - 1
+    while i < l:
+        simple = simplify(items[i], items[i + 1], fn)
+        if simple and isinstance(simple, List):
+            items[:2] = [SymbolicOperation(add, *simple.leaves)]
+            l -= 1
+        else:
+            i += 1
+    return items
+
+
+class Operation(object):
+    __slots__ = ("symbol", "precedence", "commutative", "simplify", "function")
+
+    def __init__(self, symbol, precedence, commutative, simplify, function):
+        self.symbol = symbol
+        self.precedence = precedence
+        self.commutative = commutative
+        self.simplify = lambda items: simplify(
+            simplify_multiple(items, function)
+        )
+        self.function = function
+
+def _pow_simplify(items):
+    if len(items) == 1:
+        return items
+    if items[0] == One or items[1] == One:
+        return (items[0],)
+    if items[1] == Zero:
+        return (One,)
+    return items
+pow = Operation("^", 4, False, _pow_simplify, lambda l, r: l ** r)
+
+def _mul_simplify(items):
+    if any(item == Zero for item in items):
+        return (Zero,)
+    return list(sorted(filter(lambda item: item != One, items)))
+mul = Operation("", 3, True, _mul_simplify, lambda l, r: l * r)
+
+def _div_simplify(items):
+    if items[0] == Zero:
+        return (Zero,)
+    if len(items) == 1:
+        return items
+    if items[1] == One:
+        return (items[0],)
+    return items
+div = Operation("/", 3, False, _div_simplify, lambda l, r: l / r)
+
+def _add_simplify(items):
+    return list(sorted(filter(lambda item: item != Zero, items)))
+add = Operation("+", 2, True, _add_simplify, lambda l, r: l + r)
+
+def _sub_simplify(items):
+    if items[0] == Zero:
+        if len(items) == 1:
+            return items
+        return (items[1],)
+    if items[1] == Zero:
+        return (items[0],)
+    return items
+sub = Operation("-", 2, False, _sub_simplify, lambda l, r: l - r)
+
+def is_exactly_int(item, numeral, value, exponent):
+    if isinstance(item, int):
+        if item == numeral:
+            return True
+    elif (
+        isinstance(item, Integer) and
+        item.leaves[1] == exponent and
+        item.leaves[0] == value
+    ):
+        return True
+    return False
+
+
+class Comparable(object):
+    def cmp(self, other):
+        pass
+
+    def __eq__(self, other):
+        return self.cmp(other) == 0
+
+    def __lt__(self, other):
+        return self.cmp(other) == -1
+
+    def __gt__(self, other):
+        return self.cmp(other) == 1
+
+    def __ne__(self, other):
+        return self.cmp(other) != 0
+
+    def __le__(self, other):
+        return self.cmp(other) < 1
+
+    def __ge__(self, other):
+        return self.cmp(other) > -1
+
 
 class Expression(object):
+    __slots__ = ("head", "leaves", "run", "op")
 
-    __slots__ = ("head", "leaves", "run")
-
-    def __init__(self, head=None, leaves=[], run=None):
+    def __init__(
+        self, head=None, leaves=[], run=None, op=None
+    ):
         self.head = head
         self.leaves = [create_expression(leaf) for leaf in leaves]
-        self.run = run or (lambda precision=10: self.head(
+        self.run = run or (lambda precision=None: self.head(
             self.leaves, precision
         ))
+        self.op = op
 
     def __add__(self, other):
+        if is_exactly_int(other, 0, 0, 0):
+            return self
+        if is_exactly_int(self, 0, 0, 0):
+            return other
+        if (
+            isinstance(self, Symbolic) or
+            isinstance(other, Symbolic)
+        ):
+            return SymbolicOperation(add, self, other)
         return Expression(
             None, [],
             lambda precision=10: self.run(precision + 2) + (
@@ -141,7 +278,17 @@ class Expression(object):
             )
         )
 
+    def __radd__(self, other):
+        return Expression.__add__(other, self)
+
     def __sub__(self, other):
+        if is_exactly_int(other, 0, 0, 0):
+            return self
+        if (
+            isinstance(self, Symbolic) or
+            isinstance(other, Symbolic)
+        ):
+            return SymbolicOperation(sub, self, other)
         return Expression(
             None, [],
             lambda precision=10: self.run(precision + 2) - (
@@ -150,6 +297,13 @@ class Expression(object):
         )
 
     def __rsub__(self, other):
+        if is_exactly_int(self, 0, 0, 0):
+            return other
+        if (
+            isinstance(self, Symbolic) or
+            isinstance(other, Symbolic)
+        ):
+            return SymbolicOperation(sub, other, self)
         return Expression(
             None, [],
             lambda precision=10: (
@@ -158,6 +312,17 @@ class Expression(object):
         )
 
     def __mul__(self, other):
+        if is_exactly_int(self, 0, 0, 0) or is_exactly_int(other, 0, 0, 0):
+            return Integer(0)
+        if is_exactly_int(self, 1, 1, 0):
+            return other
+        if is_exactly_int(other, 1, 1, 0):
+            return self
+        if (
+            isinstance(self, Symbolic) or
+            isinstance(other, Symbolic)
+        ):
+            return SymbolicOperation(mul, self, other)
         return Expression(
             None, [],
             lambda precision=10: self.run(precision + 2) * (
@@ -165,7 +330,19 @@ class Expression(object):
             )
         )
 
+    def __rmul__(self, other):
+        return Expression.__mul__(other, self)
+
     def __truediv__(self, other):
+        if is_exactly_int(self, 0, 0, 0):
+            return Integer(0)
+        if is_exactly_int(other, 1, 1, 0):
+            return self
+        if (
+            isinstance(self, Symbolic) or
+            isinstance(other, Symbolic)
+        ):
+            return SymbolicOperation(div, self, other)
         return Expression(
             None, [],
             lambda precision=10: self.run(precision + 2) / (
@@ -174,6 +351,15 @@ class Expression(object):
         )
 
     def __rtruediv__(self, other):
+        if is_exactly_int(other, 0, 0, 0):
+            return Integer(0)
+        if is_exactly_int(self, 1, 1, 0):
+            return other
+        if (
+            isinstance(self, Symbolic) or
+            isinstance(other, Symbolic)
+        ):
+            return SymbolicOperation(div, other, self)
         return Expression(
             None, [],
             lambda precision=10: (
@@ -181,13 +367,57 @@ class Expression(object):
             ) / self.run(precision + 2)
         )
 
+    def __pow__(self, other):
+        if is_exactly_int(other, 0, 0, 0):
+            return Integer(1)
+        if is_exactly_int(other, 1, 1, 0):
+            return self
+        if is_exactly_int(self, 0, 0, 0):
+            return Integer(0)
+        if is_exactly_int(self, 1, 1, 0):
+            return Integer(1)
+        if (
+            isinstance(self, Symbolic) or
+            isinstance(other, Symbolic)
+        ):
+            return SymbolicOperation(pow, self, other)
+        return Expression(
+            None, [],
+            lambda precision=10: self.run(precision + 2) / (
+                create_expression(other).run(precision + 2)
+            )
+        )
+    
+    def __rpow__(self, other):
+        if (
+            isinstance(self, Symbolic) or
+            isinstance(other, Symbolic)
+        ):
+            return SymbolicOperation(pow, other, self)
+        return Expression(
+            None, [],
+            lambda precision=10: (
+                create_expression(other).run(precision + 2)
+            ) ** self.run(precision + 2),
+            op=pow
+        )
+
+    def __str__(self):
+        result = self.run()
+        if type(result) == Expression:
+            raise Exception("Expression evaluates to Expression")
+        return str(result)
+
     def to_number(self):
-        return self.run().to_number()
+        result = self.run()
+        if type(result) == Expression:
+            raise Exception("Expression evaluates to Expression")
+        return result.to_number()
 
     def __int__(self):
-        return self.to_number()
+        return int(self.to_number())
 
-    def to_precision(self, precision=10):
+    def to_precision(self, precision=None):
         return self.run().to_precision(precision)
 
     def is_integer(self):
@@ -203,25 +433,365 @@ class Expression(object):
 class Symbol(Expression):
     pass
 
+
+class Symbolic(Expression):
+    pass
+
+
+class SymbolicOperation(Symbolic, Comparable):
+    __slots__ = ("op",)
+
+    def __new__(cls, op, *items):
+        i, l = 0, len(items)
+        items = list(items)
+        if op.commutative:
+            while i < l:
+                if (
+                    isinstance(items[i], SymbolicOperation) and
+                    items[i].op.symbol == op.symbol
+                ):
+                    delta = len(items[i].items)
+                    l += delta - 1
+                    items[i:i + 1] = items[i].items
+                else:
+                    i += 1
+        simple = op.simplify(items)
+        if len(simple) == 1:
+            return simple[0]
+        return super().__new__(cls)
+
+    def __init__(self, op, *items):
+        if hasattr(self, "op"):
+            # Already initialized
+            return
+        super().__init__(head=headify(SymbolicOperation))
+        self.op = op
+        self.items = items
+        i, l = 0, len(items)
+        items = list(items)
+        while i < l:
+            if (
+                op.commutative and
+                isinstance(items[i], SymbolicOperation) and
+                items[i].op.symbol == op.symbol
+            ):
+                delta = len(items[i].items)
+                l += delta - 1
+                items[i:i + 1] = items[i].items
+            else:
+                i += 1
+        self.items = op.simplify(items)
+        if len(self.items) == 1:
+            raise Exception("wat?")
+        self.run = lambda precision=10: str(self)
+
+    def __str__(self, str=str):
+        return (
+            (" " + self.op.symbol + " ") if self.op.symbol else " "
+        ).join(
+            "(" + str(item) + ")" if (
+                isinstance(item, Expression) and
+                item.op and
+                item.op.precedence < self.op.precedence
+            ) else str(item)
+            for item in self.items
+        ).replace(" + -", " - ")
+
+    def __repr__(self):
+        return self.__str__(repr)
+
+
+class SymbolicVariable(Symbolic, Comparable):
+    __slots__ = ("__name__", "name", "op")
+
+    def __init__(self, name):
+        super().__init__(head=headify(SymbolicVariable))
+        self.__name__ = name
+        self.name = name
+        self.run = lambda precision=10: str(self)
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return ":" + self.name
+
+    def __call__(self, leaves):
+        return SymbolicFunction(self, leaves)
+
+    def __add__(self, other):
+        if not isinstance(other, Expression):
+            other = create_expression(other)
+        return Expression.__add__(self, other)
+
+    def __radd__(self, other):
+        if not isinstance(other, Expression):
+            other = create_expression(other)
+        return Expression.__radd__(self, other)
+
+    def __sub__(self, other):
+        if not isinstance(other, Expression):
+            other = create_expression(other)
+        return Expression.__sub__(self, other)
+
+    def __rsub__(self, other):
+        if not isinstance(other, Expression):
+            other = create_expression(other)
+        return Expression.__rdub__(self, other)
+
+    def __mul__(self, other):
+        if not isinstance(other, Expression):
+            other = create_expression(other)
+        return Expression.__mul__(self, other)
+
+    def __rmul__(self, other):
+        if not isinstance(other, Expression):
+            other = create_expression(other)
+        return Expression.__rmul__(self, other)
+
+    def __div__(self, other):
+        if not isinstance(other, Expression):
+            other = create_expression(other)
+        return Expression.__div__(self, other)
+
+    def __rdiv__(self, other):
+        if not isinstance(other, Expression):
+            other = create_expression(other)
+        return Expression.__rdiv__(self, other)
+
+    def __pow__(self, other):
+        if not isinstance(other, Expression):
+            other = create_expression(other)
+        return Expression.__pow__(self, other)
+
+    def __rpow__(self, other):
+        if not isinstance(other, Expression):
+            other = create_expression(other)
+        return Expression.__rpow__(self, other)
+
+    def cmp(self, other):
+        if isinstance(other, Number):
+            return 1
+        if isinstance(other, SymbolicVariable):
+            return (
+                1 if self.name > other.name else
+                -1 if self.name < other.name else
+                0
+            )
+        if isinstance(other, SymbolicOperation):
+            if other.op == mul:
+                for item in other.items:
+                    if not isinstance(other, Number):
+                        return self.cmp(item)
+            return self.cmp(other.items[0])
+
+
+class SymbolicFunction(Symbolic):
+    __slots__ = ("leaves",)
+
+    def __init__(self, head, leaves):
+        super().__init__(head=headify(head))
+        self.head = head
+        self.leaves = leaves
+        self.run = lambda: self
+
+    def __str__(self):
+        return (
+            self.head.__name__ + "[" + ", ".join(map(str, self.leaves)) + "]"
+        )
+
+    def __repr__(self):
+        return str(self)
+
 # Options
 IC = IgnoreCase = Symbol()
 A = All = Symbol()
 O = Overlaps = Symbol()
+In = Indeterminate = Symbol()
 
 
 class Number(Expression):
+    __slots__ = ("size", "sign")
+
     def __init__(self, head=None):
         super().__init__(head=head)
+        self.size = 0
+        self.sign = 0
 
+    def __eq__(self, other):
+        if isinstance(other, int):
+            other = Integer(other)
+        elif isinstance(other, float):
+            other = create_expression(other)
+        if isinstance(other, Number):
+            if self.sign != other.sign:
+                return False
+            if self.size != other.size:
+                return False
+            self_rational = isinstance(self, Rational)
+            other_rational = isinstance(other, Rational)
+            if isinstance(self, Real) and isinstance(other, Real):
+                self_i = 1 + self_rational
+                other_i = 1 + other_rational
+                min_exponent = min(self.leaves[1], other.leaves[1])
+                new_self = self.leaves[0] * 10 ** (
+                    self.leaves[self_i] - min_exponent
+                )
+                new_other = other.leaves[0] * 10 ** (
+                    other.leaves[other_i] - min_exponent
+                )
+                if self_rational:
+                    new_other *= self.leaves[1]
+                if other_rational:
+                    new_self *= other.leaves[1]
+                return new_self == new_other
+        return False
+
+    def __gt__(self, other):
+        if isinstance(other, int):
+            other = Integer(other)
+        elif isinstance(other, float):
+            other = create_expression(other)
+        if isinstance(other, Number):
+            if self.sign > other.sign:
+                return True
+            if self.sign < other.sign:
+                return False
+            if self.size > other.size:
+                return self.sign == 1
+            if self.size < other.size:
+                return self.sign == -1
+            self_rational = isinstance(self, Rational)
+            other_rational = isinstance(other, Rational)
+            if isinstance(self, Real) and isinstance(other, Real):
+                self_i = 1 + self_rational
+                other_i = 1 + other_rational
+                min_exponent = min(self.leaves[1], other.leaves[1])
+                new_self = self.leaves[0] * 10 ** (
+                    self.leaves[self_i] - min_exponent
+                )
+                new_other = other.leaves[0] * 10 ** (
+                    other.leaves[other_i] - min_exponent
+                )
+                if self_rational:
+                    new_other *= self.leaves[1]
+                if other_rational:
+                    new_self *= other.leaves[1]
+                return new_self > new_other
+        return False
+
+    def __lt__(self, other):
+        if isinstance(other, int):
+            other = Integer(other)
+        elif isinstance(other, float):
+            other = create_expression(other)
+        if isinstance(other, Number):
+            if self.sign < other.sign:
+                return True
+            if self.sign > other.sign:
+                return False
+            if self.size < other.size:
+                return self.sign == 1
+            if self.size > other.size:
+                return self.sign == -1
+            self_rational = isinstance(self, Rational)
+            other_rational = isinstance(other, Rational)
+            if isinstance(self, Real) and isinstance(other, Real):
+                self_i = 1 + self_rational
+                other_i = 1 + other_rational
+                min_exponent = min(self.leaves[1], other.leaves[1])
+                new_self = self.leaves[0] * 10 ** (
+                    self.leaves[self_i] - min_exponent
+                )
+                new_other = other.leaves[0] * 10 ** (
+                    other.leaves[other_i] - min_exponent
+                )
+                if self_rational:
+                    new_other *= self.leaves[1]
+                if other_rational:
+                    new_self *= other.leaves[1]
+                return new_self < new_other
+        return False
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __ge__(self, other):
+        if isinstance(other, int):
+            other = Integer(other)
+        elif isinstance(other, float):
+            other = create_expression(other)
+        if isinstance(other, Number):
+            if self.sign > other.sign:
+                return True
+            if self.sign < other.sign:
+                return False
+            if self.size > other.size:
+                return self.sign == 1
+            if self.size < other.size:
+                return self.sign == -1
+            self_rational = isinstance(self, Rational)
+            other_rational = isinstance(other, Rational)
+            if isinstance(self, Real) and isinstance(other, Real):
+                self_i = 1 + self_rational
+                other_i = 1 + other_rational
+                min_exponent = min(self.leaves[1], other.leaves[1])
+                new_self = self.leaves[0] * 10 ** (
+                    self.leaves[self_i] - min_exponent
+                )
+                new_other = other.leaves[0] * 10 ** (
+                    other.leaves[other_i] - min_exponent
+                )
+                if self_rational:
+                    new_other *= self.leaves[1]
+                if other_rational:
+                    new_self *= other.leaves[1]
+                return new_self >= new_other
+        return False
+
+    def __le__(self, other):
+        if isinstance(other, int):
+            other = Integer(other)
+        elif isinstance(other, float):
+            other = create_expression(other)
+        if isinstance(other, Number):
+            if self.sign < other.sign:
+                return True
+            if self.sign > other.sign:
+                return False
+            if self.size < other.size:
+                return self.sign == 1
+            if self.size > other.size:
+                return self.sign == -1
+            self_rational = isinstance(self, Rational)
+            other_rational = isinstance(other, Rational)
+            if isinstance(self, Real) and isinstance(other, Real):
+                self_i = 1 + self_rational
+                other_i = 1 + other_rational
+                min_exponent = min(self.leaves[1], other.leaves[1])
+                new_self = self.leaves[0] * 10 ** (
+                    self.leaves[self_i] - min_exponent
+                )
+                new_other = other.leaves[0] * 10 ** (
+                    other.leaves[other_i] - min_exponent
+                )
+                if self_rational:
+                    new_other *= self.leaves[1]
+                if other_rational:
+                    new_self *= other.leaves[1]
+                return new_self <= new_other
+        return False
 
 class Real(Number):
-    slots = ("head", "leaves", "run", "is_int", "precision")
+    __slots__ = ("is_int", "precision")
 
     def __init__(self, value, exponent=0, precision=0, is_int=False):
         super().__init__(head=headify(Real))
-        self.precision = precision or floor(log10(abs(value) or 1))
+        self.precision = precision or floor(log10(max(1, abs(value))))
         self.is_int = is_int
         self.leaves = [value, exponent]
+        self.size = log10(max(1, value)) + exponent
+        self.sign = 1 if value > 0 else -1 if value < 0 else 0
 
     def __str__(self):
         exponent = self.leaves[1]
@@ -241,9 +811,11 @@ class Real(Number):
         return str(self)
 
     def __add__(self, other):
+        if isinstance(other, Symbolic):
+            return SymbolicOperation(add, self, other)
         if type(other) == Expression:
             return other + self
-        if type(other) == Real:
+        if isinstance(other, Real):
             precision = max(0, min(self.precision, other.precision) - 2)
             exponent_difference = self.leaves[1] - other.leaves[1]
             if exponent_difference > 0:
@@ -255,6 +827,11 @@ class Real(Number):
                 value = (
                     self.leaves[0] +
                     other.leaves[0] * 10 ** -exponent_difference
+                )
+            if isinf(precision):
+                exponent = min(self.leaves[1], other.leaves[1])
+                return (Integer if exponent >= 0 else Real)(
+                    value, exponent, precision=precision
                 )
             actual_precision = floor(log10(abs(value) or 1))
             return Real(
@@ -275,6 +852,8 @@ class Real(Number):
             )
 
     def __sub__(self, other):
+        if isinstance(other, Symbolic):
+            return SymbolicOperation(sub, self, other)
         if type(other) == Expression:
             return other.__rsub__(self)
         if type(other) == Real:
@@ -289,6 +868,13 @@ class Real(Number):
                 value = (
                     self.leaves[0] -
                     other.leaves[0] * 10 ** -exponent_difference
+                )
+            if isinf(precision):
+                exponent = min(self.leaves[1], other.leaves[1])
+                return (Integer if exponent >= 0 else Real)(
+                    value,
+                    min(self.leaves[1], other.leaves[1]),
+                    precision=precision
                 )
             actual_precision = floor(log10(abs(value) or 1))
             return Real(
@@ -309,12 +895,21 @@ class Real(Number):
             )
 
     def __mul__(self, other):
+        if isinstance(other, Symbolic):
+            return SymbolicOperation(mul, self, other)
         if type(other) == Expression:
             return other * self
-        if type(other) == Real:
+        if isinstance(other, Real):
             precision = max(0, min(self.precision, other.precision) - 2)
             value = self.leaves[0] * other.leaves[0]
             actual_precision = floor(log10(abs(value) or 1))
+            if isinf(precision):
+                exponent = min(self.leaves[1], other.leaves[1])
+                return (Integer if exponent >= 0 else Real)(
+                    value,
+                    self.leaves[1] + other.leaves[1],
+                    precision=precision
+                )
             return Real(
                 (
                     value * 10 ** (precision - actual_precision)
@@ -337,10 +932,22 @@ class Real(Number):
         return self * Real(other)
 
     def __truediv__(self, other):
+        if isinstance(other, Symbolic):
+            return SymbolicOperation(div, self, other)
         if type(other) == Expression:
             return other.__rtruediv__(self)
         if isinstance(other, Real):
+            # TODO: add precision crap here maybe?
             precision = max(0, min(self.precision, other.precision) - 2)
+            if isinf(precision):
+                min_exponent = min(self.leaves[1], other.leaves[1])
+                self.leaves[1] -= min_exponent
+                other.leaves[1] -= min_exponent
+                int_self = int(self)
+                int_other = int(other)
+                if int_self % int_other:
+                    return Rational(int(self), int(other))
+                return Integer(int(self) // int(other))
             pow10 = 10 ** precision * self.leaves[0]
             return Real(
                 pow10 // other.leaves[0] + bool(
@@ -351,9 +958,36 @@ class Real(Number):
             )
         other_type = type(other)
         if other_type == Rational:
-            pass
+            return Rational(self.leaves[0], 1, self.leaves[1]) / other
         if other_type == Complex:
             pass  # TODO
+
+    def __neg__(self):
+        return Real(
+            -self.leaves[0], self.leaves[1], self.precision, self.is_int
+        )
+
+    def __invert__(self):
+        return Integer(~int(self))
+
+    def __abs__(self):
+        return Real(
+            abs(self.leaves[0]), self.leaves[1], self.precision, self.is_int
+        )
+
+    def __int__(self):
+        return int(
+            self.leaves[0] * 10 ** self.leaves[1]
+            if self.leaves[1] >= 0 else
+            self.leaves[0] / 10 ** -self.leaves[1]
+        )
+
+    def __float__(self):
+        return float(
+            self.leaves[0] * 10 ** self.leaves[1]
+            if self.leaves[1] >= 0 else
+            self.leaves[0] / 10 ** -self.leaves[1]
+        )
 
     def to_number(self):
         result = (
@@ -386,9 +1020,10 @@ class Real(Number):
 
 
 class Integer(Real):
-    def __init__(self, value, exponent=0):
+    def __init__(self, value, exponent=0, precision=None):
+        value = int(value)
         super().__init__(
-            int(value), exponent, precision=float("inf"), is_int=True
+            value, exponent, precision=float("inf"), is_int=True
         )
         self.head = headify(Integer)
         actual_precision = floor(log10(abs(value) or 1))
@@ -402,6 +1037,9 @@ class Integer(Real):
             precision=precision
         ) if precision else self
 
+    def __cmp__(self, other):
+        ""
+
     def __str__(self):
         string = str(self.leaves[0])
         return (
@@ -413,11 +1051,17 @@ class Integer(Real):
     def __repr__(self):
         return str(self)
 
+    def __int__(self):
+        return int(self.leaves[0] * 10 ** self.leaves[1])
+
+    def __float__(self):
+        return float(self.leaves[0] * 10 ** self.leaves[1])
+
     def to_number(self):
         return self.leaves[0] * 10 ** self.leaves[1]
 
     def is_integer(self):
-        return One
+        return _True
 
     def is_odd(self):
         return boolean(self.leaves[1] > 0 or self.leaves[1] == 0 and (
@@ -429,55 +1073,105 @@ class Integer(Real):
             self.leaves[0] % 2 == 0
         ))
 
+
+class WolframFalse(Integer):
+    def __init__(self):
+        super().__init__(0)
+
+    def __str__(self):
+        return "False"
+
+    def __bool__(self):
+        return False
+
+
+class WolframTrue(Integer):
+    def __init__(self):
+        super().__init__(1)
+
+    def __str__(self):
+        return "True"
+
+    def __bool__(self):
+        return True
+
+Zero = Integer(0)
 One = Integer(1)
-_False = Integer(0)
-_True = Integer(1)
-setattr(_False, "__str__", lambda: "False")
-setattr(_True, "__str__", lambda: "True")
+_False = WolframFalse()
+_True = WolframTrue()
 
 
 class Rational(Number):
+    def __new__(cls, numerator, denominator, exponent=0):
+        if numerator == 0:
+            return Integer(0)
+        if not numerator % denominator:
+            return Integer(numerator // denominator)
+        return super().__new__(cls)
+
     def __init__(self, numerator, denominator, exponent=0):
         super().__init__(head=headify(Rational))
-        gen = prime_gen()
-        square = 0
+        if denominator < 0:
+            denominator *= -1
+            numerator *= -1
+        if not numerator:
+            denominator = 1
+        else:
+            while not numerator % 10:
+                numerator //= 10
+                exponent += 1
+        if not denominator:
+            raise Exception("divide by zero error")
+        while not denominator % 10:
+            denominator //= 10
+            exponent -= 1
         while numerator % 1:
             numerator *= 10
             exponent -= 1
         while denominator % 1:
             denominator *= 10
             exponent += 1
-        while not numerator % 10:
-            numerator //= 10
-            exponent += 1
-        while not denominator % 10:
-            denominator //= 10
-            exponent -= 1
         numerator, denominator = int(numerator), int(denominator)
-        while numerator > square and denominator > square:
-            prime = next(gen)
-            square = prime * prime
-            while (not numerator % prime) and (not denominator % prime):
-                numerator //= prime
-                denominator //= prime
+        a, b = numerator, denominator
+        if b > a:
+            a, b = b, a
+        while b:
+            a, b = b, a % b
+        numerator //= a
+        denominator //= a
+        # TODO: check gcd is actually gcd, i.e. check powers of 2 and 5
         self.leaves = [numerator, denominator, exponent]
+        self.size = log10(max(1, abs(numerator / denominator))) + exponent
+        self.sign = 1 if numerator > 0 else -1 if numerator < 0 else 0
         # TODO: make it create integer directly somehow
-        if denominator == 1:
-            self.run = lambda precision=10: Integer(
-                self.leaves[0], self.leaves[3]
-            )
+        self.run = lambda precision: (
+            Real(numerator, precision=(precision + 2) if precision else None) /
+            Real(denominator, precision=(precision + 2) if precision else None)
+        )
+        if numerator == 0:
+            self.run = lambda precision=None: Integer(0)
+        elif denominator == 1:
+            self.run = lambda precision=None: Integer(numerator, exponent)
 
     def __str__(self):
+        if self.leaves[0] == 0:
+            return "0"
+        if self.leaves[1] == 1:
+            return str(self.leaves[0] * 10 ** self.leaves[2])
         return str(self.leaves[0]) + "/" + str(self.leaves[1])
 
     def __repr__(self):
         return str(self)
 
     def __add__(self, other):
+        if isinstance(other, Symbolic):
+            return SymbolicOperation(add, self, other)
         if isinstance(other, Expression):
             return other + self
 
     def __mul__(self, other):
+        if isinstance(other, Symbolic):
+            return SymbolicOperation(mul, self, other)
         if isinstance(other, Expression):
             return other * self
         if isinstance(other, Rational):
@@ -485,26 +1179,38 @@ class Rational(Number):
                 self.leaves[0] * other.leaves[0],
                 self.leaves[1] * other.leaves[1]
             )
-        if isinstance(other, Integer):
+        if isinstance(other, Real) and isinf(other.precision):
             return Rational(
                 self.leaves[0] * other.leaves[0],
-                self.leaves[1] * other.leaves[1]
+                self.leaves[1],
+                self.leaves[2] + other.leaves[1]
             )
 
     def __truediv__(self, other):
+        if isinstance(other, Symbolic):
+            return SymbolicOperation(div, self, other)
+        if isinstance(other, Expression):
+            return Expression.__rtruediv__(other, self)
         if isinstance(other, Rational):
             return Rational(
                 self.leaves[0] * other.leaves[1],
                 self.leaves[1] * other.leaves[0]
             )
-        if isinstance(other, Integer):
+        if isinstance(other, Real) and isinf(other.precision):
             return Rational(
                 self.leaves[0],
-                self.leaves[1] * other.leaves[0]
+                self.leaves[1] * other.leaves[0],
+                self.leaves[2] - other.leaves[1]
             )
 
+    def __int__(self):
+        return int(self.leaves[2] * self.leaves[0] / self.leaves[1])
+
+    def __float__(self):
+        return float(self.leaves[2] * self.leaves[0] / self.leaves[1])
+
     def to_number(self):
-        return float(self.leaves[0]) / self.leaves[1]
+        return float(self.leaves[0]) * self.leaves[2] / self.leaves[1]
 
     def is_integer(self):
         return boolean(self.leaves[1] == 1)
@@ -535,14 +1241,20 @@ class List(Expression):
     # TODO: operators
     def __init__(self, *items):
         super().__init__(head=headify(List))
-        self.leaves = list(filter(
+        self.leaves = list(map(create_expression, filter(
             lambda x: x is not None,
             (
                 items[0] if
                 len(items) == 1 and isinstance(items[0], list) else
                 items
             )
-        ))
+        )))
+
+    def __str__(self):
+        return "[" + ", ".join(str(item) for item in self.leaves) + "]"
+
+    def __repr__(self):
+        return "[" + ", ".join(repr(item) for item in self.leaves) + "]"
 
     def __len__(self):
         return len(self.leaves)
@@ -557,6 +1269,17 @@ class List(Expression):
 
     def __iter__(self):
         return iter(self.leaves)
+
+
+class SymbolicList(List, Symbolic):
+    pass
+
+
+class MixedRadix(Expression):
+    # TODO: basic examples cf. Wolfram
+    def __init__(self, list):
+        super().__init__(head=headify(MixedRadix))
+        self.leaves = [create_expression(list)]
 
 
 class String(Expression):
@@ -596,11 +1319,23 @@ class Rule(Expression):
         super().__init__(head=headify(Rule))
         self.leaves = [match, replacement]
 
+    def __str__(self):
+        return str(self.leaves[0]) + "→" + str(self.leaves[1])
+
+    def __repr__(self):
+        return repr(self.leaves[0]) + "→" + repr(self.leaves[1])
+
 
 class DelayedRule(Expression):
     def __init__(self, match, replacement):
         super().__init__(head=headify(DelayedRule))
         self.leaves = [match, replacement]
+
+    def __str__(self):
+        return str(self.leaves[0]) + ":→" + str(self.leaves[1])
+
+    def __repr__(self):
+        return repr(self.leaves[0]) + ":→" + repr(self.leaves[1])
 
 
 class Pattern(Expression):
@@ -862,12 +1597,34 @@ def n(number, digits=0):
 # TODO: round, log
 
 
+def perm(n, r):
+    result = 1
+    for i in range(n - r + 1, n + 1):
+        result *= i
+    return result
+
+
+def comb(n, r):
+    if r > n // 2:
+        r = n - r
+    result = 1
+    for i in range(n - r + 1, n + 1):
+        result *= i
+    for i in range(2, r + 1):
+        result //= i
+    return result
+
+
+def figurate(n, dim):
+    return comb(n + dim - 1, dim)
+
+
 class Wolfram(object):
 
-    def Head(leaves, precision=10):
+    def Head(leaves, precision=None):
         return leaves[0].head
     
-    def UpTo(leaves, precision=10):
+    def UpTo(leaves, precision=None):
         return leaves[0]
 
     # TODO: named (which are chained) operators - these don't use the
@@ -875,34 +1632,36 @@ class Wolfram(object):
     # change default to use an internal method with precision passable
     # which both e.g. Plus and __add__ can use
 
-    def N(leaves, precision=10):
+    def N(leaves, precision=None):
         # Leaves: number, precision (accuracy?)
         return [
-            None, lambda: leaves[0].run(10), lambda: leaves[0].run(int(leaves[1]))
+            None,
+            lambda: leaves[0].run(10),
+            lambda: leaves[0].run(int(leaves[1]))
         ][len(leaves)]()
 
-    def StringQ(leaves, precision=10):
-        return Integer(isinstance(leaves[0], str))
+    def StringQ(leaves, precision=None):
+        return boolean(isinstance(leaves[0], str))
 
-    def NumberQ(leaves, precision=10):
-        return Integer(isinstance(leaves[0], Number))
+    def NumberQ(leaves, precision=None):
+        return boolean(isinstance(leaves[0], Number))
 
-    def IntegerQ(leaves, precision=10):
-        return leaves[0].is_integer()
+    def IntegerQ(leaves, precision=None):
+        return boolean(leaves[0].is_integer())
 
-    def OddQ(leaves, precision=10):
-        return leaves[0].is_odd()
+    def OddQ(leaves, precision=None):
+        return boolean(leaves[0].is_odd())
 
-    def EvenQ(leaves, precision=10):
-        return leaves[0].is_even()
+    def EvenQ(leaves, precision=None):
+        return boolean(leaves[0].is_even())
 
-    def TrueQ(leaves, precision=10):
-        return leaves[0] == _True
+    def TrueQ(leaves, precision=None):
+        return boolean(leaves[0] == _True)
 
-    def FalseQ(leaves, precision=10):
-        return leaves[0] == _False
+    def FalseQ(leaves, precision=None):
+        return boolean(leaves[0] == _False)
 
-    def Sqrt(leaves, precision=10):
+    def Sqrt(leaves, precision=None):
 
         def calculate_sqrt(n, precision):
             # TODO: there's too much precisions
@@ -939,7 +1698,7 @@ class Wolfram(object):
 
     # https://reference.wolfram.com/language/ref/Flatten.html
     # TODO: test, implement fourth overload
-    def Flatten(leaves, precision=10):
+    def Flatten(leaves, precision=None):
         n = leaves[1] - 1 if len(leaves) > 1 else -1
         correct_head = (
             (lambda x: x.head == leaves[2])
@@ -981,12 +1740,12 @@ class Wolfram(object):
             )]
         )
 
-    def StringJoin(leaves, precision=10):
+    def StringJoin(leaves, precision=None):
         return String(
             "".join(map(str, Wolfram.Flatten([List(*leaves)]).leaves))
         )
 
-    def StringLength(leaves, precision=10):
+    def StringLength(leaves, precision=None):
         if isinstance(leaves[0], List):
             return List(*[
                 Wolfram.StringLength([item])
@@ -994,7 +1753,7 @@ class Wolfram(object):
             ])
         return Integer(len(leaves[0].leaves[0]))
 
-    def StringSplit(leaves, precision=10):
+    def StringSplit(leaves, precision=None):
         # TODO
         # StringSplit["a--b c--d e", x : "--" :> x]
         # StringSplit[":a:b:c:", ":", All]
@@ -1087,7 +1846,7 @@ class Wolfram(object):
             (-1 - (dont_return_all and not result[-1]))
         ])
 
-    def StringTake(leaves, precision=10):
+    def StringTake(leaves, precision=None):
         if type(leaves[0]) == List:
             return List(*[
                 Wolfram.StringTake([item, leaves[1]])
@@ -1121,7 +1880,7 @@ class Wolfram(object):
             return String(string[leaves[0] - 1:leaves[1]:])
         return String(string[leaves[0] - 1:leaves[1]:leaves[2]])
 
-    def StringDrop(leaves, precision=10):
+    def StringDrop(leaves, precision=None):
         if type(leaves[0]) == List:
             return List(*[
                 Wolfram.StringDrop([item, leaves[1]])
@@ -1162,7 +1921,7 @@ class Wolfram(object):
             string[leaves[1]:]
         )
 
-    def StringPart(leaves, precision=10):
+    def StringPart(leaves, precision=None):
         if type(leaves[0]) == List:
             return List(*[
                 Wolfram.StringPart([item, leaves[1]])
@@ -1191,7 +1950,7 @@ class Wolfram(object):
         ])
 # TODO: Except, StringExtract
 
-    def StringReplace(leaves, precision=10):
+    def StringReplace(leaves, precision=None):
         if isinstance(leaves[0], List):
             other_leaves = leaves[1:]
             return List(*[
@@ -1204,13 +1963,13 @@ class Wolfram(object):
                 ignorecase = "(?i)"
             elif isinstance(leaf, Number):
                 maxreplace = leaves[2].to_number()
-        string = str(leaves[0])
         if len(leaves) == 1:
             return lambda items: Wolfram.StringReplace([items, leaves[0]])
+        string = str(leaves[0])
         replacer = leaves[1]
         replacer_type = type(leaves[1])
         if replacer_type == String:
-            return create_expression(sub(
+            return create_expression(re_sub(
                 ignorecase + re_escape(str(replacer)),
                 string,
                 maxreplace
@@ -1244,7 +2003,7 @@ class Wolfram(object):
             result += [string, replacer.leaves[1]]
         return String("".join(result[:-1]))
 
-    def StringCases(leaves, precision=10):
+    def StringCases(leaves, precision=None):
         if isinstance(leaves[0], List):
             other_leaves = leaves[1:]
             return List(*[
@@ -1315,7 +2074,7 @@ class Wolfram(object):
             ), string, overlapped=overlap), maxcase)
         )
 
-    def StringCount(leaves, precision=10):
+    def StringCount(leaves, precision=None):
         if isinstance(leaves[0], List):
             other_leaves = leaves[1:]
             return List(*[
@@ -1355,7 +2114,7 @@ class Wolfram(object):
         # Assume Rule
         return Integer(str(leaves[0]).count(str(leaves[1])))
 
-    def StringPosition(leaves, precision=10):
+    def StringPosition(leaves, precision=None):
         # TODO: Lists of string patterns in StringPosition are sometimes 
         # not the same as pattern alternatives
         if isinstance(leaves[0], List):
@@ -1406,7 +2165,7 @@ class Wolfram(object):
             ), maxposition)
         )
 
-    def StringRepeat(leaves, precision=10):
+    def StringRepeat(leaves, precision=None):
         if len(leaves) == 3:
             string = str(leaves[0])
             length = min(
@@ -1416,7 +2175,7 @@ class Wolfram(object):
             return String((str(leaves[0]) * times)[:length])
         return String(str(leaves[0]) * leaves[1].to_number())
 
-    def StringDelete(leaves, precision=10):
+    def StringDelete(leaves, precision=None):
         if isinstance(leaves[0], List):
             other_leaves = leaves[1:]
             return List(*[
@@ -1437,18 +2196,18 @@ class Wolfram(object):
             lookup = {}
             for rule in deleter.leaves:
                 lookup[rule.leaves[0]] = rule.leaves[1]
-            return String(sub(
+            return String(re_sub(
                 ignorecase + "(?:" + "|".join(list(map(
                     lambda l: str(l) if isinstance(l, Pattern) else (str(l)),
                     deleter.leaves
                 ))) + ")", "", string
             ))
         if deleter_type == String:
-            return create_expression(sub(
+            return create_expression(re_sub(
                 ignorecase + re_escape(str(deleter)), "", string
             ))
         # Assume String or Pattern
-        return String(sub(
+        return String(re_sub(
             ignorecase + (
                 str(deleter)
                 if isinstance(deleter, Pattern) else
@@ -1456,7 +2215,7 @@ class Wolfram(object):
             ), "", string
         ))
 
-    def StringRiffle(leaves, precision=10, count=0):
+    def StringRiffle(leaves, precision=None, count=0):
         if count or len(leaves) == 1:
             if not count:
                 current = leaves[0].leaves[0]
@@ -1492,7 +2251,7 @@ class Wolfram(object):
             )))
         return String(str(leaves[1]).join(map(str, leaves[0].leaves)))
 
-    def RemoveDiacritics(leaves, precision=10):
+    def RemoveDiacritics(leaves, precision=None):
         if isinstance(leaves[0], List):
             other_leaves = leaves[1:]
             return List(*[
@@ -1502,7 +2261,7 @@ class Wolfram(object):
         # Assume String
         return String(remove_diacritics(str(leaves[0])))
 
-    def StringStartsQ(leaves, precision=10):
+    def StringStartsQ(leaves, precision=None):
         if len(leaves) == 1:
             return lambda *things: Wolfram.StringStartsQ(leaves[0] + things)
         if isinstance(leaves[0], List):
@@ -1520,7 +2279,7 @@ class Wolfram(object):
             )
         return boolean(str(leaves[0]).startswith(str(leaves[1])))
 
-    def StringEndsQ(leaves, precision=10):
+    def StringEndsQ(leaves, precision=None):
         if len(leaves) == 1:
             return lambda *things: Wolfram.StringStartsQ(leaves[0] + things)
         if isinstance(leaves[0], List):
@@ -1538,7 +2297,7 @@ class Wolfram(object):
             ))
         return boolean(str(leaves[0]).endswith(str(leaves[1])))
 
-    def StringContainsQ(leaves, precision=10):
+    def StringContainsQ(leaves, precision=None):
         if len(leaves) == 1:
             return lambda *things: Wolfram.StringContainsQ(leaves[0] + things)
         if isinstance(leaves[0], List):
@@ -1561,7 +2320,7 @@ class Wolfram(object):
             search(ignorecase + re_escape(str(leaves[1])), str(leaves[0]))
         )
 
-    def PrintableAsciiQ(leaves, precision=10):
+    def PrintableAsciiQ(leaves, precision=None):
         if isinstance(leaves[0], List):
             return List(*[
                 Wolfram.PrintableAsciiQ([item])
@@ -1569,31 +2328,378 @@ class Wolfram(object):
             ])
         return boolean(match("[ -~]*$", str(leaves[0])))
 
-    def LetterQ(leaves, precision=10):
+    def LetterQ(leaves, precision=None):
         return boolean(match("\p{L}*$", str(leaves[0])))
 
-    def UpperCaseQ(leaves, precision=10):
+    def UpperCaseQ(leaves, precision=None):
         return boolean(match("\p{Lu}*$", str(leaves[0])))
 
-    def LowerCaseQ(leaves, precision=10):
+    def LowerCaseQ(leaves, precision=None):
         return boolean(match("\p{Ll}*$", str(leaves[0])))
 
-    def DigitQ(leaves, precision=10):
+    def DigitQ(leaves, precision=None):
         return boolean(match("\d*$", str(leaves[0])))
 
-    def CharacterRange(leaves, precision=10):
+    def CharacterRange(leaves, precision=None):
         if isinstance(leaves[0], String):
             start, end = ord(leaves[0]), ord(leaves[1])
             return List(*map(chr, range(start, end)))
         return List(*map(chr, range(leaves[0], leaves[1])))
 
-    def Predict(leaves, precision=10):
+    # basic math
+    def Range(leaves, precision=None):
+        if isinstance(leaves[0], List):
+            return List(*[Wolfram.Range([item]) for item in leaves[0].leaves])
+        # Listable
+        if len(leaves) == 1:
+            i = One
+            result = []
+            while i <= leaves[0]:
+                result += [i]
+                i += One
+            return List(*result)
+        if len(leaves) == 2:
+            i = leaves[0]
+            result = []
+            while i <= leaves[1]:
+                result += [i]
+                i += One
+            return List(*result)
+        if len(leaves) == 3:
+            i = leaves[0]
+            result = []
+            if leaves[2] < Integer(0):
+                while i >= leaves[1]:
+                    result += [i]
+                    i += leaves[2]
+            else:
+                while i <= leaves[1]:
+                    result += [i]
+                    i += leaves[2]
+            return List(*result)
+
+    # base conversion (in progress)
+    
+    def FromDigits(leaves, precision=None):
+        # TODO: do I need more Indeterminate support
+        if isinstance(leaves[0], String):
+            if len(leaves) == 2:
+                if (
+                    isinstance(leaves[1], String) and
+                    leaves[1].leaves[0] == "Roman"
+                ):
+                    if search("\
+[^IVXLCDM]|\
+I[VX].|X[LC][XLCDM]|C[DM][CDM]|\
+I[LCDM]|X[DM]|\
+V[LCDM]|L[CDM]", leaves[0].leaves[0]):
+                        raise Exception("not valid roman numeral")
+                    string = leaves[0].leaves[0]
+                    result = 0
+                    while string:
+                        first = string[0]
+                        first_two = string[:2]
+                        if first_two in ["IV", "IX", "XL", "XC", "CD", "CM"]:
+                            string = string[2:]
+                            result += {
+                                "IV": 4, "IX": 9, "XL": 40, "XC": 90,
+                                "CD": 400, "CM": 900
+                            }[first_two]
+                        else:
+                            string = string[1:]
+                            result += {
+                                "I": 1, "V": 5, "X": 10, "L": 50,
+                                "C": 100, "D": 500, "M": 1000
+                            }[first]
+                    return Integer(result)
+                    # TODO
+            leaves[0] = List(*map(
+                lambda c: Integer(int(c, 36)), leaves[0].leaves[0]
+            ))
+        if isinstance(leaves[0], List):
+            result, exponent, indeterminate = 0, 0, False
+            if Indeterminate in leaves[0].leaves:
+                leaves[0].leaves = leaves[0].leaves[
+                    :leaves[0].leaves.index(Indeterminate)
+                ]
+                indeterminate = True
+            if (
+                isinstance(leaves[0].leaves[0], List) and
+                isinstance(leaves[0].leaves[1], Number) # TODO: is this right
+            ):
+                exponent = int(leaves[0].leaves[1])
+                leaves[0] = leaves[0].leaves[0]
+            recurring = None
+            if len(leaves) == 1:
+                if (
+                    len(leaves[0].leaves) and
+                    isinstance(leaves[0].leaves[-1], List)
+                ):
+                    recurring = leaves[0].leaves[-1]
+                    leaves[0].leaves = leaves[0].leaves[:-1]
+                for item in leaves[0].leaves:
+                    result = result * 10 + int(item)
+                if recurring:
+                    recurrer = 0
+                    for item in recurring.leaves:
+                        recurrer = recurrer * 10 + int(item)
+                    denominator =  10 ** len(recurring.leaves) - 1
+                    result = Rational(
+                        denominator * result + recurrer,
+                        denominator
+                    )
+                    if precision:
+                        return result.run(precision)
+                    return result
+                return Integer(result)
+            if len(leaves) == 2:
+                if isinstance(leaves[1], Symbolic) or any(
+                    isinstance(item, Symbolic)
+                    for item in leaves[1].leaves
+                ):
+                    base = leaves[1]
+                    l = len(leaves[0].leaves)
+                    if not len(leaves[0].leaves):
+                        return Integer(0)
+                    if l > 1:
+                        result = leaves[0].leaves[0] * base ** (l - 1)
+                    else:
+                        return leaves[0].leaves[0]
+                    for i in range(1, l):
+                        item = leaves[0].leaves[i]
+                        result += (
+                            item * base ** (l - i - 1) if l - i - 1 else item
+                        )
+                    return result
+                if isinstance(leaves[1], Number):
+                    base = int(leaves[1])
+                    if (
+                        len(leaves[0].leaves) and
+                        isinstance(leaves[0].leaves[-1], List)
+                    ):
+                        recurring = leaves[0].leaves[-1]
+                        leaves[0].leaves = leaves[0].leaves[:-1]
+                    if recurring:
+                        recurrer = 0
+                        for item in recurring.leaves:
+                            recurrer = recurrer * base + int(item)
+                        denominator = base ** len(recurring.leaves) - 1
+                        result = Rational(
+                            denominator * result + recurrer,
+                            denominator
+                        )
+                        if precision:
+                            return result.run(precision)
+                        return result
+                    for item in leaves[0].leaves:
+                        result = result * base + int(item)
+                    if indeterminate:
+                        while not result % 10:
+                            result //= 10
+                            exponent += 1
+                        return Real(result, exponent, len(leaves[0].leaves))
+                    return Integer(result)
+                if isinstance(leaves[1], MixedRadix):
+                    base_list = leaves[1].leaves[0].leaves
+                    list = leaves[0].leaves
+                    length_difference = (
+                        len(leaves[0].leaves) -
+                        len(leaves[1].leaves[0].leaves)
+                    )
+                    if length_difference == 1:
+                        result = list[0]
+                        list = list[1:]
+                    elif length_difference < 0:
+                        base_list = base_list[-length_difference:]
+                    else:
+                        raise Exception("oh noes the error buddy")
+                    for base, item in zip(base_list, list):
+                        result = result * base + item
+                    return result
+
+    # List and Set Operations (in progress)
+    def Tuples(leaves, precision=None):
+        if len(leaves) == 1:
+            if hasattr(leaves[0].leaves[0], "leaves"):
+                lists = list(map(lambda i: i.leaves, leaves[0].leaves))
+                ls = [len(list) for list in lists]
+                result = []
+                n = len(lists)
+                indices = [0] * n
+                while True:
+                    result += [[
+                        lists[i][indices[i]] for i in range(n)
+                    ]]
+                    i = n - 1
+                    indices[i] += 1
+                    while i:
+                        if indices[i] == ls[i]:
+                            indices[i] = 0
+                            i -= 1
+                            indices[i] += 1
+                        else:
+                            break
+                    if i == 0 and indices[i] == ls[0]:
+                        break
+                return List(*result)
+        if len(leaves) == 2:
+            if isinstance(leaves[1], Number):
+                leaves[1] = List(leaves[1])
+            lst = (
+                leaves[0].leaves
+                if len(leaves[1].leaves) == 1 else
+                Wolfram.Tuples([leaves[0], List(*leaves[1].leaves[1:])]).leaves
+            )
+            head = leaves[0].head
+            l = len(lst)
+            result = []
+            n = int(leaves[1].leaves[0])
+            indices = [0] * n
+            while True:
+                result += [head(list(lst[i] for i in indices))]
+                i = n - 1
+                indices[i] += 1
+                while i:
+                    if indices[i] == l:
+                        indices[i] = 0
+                        i -= 1
+                        indices[i] += 1
+                    else:
+                        break
+                if i == 0 and indices[i] == l:
+                    break
+            return List(*result)
+
+    def Subsets(leaves, precision=None):
+        limit, result, indices, head = -1, [], None, leaves[0].head
+        if len(leaves):
+            length_range = range(len(leaves[0].leaves) + 1)
+        if len(leaves) == 3:
+            if isinstance(leaves[2], Number):
+                limit = int(leaves[2])
+                if limit == 0:
+                    return List()
+                leaves = leaves[:2]
+            elif isinstance(leaves[2], List):
+                length = len(leaves[2].leaves) 
+                if length == 1:
+                    indices = [int(leaves[2].leaves[0])]
+                elif length == 2:
+                    start = int(leaves[2].leaves[0])
+                    end = int(leaves[2].leaves[1])
+                    step = 1 if start <= end else -1
+                    end += 1 if start <= end else -1
+                    indices = range(start, end, step)
+                elif length == 3:
+                    step = int(leaves[2].leaves[2])
+                    start = int(leaves[2].leaves[0])
+                    end = int(leaves[2].leaves[1]) + (1 if step > 0 else -1)
+                    indices = range(start, end, step)
+        if len(leaves) == 2:
+            if leaves[1] == All:
+                leaves = leaves[:1]
+            elif isinstance(leaves[1], Number):
+                length_range = range(int(leaves[1]) + 1)
+                leaves = leaves[:1]
+            elif isinstance(leaves[1], List):
+                if (
+                    len(leaves[1].leaves) == 1 and
+                    isinstance(leaves[1].leaves[0], Number)
+                ):
+                    length_range = [int(leaves[1].leaves[0])]
+                elif (
+                    len(leaves[1].leaves) == 2 and
+                    isinstance(leaves[1].leaves[0], Number) and
+                    isinstance(leaves[1].leaves[1], Number)
+                ):
+                    start = int(leaves[1].leaves[0])
+                    end = int(leaves[1].leaves[1])
+                    step = 1 if start <= end else -1
+                    end += 1 if start <= end else -1
+                    length_range = range(start, end, step)
+                elif (
+                    len(leaves[1].leaves) == 3 and
+                    isinstance(leaves[1].leaves[0], Number) and
+                    isinstance(leaves[1].leaves[1], Number) and
+                    isinstance(leaves[1].leaves[2], Number)
+                ):
+                    step = int(leaves[1].leaves[2])
+                    start = int(leaves[1].leaves[0])
+                    end = int(leaves[1].leaves[1]) + (1 if step > 0 else -1)
+                    length_range = range(start, end, step)
+                leaves = leaves[:1]
+        if indices:
+            # TODO: decide when to enumerate all instead
+            result = []
+            for index in indices:
+                index -= 1 # change to 0-based
+                n = len(leaves[0].leaves)
+                r = 0
+                number = comb(n, r)
+                while index >= number:
+                    index -= number
+                    r += 1
+                    number = comb(n, r)
+                deltas = []
+                for dim in range(r, 0, -1):
+                    delta = 0
+                    if dim == 1:
+                        deltas += [index]
+                        continue
+                    size = figurate(n - r - delta + 1, dim - 1)
+                    while index >= size:
+                        index -= size
+                        delta += 1
+                        size = figurate(n - r - delta + 1, dim - 1)
+                    deltas += [delta]
+                    n -= delta
+                deltas += [0] * (r - len(deltas))
+                new = []
+                pos = -1
+                for delta in deltas:
+                    pos += delta + 1
+                    new += [create_expression(leaves[0].leaves[pos])]
+                result += [head(new)]
+            return List(*result)
+        if len(leaves) == 1:
+            source = leaves[0].leaves
+            l = len(source)
+            length_range = list(filter(lambda i: i <= l, length_range))
+            if 0 in length_range:
+                result = [List()]
+                if limit == 1:
+                    return List(*result)
+                length_range.remove(0)
+            for i in length_range:
+                js = list(range(i))
+                indices = list(range(i))
+                while True:
+                    result += [head([source[indices[j]] for j in js])]
+                    if len(result) == limit:
+                        return List(*result)
+                    if indices[-1] == l - 1:
+                        k = len(indices) - 2
+                        while k >= 0 and indices[k + 1] - indices[k] == 1:
+                            k -= 1
+                        if k < 0:
+                            break
+                        indices[k] += 1
+                        while k + 1 < i:
+                            indices[k + 1] = indices[k] + 1
+                            k += 1
+                    else:
+                        indices[-1] += 1
+            return List(*result)
+
+    # predict (wat)
+
+    def Predict(leaves, precision=None):
         # Assume List<Rule>
         pass
 
     # Constants
 
-    def ChamperowneNumber(leaves, precision=10):
+    def ChamperowneNumber(leaves, precision=None):
 
         def calculate_champerowne(precision, base=10):
             # TODO redo, it's not done at all
@@ -1625,9 +2731,9 @@ class Wolfram(object):
 
         return Expression(
             None, [],
-            lambda precision=10: calculate_champerowne(precision, leaves[0])
+            lambda precision=None: calculate_champerowne(precision, leaves[0])
         ) if len(leaves) else Expression(
-            None, [], lambda precision=10: calculate_champerowne(precision)
+            None, [], lambda precision=None: calculate_champerowne(precision)
         )
 
     # TODO: hide this function from scope
@@ -1657,7 +2763,7 @@ class Wolfram(object):
         )
 
     E = Expression(
-        None, [], lambda precision=10: Wolfram.calculate_e(precision)
+        None, [], lambda precision=None: Wolfram.calculate_e(precision)
     )
 
     # From https://www.craig-wood.com/nick/pub/pymath/pi_chudnovsky_bs.py
@@ -1710,32 +2816,29 @@ class Wolfram(object):
         return Real((Q * 426880 * sqrtC) // T, -precision, precision=precision)
 
     Pi = Expression(
-        None, [], lambda precision=10: Wolfram.calculate_pi(precision)
+        None, [], lambda precision=None: Wolfram.calculate_pi(precision)
     )
 
     Degree = Pi / 180  # TODO: make sure this still accepts precision arg
 
 
-def functionify(head):
-    return lambda *leaves: Expression(head, [
+def functionify(head, run=True):
+    return (lambda *leaves: Expression(head, [
         leaf.run() if type(leaf) == Expression else leaf for leaf in leaves
-    ])
+    ])) if run else (lambda *leaves: Expression(head, leaves))
 
 
-def functionify_no_run(head):
-    return lambda *leaves: Expression(head, leaves)
-
-
-I = Integer
+In = Integer
 L = List
-S = String
+St = String
 Sp = Span
-P = Pattern
-R = Repeated
+Pa = Pattern
+Rp = Repeated
 RN = RepeatedNull
 RE = RegularExpression
 PT = PatternTest
 Sh = Shortest
+MR = MixedRadix
 
 iq = integerQ
 oq = oddQ
@@ -1748,7 +2851,7 @@ E = Wolfram.E
 Deg = Degree = Wolfram.Degree
 Rt = Sqrt = functionify(Wolfram.Sqrt)
 UT = UpTo = functionify(Wolfram.UpTo)
-N = functionify_no_run(Wolfram.N)
+N = functionify(Wolfram.N, run=False)
 SQ = StringQ = functionify(Wolfram.StringQ)
 NQ = NumberQ = functionify(Wolfram.NumberQ)
 IQ = IntegerQ = functionify(Wolfram.IntegerQ)
@@ -1781,6 +2884,10 @@ SEQ = StringEndsQ = functionify(Wolfram.StringEndsQ)
 SCQ = StringContainsQ = functionify(Wolfram.StringContainsQ)
 RD = RemoveDiacritics = functionify(Wolfram.RemoveDiacritics)
 Pr = Predict = functionify(Wolfram.Predict)
+Ra = Range = functionify(Wolfram.Range)
+FD = FromDigits = functionify(Wolfram.FromDigits)
+Tu = Tuples = functionify(Wolfram.Tuples)
+Su = Subsets = functionify(Wolfram.Subsets)
 # TODO: make capital form arbitrary precision
 l2 = Log2 = log2
 la = Log10 = log10

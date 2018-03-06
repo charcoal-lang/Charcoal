@@ -1,7 +1,7 @@
 # TODO: direction list operator?
 
 from direction import Direction, Pivot
-from charcoaltoken import CharcoalToken
+from charcoaltoken import CharcoalToken as CT
 from unicodegrammars import UnicodeGrammars
 from wolfram import (
     String, Rule, DelayedRule, Span, Repeated, RepeatedNull, PatternTest,
@@ -345,7 +345,7 @@ def direction(dir):
         }[re.sub("[^a-z]", "", dir.lower()[:5])]
 
 InterpreterProcessor = {
-    CharcoalToken.Arrow: [
+    CT.Arrow: [
         lambda r: lambda c: Direction.left,
         lambda r: lambda c: Direction.up,
         lambda r: lambda c: Direction.right,
@@ -356,7 +356,7 @@ InterpreterProcessor = {
         lambda r: lambda c: Direction.down_left,
         lambda r: lambda c: direction(r[1](c))
     ],
-    CharcoalToken.Multidirectional: [
+    CT.Multidirectional: [
         lambda r: lambda c: r[0](c) + r[1](c),
         lambda r: lambda c: [
             Direction.right, Direction.down, Direction.left, Direction.up
@@ -404,13 +404,13 @@ InterpreterProcessor = {
         lambda r: lambda c: [direction(item) for item in r[1](c)],
         lambda r: lambda c: []
     ],
-    CharcoalToken.Side: [lambda r: lambda c: (r[0](c), r[1](c))],
-    CharcoalToken.EOF: [lambda r: None],
-    CharcoalToken.String: [lambda r: r],
-    CharcoalToken.Number: [lambda r: r],
-    CharcoalToken.Name: [lambda r: r],
-    CharcoalToken.Separator: [lambda r: None] * 2,
-    CharcoalToken.Span: [
+    CT.Side: [lambda r: lambda c: (r[0](c), r[1](c))],
+    CT.EOF: [lambda r: None],
+    CT.String: [lambda r: r],
+    CT.Number: [lambda r: r],
+    CT.Name: [lambda r: r],
+    CT.S: [lambda r: None] * 2,
+    CT.Span: [
         lambda r: lambda c: Span(r[0](c), r[2](c), r[4](c)),
         lambda r: lambda c: Span(r[0](c), None, r[3](c)),
         lambda r: lambda c: Span(r[0](c), r[2](c)),
@@ -421,49 +421,49 @@ InterpreterProcessor = {
         lambda r: lambda c: Span()
     ],
 
-    CharcoalToken.Arrows: [
+    CT.Arrows: [
         lambda r: lambda c: [r[0](c)] + r[1](c),
         lambda r: lambda c: [r[0](c)]
     ],
-    CharcoalToken.Sides: [
+    CT.Sides: [
         lambda r: lambda c: [r[0](c)] + r[1](c),
         lambda r: lambda c: [r[0](c)]
     ],
-    CharcoalToken.Expressions: [
+    CT.Expressions: [
         lambda r: lambda c: [r[0](c)] + r[1](c),
         lambda r: lambda c: [r[0](c)]
     ],
-    CharcoalToken.WolframExpressions: [
+    CT.WolframExpressions: [
         lambda r: lambda c: [r[0](c)] + r[1](c),
         lambda r: lambda c: [r[0](c)]
     ],
-    CharcoalToken.PairExpressions: [
+    CT.PairExpressions: [
         lambda r: lambda c: [(r[0](c), r[1](c))] + r[2](c),
         lambda r: lambda c: [(r[0](c), r[1](c))]
     ],
-    CharcoalToken.Cases: [
+    CT.Cases: [
         lambda r: lambda c: [(r[0](c), r[1])] + r[2](c),
         lambda r: lambda c: []
     ],
 
-    CharcoalToken.List: [
+    CT.List: [
         lambda r: lambda c: r[1](c),
         lambda r: lambda c: []
     ] * 2,
-    CharcoalToken.WolframList: [
+    CT.WolframList: [
         lambda r: lambda c: r[1](c),
         lambda r: lambda c: []
     ] * 2,
-    CharcoalToken.Dictionary: [
+    CT.Dictionary: [
         lambda r: lambda c: dict(r[1](c)),
         lambda r: lambda c: {}
     ] * 2,
 
-    CharcoalToken.WolframExpression: [
+    CT.WolframExpression: [
         lambda r: lambda c: r[0](c),
         lambda r: lambda c: r[0](c)
     ],
-    CharcoalToken.Expression: [
+    CT.Expression: [
         lambda r: lambda c: r[0],
         lambda r: lambda c: r[0],
         lambda r: lambda c: c.Retrieve(r[0]),
@@ -492,13 +492,14 @@ InterpreterProcessor = {
         lambda r: lambda c: r[0](r[1], c),
         lambda r: lambda c: r[0](r[1](c), c)
     ],
-    CharcoalToken.ExpressionOrEOF: [
+    CT.ExpressionOrEOF: [
         lambda r: lambda c: r[0](c),
         lambda r: lambda c: c.Input()
     ],
-    CharcoalToken.Nilary: [
+    CT.Nilary: [
         lambda r: lambda c: c.InputString(),
         lambda r: lambda c: c.InputNumber(),
+        lambda r: lambda c: c.Input(),
         lambda r: lambda c: c.Random(),
         lambda r: lambda c: c.PeekAll(),
         lambda r: lambda c: c.PeekMoore(),
@@ -507,7 +508,7 @@ InterpreterProcessor = {
         lambda r: lambda c: c.x,
         lambda r: lambda c: c.y
     ],
-    CharcoalToken.Unary: [
+    CT.Unary: [
         lambda r: lambda item, c: (
             iter_apply(item, lambda x: -x)
             if hasattr(item, "__iter__") else
@@ -573,7 +574,7 @@ InterpreterProcessor = {
         lambda r: lambda item, c: eval(item),
         lambda r: lambda item, c: item ** 0.5
     ],
-    CharcoalToken.Binary: [
+    CT.Binary: [
         lambda r: lambda left, right, c: c.Add(left, right),
         lambda r: lambda left, right, c: c.Subtract(left, right),
         lambda r: lambda left, right, c: c.Multiply(left, right),
@@ -616,13 +617,17 @@ InterpreterProcessor = {
             )
         ),
         lambda r: lambda left, right, c: left.append(right) or left,
-        lambda r: lambda left, right, c: right.join(left),
+        lambda r: lambda left, right, c: right.join(map(str, left)),
         lambda r: lambda left, right, c: (
             itersplit(left, int(right))
             if isinstance(right, int) or isinstance(right, float) else
             list(map(int, str(left).split(str(right))))
             if isinstance(left, int) or isinstance(left, float) else
             left.split(right)
+            if isinstance(left, str) and isinstance(right, str) else
+            [item.split(right) for item in left]
+            if hasattr(left, "__getitem__") and isinstance(right, str) else
+            re.split(left, "|".join(map(re.escape, right)))
         ),
         lambda r: lambda left, right, c: FindAll(left, right),
         lambda r: lambda left, right, c: (
@@ -640,20 +645,20 @@ InterpreterProcessor = {
         lambda r: lambda left, right, c: c.Base(left, right),
         lambda r: lambda left, right, c: c.BaseString(left, right)
     ],
-    CharcoalToken.Ternary: [lambda r: lambda x, y, z, c: x[_int(y):_int(z)]],
-    CharcoalToken.Quarternary: [lambda r: lambda x, y, z, w, c: x[
+    CT.Ternary: [lambda r: lambda x, y, z, c: x[_int(y):_int(z)]],
+    CT.Quarternary: [lambda r: lambda x, y, z, w, c: x[
         _int(y):_int(z):_int(w)
     ]],
-    CharcoalToken.LazyUnary: [],
-    CharcoalToken.LazyBinary: [
+    CT.LazyUnary: [],
+    CT.LazyBinary: [
         lambda r: lambda left, right, c: left(c) and right(c),
         lambda r: lambda left, right, c: left(c) or right(c)
     ],
-    CharcoalToken.LazyTernary: [
+    CT.LazyTernary: [
         lambda r: lambda x, y, z, c: c.Ternary(x, y, z)
     ],
-    CharcoalToken.LazyQuarternary: [],
-    CharcoalToken.OtherOperator: [
+    CT.LazyQuarternary: [],
+    CT.OtherOperator: [
         lambda r: lambda c: c.PeekDirection(r[1](c), r[2](c)),
         lambda r: lambda c: c.Map(r[1](c), r[2]),
         lambda r: lambda c: c.Map(r[1](c), r[2], string_map=True),
@@ -661,21 +666,23 @@ InterpreterProcessor = {
         lambda r: lambda c: c.All(r[1](c), r[2]),
         lambda r: lambda c: c.Filter(r[1](c), r[2]),
         lambda r: lambda c: c.EvaluateVariable(r[1](c), r[2](c)),
-        lambda r: lambda c: c.EvaluateVariable(r[1](c), [r[2](c)])
+        lambda r: lambda c: c.EvaluateVariable(r[1](c), [r[2](c)]),
+        lambda r: lambda c: c.EvaluateVariable(r[1](c), [])
     ],
 
-    CharcoalToken.Program: [
+    CT.Program: [
         lambda r: lambda c: ((r[0](c) or True) and r[2](c)),
         lambda r: lambda c: None
     ],
-    CharcoalToken.Body: [
+    CT.Body: [
         lambda r: lambda c: r[1](c),
         lambda r: lambda c: r[1](c),
         lambda r: lambda c: r[0](c)
     ],
-    CharcoalToken.Command: [
+    CT.Command: [
         lambda r: lambda c: c.InputString(r[1]),
         lambda r: lambda c: c.InputNumber(r[1]),
+        lambda r: lambda c: c.Input(r[1]),
         lambda r: lambda c: c.Evaluate(r[1](c), True),
         lambda r: lambda c: c.Print(r[1](c), directions=[r[0](c)]),
         lambda r: lambda c: c.Print(r[0](c)),

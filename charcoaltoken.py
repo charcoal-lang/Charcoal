@@ -2,7 +2,7 @@ CharcoalTokenNames = [
     "Arrow",
     "Multidirectional",
     "Side",
-    "Separator",
+    "S",
     "String",
     "Number",
     "Name",

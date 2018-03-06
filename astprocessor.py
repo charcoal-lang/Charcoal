@@ -1,4 +1,4 @@
-from charcoaltoken import CharcoalToken
+from charcoaltoken import CharcoalToken as CT
 from unicodegrammars import UnicodeGrammars
 
 
@@ -6,7 +6,7 @@ def PassThrough(r):
     return r
 
 ASTProcessor = {
-    CharcoalToken.Arrow: [
+    CT.Arrow: [
         lambda r: r[0] + ": Left",
         lambda r: r[0] + ": Up",
         lambda r: r[0] + ": Right",
@@ -17,26 +17,26 @@ ASTProcessor = {
         lambda r: r[0] + ": Down Left",
         lambda r: r[1]
     ],
-    CharcoalToken.Multidirectional: [
+    CT.Multidirectional: [
         lambda r: ["Multidirectional"] + r[0][1:] + r[1][1:]
     ] + [
         lambda r: [r[1][0], r[0]] + r[1][1:]
-    ] * (len(UnicodeGrammars[CharcoalToken.Multidirectional]) - 5) + [
+    ] * (len(UnicodeGrammars[CT.Multidirectional]) - 5) + [
         lambda r: r[1],
         lambda r: r[1],
         lambda r: r[1],
         lambda r: ["Multidirectional"]
     ],
-    CharcoalToken.Side: [lambda r: ["Side"] + r],
-    CharcoalToken.String: [
+    CT.Side: [lambda r: ["Side"] + r],
+    CT.String: [
         lambda r: [repr(r[0]) + ": String %s" % repr(r[0])]
     ],
-    CharcoalToken.Number: [
+    CT.Number: [
         lambda r: [str(r[0]) + ": Number %s" % str(r[0])]
     ],
-    CharcoalToken.Name: [lambda r: [r[0] + ": Identifier %s" % str(r[0])]],
-    CharcoalToken.Separator: [lambda r: None] * 2,
-    CharcoalToken.Span: [
+    CT.Name: [lambda r: [r[0] + ": Identifier %s" % str(r[0])]],
+    CT.S: [lambda r: None] * 2,
+    CT.Span: [
         lambda r: [
             r[0] + ": Span", ["Start", r[0]], ["Stop", r[2]], ["Step", r[4]]
         ],
@@ -49,49 +49,49 @@ ASTProcessor = {
         lambda r: [r[0] + ": Span"]
     ],
 
-    CharcoalToken.Arrows: [
+    CT.Arrows: [
         lambda r: [r[1][0], r[0]] + r[1][1:],
         lambda r: ["Arrows", r[0]]
     ],
-    CharcoalToken.Sides: [
+    CT.Sides: [
         lambda r: [r[1][0], r[0]] + r[1][1:],
         lambda r: ["Sides", r[0]]
     ],
-    CharcoalToken.Expressions: [
+    CT.Expressions: [
         lambda r: [r[1][0], r[0]] + r[1][1:],
         lambda r: ["Expressions", r[0]]
     ],
-    CharcoalToken.WolframExpressions: [
+    CT.WolframExpressions: [
         lambda r: [r[1][0], r[0]] + r[1][1:],
         lambda r: ["Wolfram expressions", r[0]]
     ],
-    CharcoalToken.PairExpressions: [
+    CT.PairExpressions: [
         lambda r: [r[2][0], [r[0], r[1]]] + r[2][1:],
         lambda r: ["PairExpressions", [r[0], r[1]]]
     ],
-    CharcoalToken.Cases: [
+    CT.Cases: [
         lambda r: ["Cases", ["Case", r[0], r[1]]] + r[2][1:],
         lambda r: ["Cases"]
     ],
 
-    CharcoalToken.List: [
+    CT.List: [
         lambda r: ["List"] + r[1][1:],
         lambda r: ["List"]
     ] * 2,
-    CharcoalToken.WolframList: [
+    CT.WolframList: [
         lambda r: ["Wolfram list"] + r[1][1:],
         lambda r: ["Wolfram list"]
     ] * 2,
-    CharcoalToken.Dictionary: [
+    CT.Dictionary: [
         lambda r: ["Dictionary"] + r[1][1:],
         lambda r: ["Dictionary"]
     ] * 2,
 
-    CharcoalToken.WolframExpression: [
+    CT.WolframExpression: [
         lambda r: r[0],
         lambda r: r[0]
     ],
-    CharcoalToken.Expression: [
+    CT.Expression: [
         lambda r: r[0],
         lambda r: r[0],
         lambda r: r[0],
@@ -105,13 +105,14 @@ ASTProcessor = {
     ] + [
         lambda r: r[:-1]
     ] * 17,
-    CharcoalToken.ExpressionOrEOF: [
+    CT.ExpressionOrEOF: [
         lambda r: r[0],
         lambda r: [": Input"]
     ],
-    CharcoalToken.Nilary: [
+    CT.Nilary: [
         lambda r: r[0] + ": Input string",
         lambda r: r[0] + ": Input number",
+        lambda r: r[0] + ": Input",
         lambda r: r[0] + ": Random",
         lambda r: r[0] + ": Peek all",
         lambda r: r[0] + ": Peek Moore",
@@ -120,7 +121,7 @@ ASTProcessor = {
         lambda r: r[0] + ": x position",
         lambda r: r[0] + ": y position"
     ],
-    CharcoalToken.Unary: [
+    CT.Unary: [
         lambda r: r[0] + ": Negative",
         lambda r: r[0] + ": Length",
         lambda r: r[0] + ": Not",
@@ -148,9 +149,10 @@ ASTProcessor = {
         lambda r: r[0] + ": Decremented",
         lambda r: r[0] + ": Doubled",
         lambda r: r[0] + ": Halved",
-        lambda r: r[0] + ": eval"
+        lambda r: r[0] + ": eval",
+        lambda r: r[0] + ": Square root"
     ],
-    CharcoalToken.Binary: [
+    CT.Binary: [
         lambda r: r[0] + ": Sum",
         lambda r: r[0] + ": Difference",
         lambda r: r[0] + ": Product",
@@ -181,35 +183,40 @@ ASTProcessor = {
         lambda r: r[0] + ": All",
         lambda r: r[0] + ": Any"
     ],
-    CharcoalToken.Ternary: [lambda r: r[0] + ": Slice"],
-    CharcoalToken.Quarternary: [lambda r: r[0] + ": Slice"],
-    CharcoalToken.LazyUnary: [],
-    CharcoalToken.LazyBinary: [
+    CT.Ternary: [lambda r: r[0] + ": Slice"],
+    CT.Quarternary: [lambda r: r[0] + ": Slice"],
+    CT.LazyUnary: [],
+    CT.LazyBinary: [
         lambda r: r[0] + ": And",
         lambda r: r[0] + ": Or"
     ],
-    CharcoalToken.LazyTernary: [lambda r: r[0] + ": Ternary"],
-    CharcoalToken.LazyQuarternary: [],
-    CharcoalToken.OtherOperator: [
+    CT.LazyTernary: [lambda r: r[0] + ": Ternary"],
+    CT.LazyQuarternary: [],
+    CT.OtherOperator: [
         lambda r: [r[0] + ": Peek direction"] + r[1:],
         lambda r: [r[0] + ": Map"] + r[1:],
         lambda r: [r[0] + ": String map"] + r[1:],
+        lambda r: [r[0] + ": Any"] + r[1:],
+        lambda r: [r[0] + ": All"] + r[1:],
+        lambda r: [r[0] + ": Filter"] + r[1:],
+        lambda r: [r[0] + ": Evaluate variable"] + r[1:],
         lambda r: [r[0] + ": Evaluate variable"] + r[1:],
         lambda r: [r[0] + ": Evaluate variable"] + r[1:]
     ],
 
-    CharcoalToken.Program: [
+    CT.Program: [
         lambda r: [r[2][0], r[0]] + r[2][1:],
         lambda r: ["Program"]
     ],
-    CharcoalToken.Body: [
+    CT.Body: [
         lambda r: r[1],
         lambda r: r[1],
         lambda r: r[0]
     ],
-    CharcoalToken.Command: [
+    CT.Command: [
         lambda r: [r[0] + ": Input String", r[1]],
         lambda r: [r[0] + ": Input Number", r[1]],
+        lambda r: [r[0] + ": Input", r[1]],
         lambda r: [r[0] + ": Evaluate", r[1]],
         lambda r: ["Print"] + r,
         lambda r: ["Print"] + r,

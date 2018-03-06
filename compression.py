@@ -1,4 +1,6 @@
-from codepage import OrdinalLookup, Codepage, rCommand
+from codepage import (
+    OrdinalLookup, Codepage, rCommand, InCodepage, ReverseLookup
+)
 from string import ascii_lowercase, ascii_uppercase, digits
 import re
 import lzma
@@ -46,8 +48,8 @@ def Compressed(string, escape=False):
         if len(re.findall("[^ -~¶⸿]", string)) > 3:
             return "”" + Codepage[RAW_ENCODING] + string + "”"
         return (
-            "´" * (string[0] in "+X*|-\\/<>^KLTVY7¬") +
-            rCommand.sub("´\1", string)
+            "´" * (string[0] in "+X*|-\\/<>^KLTVY7¬") + 
+            rCommand.sub("´\\1", string)
         )
     original_string, string = string, re.sub(
         "¶", "\n", re.sub("⸿", "\r", string)
@@ -71,7 +73,7 @@ def Compressed(string, escape=False):
             return "”" + Codepage[RAW_ENCODING] + original_string + "”"
         return (
             "´" * (original_string[0] in "+X*|-\\/<>^KLTVY7¬") +
-            rCommand.sub("´\1", original_string)
+            rCommand.sub("´\\1", original_string)
         )
     if len(compressed) == minimum_length:
         return "“" + compressed + "”"
@@ -192,22 +194,39 @@ def CompressPermutations(string):
 using a permuted codepage.
 
     """
-    numeric = lowercase = uppercase = whitespace = symbol = 0
-    for character in string:
-        if character >= "0" and character <= "9":
-            numeric -= .1
-        elif character >= "a" and character <= "z":
-            lowercase -= 0.03846
-        elif character >= "A" and character <= "Z":
-            uppercase -= 0.03846
-        elif character == "\n" or character == " ":
-            whitespace -= .5
+    numeric = lowercase = uppercase = whitespace = symbol = -100
+    for c in string:
+        if c >= "0" and c <= "9":
+            numeric = max(numeric, ord(c) - 57)
+        elif c >= "a" and c <= "z":
+            lowercase = max(lowercase, ord(c) - 122)
+        elif c >= "A" and c <= "Z":
+            uppercase = max(uppercase, ord(c) - 90)
+        elif c == "\n" or c == " ":
+            whitespace = max(whitespace, -(c == "\n"))
         else:
-            symbol -= .03125
+            symbol = max(symbol, symbols.index(c) - 32)
+    winner = sorted(filter(lambda i: i[0] != -100, [
+        (whitespace, "w"), (symbol, "s"), (lowercase, "l"), (numeric, "n"),
+        (uppercase, "u")
+    ]))[0][1]
     result = "".join(map(lambda t: t[1], sorted([
         (whitespace, "w"), (symbol, "s"), (lowercase, "l"), (numeric, "n"),
         (uppercase, "u")
-    ])))
+    ])[::-1]))
+    first = ""
+    if string[0] >= "0" and string[0] <= "9":
+        first = "n"
+    elif string[0] >= "a" and string[0] <= "z":
+        first = "l"
+    elif string[0] >= "A" and string[0] <= "Z":
+        first = "u"
+    elif string[0] == "\n" or string[0] == " ":
+        first = "w"
+    else:
+        first = "s"
+    if first != winner:
+        result = first + result.replace(first, "")
     index, base = 0, 5
     charset = "".join(
         charset_fragment_lookup[character] for character in result

@@ -27,7 +27,7 @@ for arrow, ascii_equivalent in zip(
     "\x11\x12\x13\x14\x1C\x1D\x1E\x1F\x0E\x0F\x10"
 ):
     add_character(arrow, ascii_equivalent)
-for other, ascii_character in zip("¿‖´·¤¦⎚…§⎆⎈⌀", "?;`.o: _$,&'"):
+for other, ascii_character in zip("¿‖´·¤¦⎚…§", "?;`.o: _$"):
     # not sure about ;
     add_character(other, chr(ord(ascii_character) + 128))
 for replacement, replaced in zip(
