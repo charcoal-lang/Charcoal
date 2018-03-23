@@ -160,7 +160,7 @@ StringifierProcessor = {
     CT.Quarternary: [lambda r: [("$", "✂"), ("!", "e")]],
     CT.LazyUnary: [],
     CT.LazyBinary: [
-        (lambda i: lambda r: ("$", "∧∨∧∨"[i]))(i) for i in range(4)
+        (lambda i: lambda r: [("$", "∧∨∧∨"[i])])(i) for i in range(4)
     ],
     CT.LazyTernary: [lambda r: [("$", "⎇")]],
     CT.LazyQuarternary: [],
