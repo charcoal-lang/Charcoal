@@ -193,39 +193,49 @@ def large_range(number):
         n += 1
 
 stringify_lookup = {
-    "e": "dflmnosv"
+    "e": "cdflmnosv"
 }
 
 def StringifyCode(code):
     result = []
     stack = []
-    for i in range(len(code)):
+    length = len(code)
+    for i in range(length):
+        add = True
         item = code[i]
         if item[0] != "!":
-            if item[0] != "a":
+            if item[0] != "m":
                 j = i + 1
-                while j < len(code) and code[j][0] == "!":
+                while j < length and code[j][0] == "!":
                     j += 1
                 if (
-                    j < len(code) and
+                    j < length and
                     code[j][0] == "s" and
                     code[j][1][0] == "´" and
                     not rCommand.match(code[j][1][1])
                 ):
-                    code[j] = (code[j][0], code[j][1][1:])
+                    code[j] = ("s", code[j][1][1:])
+            if item[0] == "$" and item[1] == "Ｍ":
+                add = code[i + 1][0] != "a" or (
+                    i > 1 and code[i - 1][0] == "m" or (
+                        i + 2 < length and
+                        code[i + 2][0] in stringify_lookup["e"]
+                    )
+                )
             while stack:
                 notter = stack[0]
                 if item[0] in stringify_lookup.get(notter[1], notter[1]):
                     result += [(";", "¦")]
                 stack = stack[1:]
             stack = []
-            result += [item]
+            if add:
+                result += [item]
         else:
             stack += [item]
     while len(result) and result[-1][0] == ">":
         result.pop()
     if len(result) and result[-1][0] == "c":
-        result[-1] = (result[-1][0], result[-1][1][:-1])
+        result[-1] = ("c", result[-1][1][:-1])
     return "".join(item[1] for item in result)
 
 

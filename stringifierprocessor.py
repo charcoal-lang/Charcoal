@@ -50,7 +50,7 @@ StringifierProcessor = {
     ] + [
         lambda r: [("<", "⟦")] + r[1] + [(">", "⟧")],
         lambda r: [("$", "✳✳" )] + r[2],
-        lambda r: []
+        lambda r: [("m", "")]
     ],
     CT.Side: [lambda r: r[0] + r[2]],
     CT.S: [lambda r: []] * 3,
@@ -122,55 +122,55 @@ StringifierProcessor = {
     ],
     CT.ExpressionOrEOF: [lambda r: r[0], lambda r: []],
     CT.Nilary: [
-        (lambda i: lambda r: [("$", [
+        (lambda i: lambda r: [("o", [
             "Ｓ", "Ｎ", "Ａ", "‽", "‽", "ＫＡ", "ＫＭ", "ＫＶ", "ＫＫ",
             "ⅈ", "ⅉ", "ⅈ", "ⅉ"
         ][i])])(i)
         for i in range(13)
     ],
     CT.Unary: [
-        (lambda i: lambda r: [("$", "±±Ｌ¬Ｉ‽‽ＶＶ⊟↧↥⌊⌊⌊⌈⌈⌈⌈℅℅℅℅⮌⮌≕≕″‴～～↔↔\
+        (lambda i: lambda r: [("o", "±±Ｌ¬Ｉ‽‽ＶＶ⊟↧↥⌊⌊⌊⌈⌈⌈⌈℅℅℅℅⮌⮌≕≕″‴～～↔↔\
 ΣΠ⊕⊕⊖⊖⊗⊗⊘⊘₂₂"[i])])(i)
         for i in range(45)
     ] + [
-        lambda r: [("$", "✂"), ("!", "e")],
-        lambda r: [("$", "…")],
-        lambda r: [("$", "…·")],
-        lambda r: [("$", "ＵＶ")],
-        lambda r: [("$", "ＵＶ")],
+        lambda r: [("o", "✂"), ("!", "e")],
+        lambda r: [("o", "…")],
+        lambda r: [("o", "…·")],
+        lambda r: [("o", "ＵＶ")],
+        lambda r: [("o", "ＵＶ")],
     ],
     CT.Binary: [
         (lambda i: (
-            lambda r: [("$", "Ｘ⁺⁺⁺⁻⁻⁻×××÷∕∕∕÷÷﹪﹪⁼⁼‹‹››＆＆｜｜"[i])]
+            lambda r: [("o", "Ｘ⁺⁺⁺⁻⁻⁻×××÷∕∕∕÷÷﹪﹪⁼⁼‹‹››＆＆｜｜"[i])]
         ))(i)
         for i in range(28)
     ] + [
-        (lambda i: lambda r: [("$", [
+        (lambda i: lambda r: [("o", [
             "…·", "…", "…", "…", "Ｘ", "Ｘ", "Ｘ", "§", "⊞Ｏ", "⪫", "⪪",
             "⌕Ａ"
         ][i])])(i)
         for i in range(12)
     ] + [
-        (lambda i: lambda r: [("$", "⌕◧◨№➙⧴？⍘↨"[i])])(i)
+        (lambda i: lambda r: [("o", "⌕◧◨№➙⧴？⍘↨"[i])])(i)
         for i in range(9)
     ] + [
-        lambda r: [("$", "✂"), ("!", "e")]
+        lambda r: [("o", "✂"), ("!", "e")]
     ],
-    CT.Ternary: [lambda r: [("$", "✂"), ("!", "e")]],
-    CT.Quarternary: [lambda r: [("$", "✂"), ("!", "e")]],
+    CT.Ternary: [lambda r: [("o", "✂"), ("!", "e")]],
+    CT.Quarternary: [lambda r: [("o", "✂"), ("!", "e")]],
     CT.LazyUnary: [],
     CT.LazyBinary: [
-        (lambda i: lambda r: [("$", "∧∨∧∨"[i])])(i) for i in range(4)
+        (lambda i: lambda r: [("o", "∧∨∧∨"[i])])(i) for i in range(4)
     ],
-    CT.LazyTernary: [lambda r: [("$", "⎇")]],
+    CT.LazyTernary: [lambda r: [("o", "⎇")]],
     CT.LazyQuarternary: [],
     CT.OtherOperator: [
-        (lambda i: lambda r: [("$", [
+        (lambda i: lambda r: [("o", [
             "ＫＤ", "Ｅ", "Ｅ", "⊙", "⊙", "⬤", "⬤", "⭆", "⭆", "Φ",
             "▷", "▷", "▷", "▷"
         ][i])] + r[2] + r[3])(i)
         for i in range(14)
-    ] + [lambda r: [("$", "▷" )] + r[2] + [("!", "e")]] * 2,
+    ] + [lambda r: [("o", "▷" )] + r[2] + [("!", "e")]] * 2,
 
     CT.Program: [lambda r: r[0] + r[1], lambda r: []],
     CT.Body: [
