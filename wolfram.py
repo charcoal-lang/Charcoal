@@ -4,6 +4,7 @@ from math import (
 )
 from functools import reduce, lru_cache
 import unicodedata as ud
+from gmpy2 import mpz, mpr, mpfr, mpc
 try:
     from regex import (
         match, search, split, sub as re_sub, findall, finditer,
@@ -40,6 +41,23 @@ except Exception as e:
 generator = type(i for i in [])
 r_whitespace = re_compile("\s+")
 prime_cache = [2, 3]
+Infinity = mpfr.inf()
+lg10 = log2(10)
+ten = mpz(10)
+template_context = gmpy2.context()
+template_context.emax = gmpy2.get_emax_max()
+template_context.emin = gmpy2.get_emin_min()
+
+
+@lru_cache
+def context(precision): # DONE
+    icontext = template_context.copy()
+    context.precision = precision
+    return context
+
+
+def set_precision(precision): # DONE
+    gmpy2.set_precision(context(1 + int(precision * lg10)))
 
 
 def take(generator, n):
@@ -100,7 +118,7 @@ def create_expression(value):
         return None
     elif callable(value):
         return value
-    elif isinstance(value, Expression):
+    elif isinstance(value, WolframObject):
         return value
     elif value_type == complex:
         return Complex(value)
@@ -108,20 +126,6 @@ def create_expression(value):
         return String(value)
     elif value_type == list or value_type == tuple or value_type == generator:
         return List(*[create_expression(item) for item in value])
-    elif value_type != int and value % 1:
-        value = round(value, 15)
-        exponent = 0
-        while value % 1:
-            value *= 10
-            exponent -= 1
-        return Real(int(value), exponent, float("inf"))
-    else:
-        exponent = 0
-        if value:
-            while not value % 10:
-                value //= 10
-                exponent += 1
-        return Integer(value, exponent)
 
 cx = create_expression
 
@@ -130,9 +134,9 @@ def boolean(value):
     return _True if value else _False
 
 def simplify(left, right, fn, repeat=False):
-    if type(left) == Expression:
+    if type(left) == WolframObject:
         left = left.run()
-    if type(right) == Expression:
+    if type(right) == WolframObject:
         right = right.run()
     if isinstance(left, List):
         if isinstance(right, List):
@@ -212,18 +216,6 @@ def _sub_simplify(items):
     return items
 sub = Operation("-", 2, False, _sub_simplify, lambda l, r: l - r)
 
-def is_exactly_int(item, numeral, value, exponent):
-    if isinstance(item, int):
-        if item == numeral:
-            return True
-    elif (
-        isinstance(item, Integer) and
-        item.leaves[1] == exponent and
-        item.leaves[0] == value
-    ):
-        return True
-    return False
-
 
 class Comparable(object):
     def cmp(self, other):
@@ -248,194 +240,60 @@ class Comparable(object):
         return self.cmp(other) > -1
 
 
-class Expression(object):
-    __slots__ = ("head", "leaves", "run", "op")
+class WolframObject(object):
+    pass
 
-    def __init__(
-        self, head=None, leaves=[], run=None, op=None
-    ):
-        self.head = head
-        self.leaves = [create_expression(leaf) for leaf in leaves]
-        self.run = run or (lambda precision=None: self.head(
-            self.leaves, precision
-        ))
-        self.op = op
 
+class Symbolic(WolframObject):
     def __add__(self, other):
-        if is_exactly_int(other, 0, 0, 0):
-            return self
-        if is_exactly_int(self, 0, 0, 0):
-            return other
-        if (
-            isinstance(self, Symbolic) or
-            isinstance(other, Symbolic)
-        ):
-            return SymbolicOperation(add, self, other)
-        return Expression(
-            None, [],
-            lambda precision=10: self.run(precision + 2) + (
-                create_expression(other).run(precision + 2)
-            )
-        )
+        if not isinstance(other, WolframObject):
+            other = create_expression(other)
+        return SymbolicOperation(add, self, other)
 
     def __radd__(self, other):
-        return Expression.__add__(other, self)
+        if not isinstance(other, WolframObject):
+            other = create_expression(other)
+        return SymbolicOperation(add, other, self)
 
     def __sub__(self, other):
-        if is_exactly_int(other, 0, 0, 0):
-            return self
-        if (
-            isinstance(self, Symbolic) or
-            isinstance(other, Symbolic)
-        ):
-            return SymbolicOperation(sub, self, other)
-        return Expression(
-            None, [],
-            lambda precision=10: self.run(precision + 2) - (
-                create_expression(other).run(precision + 2)
-            )
-        )
+        if not isinstance(other, WolframObject):
+            other = create_expression(other)
+        return SymbolicOperation(sub, self, other)
 
     def __rsub__(self, other):
-        if is_exactly_int(self, 0, 0, 0):
-            return other
-        if (
-            isinstance(self, Symbolic) or
-            isinstance(other, Symbolic)
-        ):
-            return SymbolicOperation(sub, other, self)
-        return Expression(
-            None, [],
-            lambda precision=10: (
-                create_expression(other).run(precision + 2)
-            ) - self.run(precision + 2)
-        )
+        if not isinstance(other, WolframObject):
+            other = create_expression(other)
+        return SymbolicOperation(sub, other, self)
 
     def __mul__(self, other):
-        if is_exactly_int(self, 0, 0, 0) or is_exactly_int(other, 0, 0, 0):
-            return Integer(0)
-        if is_exactly_int(self, 1, 1, 0):
-            return other
-        if is_exactly_int(other, 1, 1, 0):
-            return self
-        if (
-            isinstance(self, Symbolic) or
-            isinstance(other, Symbolic)
-        ):
-            return SymbolicOperation(mul, self, other)
-        return Expression(
-            None, [],
-            lambda precision=10: self.run(precision + 2) * (
-                create_expression(other).run(precision + 2)
-            )
-        )
+        if not isinstance(other, WolframObject):
+            other = create_expression(other)
+        return SymbolicOperation(mul, self, other)
 
     def __rmul__(self, other):
-        return Expression.__mul__(other, self)
+        if not isinstance(other, WolframObject):
+            other = create_expression(other)
+        return SymbolicOperation(mul, other, self)
 
     def __truediv__(self, other):
-        if is_exactly_int(self, 0, 0, 0):
-            return Integer(0)
-        if is_exactly_int(other, 1, 1, 0):
-            return self
-        if (
-            isinstance(self, Symbolic) or
-            isinstance(other, Symbolic)
-        ):
-            return SymbolicOperation(div, self, other)
-        return Expression(
-            None, [],
-            lambda precision=10: self.run(precision + 2) / (
-                create_expression(other).run(precision + 2)
-            )
-        )
+        if not isinstance(other, WolframObject):
+            other = create_expression(other)
+        return SymbolicOperation(div, self, other)
 
     def __rtruediv__(self, other):
-        if is_exactly_int(other, 0, 0, 0):
-            return Integer(0)
-        if is_exactly_int(self, 1, 1, 0):
-            return other
-        if (
-            isinstance(self, Symbolic) or
-            isinstance(other, Symbolic)
-        ):
-            return SymbolicOperation(div, other, self)
-        return Expression(
-            None, [],
-            lambda precision=10: (
-                create_expression(other).run(precision + 2)
-            ) / self.run(precision + 2)
-        )
+        if not isinstance(other, WolframObject):
+            other = create_expression(other)
+        return SymbolicOperation(div, other, self)
 
     def __pow__(self, other):
-        if is_exactly_int(other, 0, 0, 0):
-            return Integer(1)
-        if is_exactly_int(other, 1, 1, 0):
-            return self
-        if is_exactly_int(self, 0, 0, 0):
-            return Integer(0)
-        if is_exactly_int(self, 1, 1, 0):
-            return Integer(1)
-        if (
-            isinstance(self, Symbolic) or
-            isinstance(other, Symbolic)
-        ):
-            return SymbolicOperation(pow, self, other)
-        return Expression(
-            None, [],
-            lambda precision=10: self.run(precision + 2) / (
-                create_expression(other).run(precision + 2)
-            )
-        )
-    
-    def __rpow__(self, other):
-        if (
-            isinstance(self, Symbolic) or
-            isinstance(other, Symbolic)
-        ):
-            return SymbolicOperation(pow, other, self)
-        return Expression(
-            None, [],
-            lambda precision=10: (
-                create_expression(other).run(precision + 2)
-            ) ** self.run(precision + 2),
-            op=pow
-        )
+        if not isinstance(other, WolframObject):
+            other = create_expression(other)
+        return SymbolicOperation(pow, self, other)
 
-    def __str__(self):
-        result = self.run()
-        if type(result) == Expression:
-            raise Exception("Expression evaluates to Expression")
-        return str(result)
-
-    def to_number(self):
-        result = self.run()
-        if type(result) == Expression:
-            raise Exception("Expression evaluates to Expression")
-        return result.to_number()
-
-    def __int__(self):
-        return int(self.to_number())
-
-    def to_precision(self, precision=None):
-        return self.run().to_precision(precision)
-
-    def is_integer(self):
-        return self.run().is_integer()
-
-    def is_odd(self):
-        return self.run().is_odd()
-
-    def is_even(self):
-        return self.run().is_even()
-
-
-class Symbol(Expression):
-    pass
-
-
-class Symbolic(Expression):
-    pass
+    def __rmul__(self, other):
+        if not isinstance(other, WolframObject):
+            other = create_expression(other)
+        return SymbolicOperation(pow, other, self)
 
 
 class SymbolicOperation(Symbolic, Comparable):
@@ -490,7 +348,7 @@ class SymbolicOperation(Symbolic, Comparable):
             (" " + self.op.symbol + " ") if self.op.symbol else " "
         ).join(
             "(" + str(item) + ")" if (
-                isinstance(item, Expression) and
+                isinstance(item, WolframObject) and
                 item.op and
                 item.op.precedence < self.op.precedence
             ) else str(item)
@@ -501,11 +359,11 @@ class SymbolicOperation(Symbolic, Comparable):
         return self.__str__(repr)
 
 
-class SymbolicVariable(Symbolic, Comparable):
+class Symbol(Symbolic, Comparable):
     __slots__ = ("__name__", "name", "op")
 
     def __init__(self, name):
-        super().__init__(head=headify(SymbolicVariable))
+        super().__init__(head=headify(Symbol))
         self.__name__ = name
         self.name = name
         self.run = lambda precision=10: str(self)
@@ -519,60 +377,10 @@ class SymbolicVariable(Symbolic, Comparable):
     def __call__(self, leaves):
         return SymbolicFunction(self, leaves)
 
-    def __add__(self, other):
-        if not isinstance(other, Expression):
-            other = create_expression(other)
-        return Expression.__add__(self, other)
-
-    def __radd__(self, other):
-        if not isinstance(other, Expression):
-            other = create_expression(other)
-        return Expression.__radd__(self, other)
-
-    def __sub__(self, other):
-        if not isinstance(other, Expression):
-            other = create_expression(other)
-        return Expression.__sub__(self, other)
-
-    def __rsub__(self, other):
-        if not isinstance(other, Expression):
-            other = create_expression(other)
-        return Expression.__rdub__(self, other)
-
-    def __mul__(self, other):
-        if not isinstance(other, Expression):
-            other = create_expression(other)
-        return Expression.__mul__(self, other)
-
-    def __rmul__(self, other):
-        if not isinstance(other, Expression):
-            other = create_expression(other)
-        return Expression.__rmul__(self, other)
-
-    def __div__(self, other):
-        if not isinstance(other, Expression):
-            other = create_expression(other)
-        return Expression.__div__(self, other)
-
-    def __rdiv__(self, other):
-        if not isinstance(other, Expression):
-            other = create_expression(other)
-        return Expression.__rdiv__(self, other)
-
-    def __pow__(self, other):
-        if not isinstance(other, Expression):
-            other = create_expression(other)
-        return Expression.__pow__(self, other)
-
-    def __rpow__(self, other):
-        if not isinstance(other, Expression):
-            other = create_expression(other)
-        return Expression.__rpow__(self, other)
-
     def cmp(self, other):
         if isinstance(other, Number):
             return 1
-        if isinstance(other, SymbolicVariable):
+        if isinstance(other, Symbol):
             return (
                 1 if self.name > other.name else
                 -1 if self.name < other.name else
@@ -604,474 +412,235 @@ class SymbolicFunction(Symbolic):
         return str(self)
 
 # Options
-IC = IgnoreCase = Symbol()
-A = All = Symbol()
-O = Overlaps = Symbol()
-In = Indeterminate = Symbol()
+IC = IgnoreCase = Symbol("IgnoreCase")
+A = All = Symbol("All")
+O = Overlaps = Symbol("Overlaps")
+In = Indeterminate = Symbol("Indeterminate")
 
 
-class Number(Expression):
-    __slots__ = ("size", "sign")
+class Number(WolframObject):
+    __slots__ = ("value",)
 
     def __init__(self, head=None):
         super().__init__(head=head)
-        self.size = 0
-        self.sign = 0
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return repr(self.value)
 
     def __eq__(self, other):
-        if isinstance(other, int):
-            other = Integer(other)
-        elif isinstance(other, float):
-            other = create_expression(other)
         if isinstance(other, Number):
-            if self.sign != other.sign:
-                return False
-            if self.size != other.size:
-                return False
-            self_rational = isinstance(self, Rational)
-            other_rational = isinstance(other, Rational)
-            if isinstance(self, Real) and isinstance(other, Real):
-                self_i = 1 + self_rational
-                other_i = 1 + other_rational
-                min_exponent = min(self.leaves[1], other.leaves[1])
-                new_self = self.leaves[0] * 10 ** (
-                    self.leaves[self_i] - min_exponent
-                )
-                new_other = other.leaves[0] * 10 ** (
-                    other.leaves[other_i] - min_exponent
-                )
-                if self_rational:
-                    new_other *= self.leaves[1]
-                if other_rational:
-                    new_self *= other.leaves[1]
-                return new_self == new_other
+            return self.value == other.value
         return False
 
     def __gt__(self, other):
-        if isinstance(other, int):
-            other = Integer(other)
-        elif isinstance(other, float):
-            other = create_expression(other)
         if isinstance(other, Number):
-            if self.sign > other.sign:
-                return True
-            if self.sign < other.sign:
-                return False
-            if self.size > other.size:
-                return self.sign == 1
-            if self.size < other.size:
-                return self.sign == -1
-            self_rational = isinstance(self, Rational)
-            other_rational = isinstance(other, Rational)
-            if isinstance(self, Real) and isinstance(other, Real):
-                self_i = 1 + self_rational
-                other_i = 1 + other_rational
-                min_exponent = min(self.leaves[1], other.leaves[1])
-                new_self = self.leaves[0] * 10 ** (
-                    self.leaves[self_i] - min_exponent
-                )
-                new_other = other.leaves[0] * 10 ** (
-                    other.leaves[other_i] - min_exponent
-                )
-                if self_rational:
-                    new_other *= self.leaves[1]
-                if other_rational:
-                    new_self *= other.leaves[1]
-                return new_self > new_other
+            return self.value > other.value
         return False
 
     def __lt__(self, other):
-        if isinstance(other, int):
-            other = Integer(other)
-        elif isinstance(other, float):
-            other = create_expression(other)
         if isinstance(other, Number):
-            if self.sign < other.sign:
-                return True
-            if self.sign > other.sign:
-                return False
-            if self.size < other.size:
-                return self.sign == 1
-            if self.size > other.size:
-                return self.sign == -1
-            self_rational = isinstance(self, Rational)
-            other_rational = isinstance(other, Rational)
-            if isinstance(self, Real) and isinstance(other, Real):
-                self_i = 1 + self_rational
-                other_i = 1 + other_rational
-                min_exponent = min(self.leaves[1], other.leaves[1])
-                new_self = self.leaves[0] * 10 ** (
-                    self.leaves[self_i] - min_exponent
-                )
-                new_other = other.leaves[0] * 10 ** (
-                    other.leaves[other_i] - min_exponent
-                )
-                if self_rational:
-                    new_other *= self.leaves[1]
-                if other_rational:
-                    new_self *= other.leaves[1]
-                return new_self < new_other
+            return self.value < other.value
         return False
 
     def __ne__(self, other):
-        return not self == other
+        if isinstance(other, Number):
+            return self.value != other.value
+        return True
 
     def __ge__(self, other):
-        if isinstance(other, int):
-            other = Integer(other)
-        elif isinstance(other, float):
-            other = create_expression(other)
         if isinstance(other, Number):
-            if self.sign > other.sign:
-                return True
-            if self.sign < other.sign:
-                return False
-            if self.size > other.size:
-                return self.sign == 1
-            if self.size < other.size:
-                return self.sign == -1
-            self_rational = isinstance(self, Rational)
-            other_rational = isinstance(other, Rational)
-            if isinstance(self, Real) and isinstance(other, Real):
-                self_i = 1 + self_rational
-                other_i = 1 + other_rational
-                min_exponent = min(self.leaves[1], other.leaves[1])
-                new_self = self.leaves[0] * 10 ** (
-                    self.leaves[self_i] - min_exponent
-                )
-                new_other = other.leaves[0] * 10 ** (
-                    other.leaves[other_i] - min_exponent
-                )
-                if self_rational:
-                    new_other *= self.leaves[1]
-                if other_rational:
-                    new_self *= other.leaves[1]
-                return new_self >= new_other
+            return self.value <= other.value
         return False
 
     def __le__(self, other):
-        if isinstance(other, int):
-            other = Integer(other)
-        elif isinstance(other, float):
-            other = create_expression(other)
         if isinstance(other, Number):
-            if self.sign < other.sign:
-                return True
-            if self.sign > other.sign:
-                return False
-            if self.size < other.size:
-                return self.sign == 1
-            if self.size > other.size:
-                return self.sign == -1
-            self_rational = isinstance(self, Rational)
-            other_rational = isinstance(other, Rational)
-            if isinstance(self, Real) and isinstance(other, Real):
-                self_i = 1 + self_rational
-                other_i = 1 + other_rational
-                min_exponent = min(self.leaves[1], other.leaves[1])
-                new_self = self.leaves[0] * 10 ** (
-                    self.leaves[self_i] - min_exponent
-                )
-                new_other = other.leaves[0] * 10 ** (
-                    other.leaves[other_i] - min_exponent
-                )
-                if self_rational:
-                    new_other *= self.leaves[1]
-                if other_rational:
-                    new_self *= other.leaves[1]
-                return new_self <= new_other
+            return self.value <= other.value
         return False
 
 class Real(Number):
-    __slots__ = ("is_int", "precision")
+    # TODO: equality
 
-    def __init__(self, value, exponent=0, precision=0, is_int=False):
-        super().__init__(head=headify(Real))
-        self.precision = precision or floor(log10(max(1, abs(value))))
-        self.is_int = is_int
-        self.leaves = [value, exponent]
-        self.size = log10(max(1, value)) + exponent
-        self.sign = 1 if value > 0 else -1 if value < 0 else 0
-
-    def __str__(self):
-        exponent = self.leaves[1]
-        string = str(self.leaves[0])
-        zeroes = 1 - exponent - len(string)
-        if zeroes > 0:
-            string = "0" * zeroes + string
-        return (
-            string + "0" * exponent
-            if exponent > 0 else
-            (string[:exponent] + "." + string[exponent:])
-            if exponent < 0 else
-            string
-        )
-
-    def __repr__(self):
-        return str(self)
+    def __init__(self, value, exponent=0, head=None):
+        super().__init__(head=head or headify(Real))
+        self.exponent = exponent
+        self.value = value
 
     def __add__(self, other):
         if isinstance(other, Symbolic):
             return SymbolicOperation(add, self, other)
-        if type(other) == Expression:
-            return other + self
         if isinstance(other, Real):
-            precision = max(0, min(self.precision, other.precision) - 2)
-            exponent_difference = self.leaves[1] - other.leaves[1]
-            if exponent_difference > 0:
-                value = (
-                    self.leaves[0] * 10 ** exponent_difference +
-                    other.leaves[0]
-                )
-            else:
-                value = (
-                    self.leaves[0] +
-                    other.leaves[0] * 10 ** -exponent_difference
-                )
-            if isinf(precision):
-                exponent = min(self.leaves[1], other.leaves[1])
-                return (Integer if exponent >= 0 else Real)(
-                    value, exponent, precision=precision
-                )
-            actual_precision = floor(log10(abs(value) or 1))
+            min_exponent = min(self.exponent, other.exponent)
+            self_delta = self.exponent - min_exponent
+            other_delta = other.exponent - min_exponent
             return Real(
-                (
-                    value * 10 ** (precision - actual_precision)
-                    if precision - actual_precision > 1 else
-                    value // 10 ** (actual_precision - precision) + bool(
-                        value < 0 and
-                        value % 10 ** (actual_precision - precision)
-                    )
-                ),
-                (
-                    min(self.leaves[1], other.leaves[1]) +
-                    actual_precision -
-                    precision
-                ),
-                precision=precision
+                self.value * ten ** self_delta +
+                other.value * ten ** other_delta,
+                min_exponent
             )
+        return other.__radd__(self)
+
+    def __radd__(self, other):
+        if isinstance(other, Real):
+            min_exponent = min(other.exponent, self.exponent)
+            other_delta = other.exponent - min_exponent
+            self_delta = self.exponent - min_exponent
+            return Real(
+                other.value * ten ** other_delta +
+                self.value * ten ** self_delta,
+                min_exponent
+            )
+        return other.__add__(self)
 
     def __sub__(self, other):
         if isinstance(other, Symbolic):
             return SymbolicOperation(sub, self, other)
-        if type(other) == Expression:
-            return other.__rsub__(self)
-        if type(other) == Real:
-            precision = max(0, min(self.precision, other.precision) - 2)
-            exponent_difference = self.leaves[1] - other.leaves[1]
-            if exponent_difference > 0:
-                value = (
-                    self.leaves[0] * 10 ** exponent_difference -
-                    other.leaves[0]
-                )
-            else:
-                value = (
-                    self.leaves[0] -
-                    other.leaves[0] * 10 ** -exponent_difference
-                )
-            if isinf(precision):
-                exponent = min(self.leaves[1], other.leaves[1])
-                return (Integer if exponent >= 0 else Real)(
-                    value,
-                    min(self.leaves[1], other.leaves[1]),
-                    precision=precision
-                )
-            actual_precision = floor(log10(abs(value) or 1))
+        if isinstance(other, Real):
+            min_exponent = min(self.exponent, other.exponent)
+            self_delta = self.exponent - min_exponent
+            other_delta = other.exponent - min_exponent
             return Real(
-                (
-                    value * 10 ** (precision - actual_precision)
-                    if precision - actual_precision > 1 else
-                    value // 10 ** (actual_precision - precision) + bool(
-                        value < 0 and
-                        value % 10 ** (actual_precision - precision)
-                    )
-                ),
-                (
-                    min(self.leaves[1], other.leaves[1]) +
-                    actual_precision -
-                    precision
-                ),
-                precision=precision
+                self.value * ten ** self_delta -
+                other.value * ten ** other_delta,
+                min_exponent
             )
+        return other.__rsub__(self)
+
+    def __rsub__(self, other):
+        if isinstance(other, Real):
+            min_exponent = min(other.exponent, self.exponent)
+            other_delta = other.exponent - min_exponent
+            self_delta = self.exponent - min_exponent
+            return Real(
+                other.value * ten ** other_delta -
+                self.value * ten ** self_delta,
+                min_exponent
+            )
+        return other.__sub__(self)
 
     def __mul__(self, other):
         if isinstance(other, Symbolic):
             return SymbolicOperation(mul, self, other)
-        if type(other) == Expression:
-            return other * self
         if isinstance(other, Real):
-            precision = max(0, min(self.precision, other.precision) - 2)
-            value = self.leaves[0] * other.leaves[0]
-            actual_precision = floor(log10(abs(value) or 1))
-            if isinf(precision):
-                exponent = min(self.leaves[1], other.leaves[1])
-                return (Integer if exponent >= 0 else Real)(
-                    value,
-                    self.leaves[1] + other.leaves[1],
-                    precision=precision
-                )
+            min_exponent = min(self.exponent, other.exponent)
+            self_delta = self.exponent - min_exponent
+            other_delta = other.exponent - min_exponent
             return Real(
-                (
-                    value * 10 ** (precision - actual_precision)
-                    if precision - actual_precision > 1 else
-                    value // 10 ** (actual_precision - precision) + bool(
-                        value < 0 and
-                        value % 10 ** (actual_precision - precision)
-                    )
-                ),
-                (
-                    self.leaves[1] +
-                    other.leaves[1] +
-                    actual_precision -
-                    precision
-                ),
-                precision=precision
+                self.value * ten ** self_delta *
+                other.value * ten ** other_delta,
+                min_exponent
             )
-        if type(other) == Rational or type(other) == Complex:
-            return other * self
-        return self * Real(other)
+        return other.__rmul__(self)
+
+    def __rmul__(self, other):
+        if isinstance(other, Symbolic):
+            return SymbolicOperation(mul, other, self)
+        if isinstance(other, Real):
+            min_exponent = min(other.exponent, self.exponent)
+            other_delta = other.exponent - min_exponent
+            self_delta = self.exponent - min_exponent
+            return Real(
+                other.value * ten ** other_delta, *
+                self.value * ten ** self_delta,
+                min_exponent
+            )
+        return other.__mul__(self)
 
     def __truediv__(self, other):
         if isinstance(other, Symbolic):
             return SymbolicOperation(div, self, other)
-        if type(other) == Expression:
-            return other.__rtruediv__(self)
         if isinstance(other, Real):
-            # TODO: add precision crap here maybe?
-            precision = max(0, min(self.precision, other.precision) - 2)
-            if isinf(precision):
-                min_exponent = min(self.leaves[1], other.leaves[1])
-                self.leaves[1] -= min_exponent
-                other.leaves[1] -= min_exponent
-                int_self = int(self)
-                int_other = int(other)
-                if int_self % int_other:
-                    return Rational(int(self), int(other))
-                return Integer(int(self) // int(other))
-            pow10 = 10 ** precision * self.leaves[0]
-            return Real(
-                pow10 // other.leaves[0] + bool(
-                    pow10 < 0 and pow10 % other.leaves[0]
-                ),
-                self.leaves[1] - other.leaves[1] - precision,
-                precision=precision
+            min_exponent = min(self.exponent, other.exponent)
+            self_delta = self.exponent - min_exponent
+            other_delta = other.exponent - min_exponent
+            return Rational(
+                self.value * ten ** self_delta,
+                other.value * ten ** other_delta
             )
-        other_type = type(other)
-        if other_type == Rational:
-            return Rational(self.leaves[0], 1, self.leaves[1]) / other
-        if other_type == Complex:
-            pass  # TODO
+        return other.__rtruediv__(self)
+
+    def __rtruediv__(self, other):
+        if isinstance(other, Symbolic):
+            return SymbolicOperation(div, other, self)
+        if isinstance(other, Real):
+            min_exponent = min(other.exponent, self.exponent)
+            other_delta = other.exponent - min_exponent
+            self_delta = self.exponent - min_exponent
+            return Rational(
+                other.value * ten ** other_delta,
+                self.value * ten ** self_delta
+            )
+        return other.__rtruediv__(self)
 
     def __neg__(self):
-        return Real(
-            -self.leaves[0], self.leaves[1], self.precision, self.is_int
-        )
+        return Real(-self.value, self.exponent, self.precision)
 
     def __invert__(self):
         return Integer(~int(self))
 
     def __abs__(self):
-        return Real(
-            abs(self.leaves[0]), self.leaves[1], self.precision, self.is_int
-        )
+        return Real(abs(self.value), self.exponent, self.precision)
 
     def __int__(self):
-        return int(
-            self.leaves[0] * 10 ** self.leaves[1]
-            if self.leaves[1] >= 0 else
-            self.leaves[0] / 10 ** -self.leaves[1]
-        )
+        return int(self.value * ten ** self.exponent)
 
     def __float__(self):
-        return float(
-            self.leaves[0] * 10 ** self.leaves[1]
-            if self.leaves[1] >= 0 else
-            self.leaves[0] / 10 ** -self.leaves[1]
-        )
-
-    def to_number(self):
-        result = (
-            self.leaves[0] * 10 ** self.leaves[1]
-            if self.leaves[1] >= 0 else
-            self.leaves[0] / 10 ** -self.leaves[1]
-        )
-        if not result % 1:
-            return int(result)
-        return result
+        return float(self.value * ten ** self.exponent)
 
     def is_integer(self):
-        return boolean(self.is_int or self.leaves[1] >= 0)
+        exponent = 0
+        multiplier = xmpz(1)
+        while self.value % multiplier * 10 == 0:
+            exponent += 1
+            multiplier *= 10
+        self.exponent += exponent
+        self.value //= multiplier
+        return boolean(self.exponent > 0 or (
+            isinstance(self.value, mpfr) and self.value.is_integer()
+        ))
 
     def is_odd(self):
         return boolean(
-            self.is_int or 
-            self.leaves[1] > 0 or self.leaves[1] == 0 and (
-                self.leaves[0] % 2 == 1
-            )
+            self.is_integer() and self.exponent == 0 and self.value % 2 == 1
         )
 
     def is_even(self):
         return boolean(
-            self.is_int or 
-            self.leaves[1] > 0 or self.leaves[1] == 0 and (
-                self.leaves[0] % 2 == 0
-            )
+            self.is_integer() and (self.exponent > 0 or self.value % 2 == 0)
         )
 
 
 class Integer(Real):
-    def __init__(self, value, exponent=0, precision=None):
-        value = int(value)
-        super().__init__(
-            value, exponent, precision=float("inf"), is_int=True
+    def __init__(self, value):
+        super().__init__(head=headify(Integer))
+        self.value = mpz(value)
+        self.exponent = 0
+        self.run = lambda precision=None: (
+            Real(self.value, precision) if precision else self
         )
-        self.head = headify(Integer)
-        actual_precision = floor(log10(abs(value) or 1))
-        self.run = lambda precision=None: Real(
-            (
-                value * 10 ** (precision - actual_precision - 1)
-                if precision - actual_precision > 1 else
-                value // 10 ** (1 + actual_precision - precision)
-            ),
-            self.leaves[1] - precision + actual_precision + 1,
-            precision=precision
-        ) if precision else self
-
-    def __cmp__(self, other):
-        ""
 
     def __str__(self):
-        string = str(self.leaves[0])
-        return (
-            string + "0" * self.leaves[1]
-            if self.leaves[1] != 0 else
-            string
-        )
+        return str(self.value)
 
     def __repr__(self):
-        return str(self)
+        return repr(self.value)
 
     def __int__(self):
-        return int(self.leaves[0] * 10 ** self.leaves[1])
+        return int(self.value)
 
     def __float__(self):
-        return float(self.leaves[0] * 10 ** self.leaves[1])
-
-    def to_number(self):
-        return self.leaves[0] * 10 ** self.leaves[1]
+        return float(self.value)
 
     def is_integer(self):
         return _True
 
     def is_odd(self):
-        return boolean(self.leaves[1] > 0 or self.leaves[1] == 0 and (
-            self.leaves[0] % 2 == 1
-        ))
+        return self.value % 2 == 1
 
     def is_even(self):
-        return boolean(self.leaves[1] > 0 or self.leaves[1] == 0 and (
-            self.leaves[0] % 2 == 0
-        ))
+        return self.value % 2 == 0
 
 
 class WolframFalse(Integer):
@@ -1102,115 +671,162 @@ _True = WolframTrue()
 
 
 class Rational(Number):
-    def __new__(cls, numerator, denominator, exponent=0):
-        if numerator == 0:
-            return Integer(0)
-        if not numerator % denominator:
-            return Integer(numerator // denominator)
-        return super().__new__(cls)
 
-    def __init__(self, numerator, denominator, exponent=0):
+    def __init__(self, numerator, denominator=None):
         super().__init__(head=headify(Rational))
-        if denominator < 0:
-            denominator *= -1
-            numerator *= -1
-        if not numerator:
-            denominator = 1
+        if denominator is None:
+            self.value = numerator
         else:
-            while not numerator % 10:
-                numerator //= 10
-                exponent += 1
-        if not denominator:
-            raise Exception("divide by zero error")
-        while not denominator % 10:
-            denominator //= 10
-            exponent -= 1
-        while numerator % 1:
-            numerator *= 10
-            exponent -= 1
-        while denominator % 1:
-            denominator *= 10
-            exponent += 1
-        numerator, denominator = int(numerator), int(denominator)
-        a, b = numerator, denominator
-        if b > a:
-            a, b = b, a
-        while b:
-            a, b = b, a % b
-        numerator //= a
-        denominator //= a
-        # TODO: check gcd is actually gcd, i.e. check powers of 2 and 5
-        self.leaves = [numerator, denominator, exponent]
-        self.size = log10(max(1, abs(numerator / denominator))) + exponent
-        self.sign = 1 if numerator > 0 else -1 if numerator < 0 else 0
-        # TODO: make it create integer directly somehow
+            self.value = mpq(numerator, denominator)
         self.run = lambda precision: (
             Real(numerator, precision=(precision + 2) if precision else None) /
             Real(denominator, precision=(precision + 2) if precision else None)
         )
         if numerator == 0:
-            self.run = lambda precision=None: Integer(0)
+            self.run = lambda precision=None: Integer(0).run(precision)
         elif denominator == 1:
-            self.run = lambda precision=None: Integer(numerator, exponent)
+            self.run = lambda precision=None: Integer(numerator).run(precision)
+        # TODO: integer run will be no-op
 
     def __str__(self):
-        if self.leaves[0] == 0:
-            return "0"
-        if self.leaves[1] == 1:
-            return str(self.leaves[0] * 10 ** self.leaves[2])
-        return str(self.leaves[0]) + "/" + str(self.leaves[1])
+        return str(self.value)
 
     def __repr__(self):
-        return str(self)
+        return "Rational" + repr(self.value)[3:]
 
     def __add__(self, other):
         if isinstance(other, Symbolic):
             return SymbolicOperation(add, self, other)
-        if isinstance(other, Expression):
-            return other + self
+        if isinstance(other, Rational):
+            return Rational(self.value + other.value)
+        if isinstance(other, Real):
+            if other.exponent > 0:
+                return Rational(
+                    self.value + other.value * ten ** other.exponent
+                )
+            return Rational(
+                self.value + mpq(other.value, ten ** -other.exponent)
+            )
+        return other.__radd__(self)
+
+    def __radd__(self, other):
+        if isinstance(other, Real):
+            if other.exponent > 0:
+                return Rational(
+                    other.value * ten ** other.exponent + self.value
+                )
+            return Rational(
+                mpq(other.value, ten ** -other.exponent) + self.value
+            )
+        return other.__add__(self)
+
+    def __sub__(self, other):
+        if isinstance(other, Symbolic):
+            return SymbolicOperation(add, self, other)
+        if isinstance(other, Rational):
+            return Rational(self.value + other.value)
+        if isinstance(other, Real):
+            if other.exponent > 0:
+                return Rational(
+                    self.value - other.value * ten ** other.exponent
+                )
+            return Rational(
+                self.value - mpq(other.value, ten ** -other.exponent)
+            )
+        return other.__rsub__(self)
+
+    def __rsub__(self, other):
+        if isinstance(other, Real):
+            if other.exponent > 0:
+                return Rational(
+                    other.value * ten ** other.exponent - self.value
+                )
+            return Rational(
+                mpq(other.value, ten ** -other.exponent) - self.value
+            )
+        return other.__sub__(self)
 
     def __mul__(self, other):
         if isinstance(other, Symbolic):
             return SymbolicOperation(mul, self, other)
-        if isinstance(other, Expression):
-            return other * self
         if isinstance(other, Rational):
-            return Rational(
-                self.leaves[0] * other.leaves[0],
-                self.leaves[1] * other.leaves[1]
-            )
-        if isinstance(other, Real) and isinf(other.precision):
-            return Rational(
-                self.leaves[0] * other.leaves[0],
-                self.leaves[1],
-                self.leaves[2] + other.leaves[1]
-            )
+            return Rational(self.value * other.value)
+        if isinstance(other, Real):
+            if other.exponent > 0:
+                return Rational(
+                    self.value * other.value * ten ** other.exponent
+                )
+            return Rational(self.value * other.value / ten ** -other.exponent)
+        return other.__rmul__(self)
+
+    def __rmul__(self, other):
+        if isinstance(other, Real):
+            if other.exponent > 0:
+                return Rational(
+                    other.value * ten ** other.exponent * self.value
+                )
+            return Rational(other.value / ten ** -other.exponent * self.value)
+        return other.__mul__(self)
 
     def __truediv__(self, other):
         if isinstance(other, Symbolic):
             return SymbolicOperation(div, self, other)
-        if isinstance(other, Expression):
-            return Expression.__rtruediv__(other, self)
         if isinstance(other, Rational):
-            return Rational(
-                self.leaves[0] * other.leaves[1],
-                self.leaves[1] * other.leaves[0]
-            )
-        if isinstance(other, Real) and isinf(other.precision):
-            return Rational(
-                self.leaves[0],
-                self.leaves[1] * other.leaves[0],
-                self.leaves[2] - other.leaves[1]
-            )
+            return Rational(self.value / other.value)
+        if isinstance(other, Real):
+            if other.exponent > 0:
+                return Rational(
+                    self.value / other.value / ten ** other.exponent
+                )
+            return Rational(self.value * other.value / ten ** -other.exponent)
+        return other.__rtruediv__(self)
 
+    def __rtruediv__(self, other):
+        if isinstance(other, Real):
+            if other.exponent > 0:
+                return Rational(
+                    other.value * ten ** other.exponent / self.value
+                )
+            return Rational(
+                mpq(other.value) / ten ** -other.exponent / self.value
+            )
+        return other.__truediv__
+
+    def __pow__(self, other):
+        if isinstance(other, Symbolic):
+            return SymbolicOperation(pow, self, other)
+        if isinstance(other, Rational):
+            return Rational(self.value ** other.value)
+        if isinstance(other, Real):
+            if other.exponent > 0:
+                return Rational(
+                    self.value ** (other.value * ten ** other.exponent)
+                )
+            return Rational(
+                self.value ** (mpq(other.value) * ten ** -other.exponent)
+            )
+        return other.__rmul__(self)
+
+    def __rpow__(self, other):
+        if isinstance(other, Real):
+            if other.exponent > 0:
+                return Rational(
+                    (other.value * ten ** other.exponent) ** self.value
+                )
+            return Rational(
+                (mpq(other.value) * ten ** -other.exponent) ** self.value
+            )
+        return other.__mul__(self)
+
+    # TODO: non arbitrary precision
     def __int__(self):
-        return int(self.leaves[2] * self.leaves[0] / self.leaves[1])
+        return int(self.value)
 
     def __float__(self):
-        return float(self.leaves[2] * self.leaves[0] / self.leaves[1])
+        return float(self.value)
 
     def to_number(self):
-        return float(self.leaves[0]) * self.leaves[2] / self.leaves[1]
+        return (int if self.value.denominator == 1 else float)(self.value)
 
     def is_integer(self):
         return boolean(self.leaves[1] == 1)
@@ -1237,7 +853,7 @@ class Complex(Number):
         return str(self)
 
 
-class List(Expression):
+class List(WolframObject):
     # TODO: operators
     def __init__(self, *items):
         super().__init__(head=headify(List))
@@ -1275,14 +891,14 @@ class SymbolicList(List, Symbolic):
     pass
 
 
-class MixedRadix(Expression):
+class MixedRadix(WolframObject):
     # TODO: basic examples cf. Wolfram
     def __init__(self, list):
         super().__init__(head=headify(MixedRadix))
         self.leaves = [create_expression(list)]
 
 
-class String(Expression):
+class String(WolframObject):
     def __init__(self, value):
         super().__init__(head=headify(String))
         self.leaves = [value]
@@ -1314,7 +930,7 @@ class String(Expression):
             return List(*(other.leaves + self.leaves))
 
 
-class Rule(Expression):
+class Rule(WolframObject):
     def __init__(self, match, replacement):
         super().__init__(head=headify(Rule))
         self.leaves = [match, replacement]
@@ -1326,7 +942,7 @@ class Rule(Expression):
         return repr(self.leaves[0]) + "→" + repr(self.leaves[1])
 
 
-class DelayedRule(Expression):
+class DelayedRule(WolframObject):
     def __init__(self, match, replacement):
         super().__init__(head=headify(DelayedRule))
         self.leaves = [match, replacement]
@@ -1338,7 +954,7 @@ class DelayedRule(Expression):
         return repr(self.leaves[0]) + ":→" + repr(self.leaves[1])
 
 
-class Pattern(Expression):
+class Pattern(WolframObject):
     def __init__(self, regex):
         super().__init__(head=headify(Pattern))
         self.leaves = [regex]
@@ -1406,10 +1022,10 @@ WB = WordBoundary = Pattern(r"\b")
 # TODO: PatternTest (_ ? LetterQ)
 
 
-class RegularExpression(Pattern):
+class RegularWolframObject(Pattern):
     def __init__(self, regex):
         super().__init__(regex)
-        self.head = headify(RegularExpression)
+        self.head = headify(RegularWolframObject)
 
 
 class Repeated(Pattern):
@@ -1524,14 +1140,14 @@ class PatternTest(Pattern):
 # TODO: AlphabetData (from lazy ranges)
 
 
-class Span(Expression):
+class Span(WolframObject):
     __slots__ = ("head", "leaves", "process")
 
     def __init__(self, start=None, stop=None, step=None):
         super().__init__(head=headify(Span))
 
         def modify(number, iterable):
-            if isinstance(number, Expression):
+            if isinstance(number, WolframObject):
                 number = number.to_number()
             if number == 1:
                 return -len(iterable)
@@ -1665,7 +1281,7 @@ class Wolfram(object):
 
         def calculate_sqrt(n, precision):
             # TODO: there's too much precisions
-            if isinstance(precision, Expression):
+            if isinstance(precision, WolframObject):
                 precision = precision.to_number()
             precision = max(precision, 1)
             digits = int(log10(n) + 1) // 2
@@ -1715,25 +1331,25 @@ class Wolfram(object):
             #     for sublist in leaves[1]
             # ]
             # lookup = {}
-        if type(head) == type and issubclass(head, Expression):
+        if type(head) == type and issubclass(head, WolframObject):
             return leaves[0].head(*[
                 item
                 for element in leaves[0].leaves
                 for item in (
                     Wolfram.Flatten([element, n - 1] + leaves[2:]).leaves
                     if (
-                        isinstance(element, Expression) and
+                        isinstance(element, WolframObject) and
                         len(element.leaves) and correct_head(element)
                     ) else
                     [element]
                 )
             ])
-        return Expression(
+        return WolframObject(
             head, 
             [item for element in leaves[0].leaves for item in (
                 Wolfram.Flatten([element, n - 1] + leaves[2:]).leaves
                 if (
-                    isinstance(element, Expression) and
+                    isinstance(element, WolframObject) and
                     len(element.leaves) and correct_head(element)
                 ) else
                 [element]
@@ -2703,7 +2319,7 @@ V[LCDM]|L[CDM]", leaves[0].leaves[0]):
 
         def calculate_champerowne(precision, base=10):
             # TODO redo, it's not done at all
-            if isinstance(precision, Expression):
+            if isinstance(precision, WolframObject):
                 precision = precision.to_number()
             precision = max(precision - 1, 0)
             number = 0
@@ -2729,16 +2345,16 @@ V[LCDM]|L[CDM]", leaves[0].leaves[0]):
                 number // (10 * next_power), -precision, precision=precision
             )
 
-        return Expression(
+        return WolframObject(
             None, [],
             lambda precision=None: calculate_champerowne(precision, leaves[0])
-        ) if len(leaves) else Expression(
+        ) if len(leaves) else WolframObject(
             None, [], lambda precision=None: calculate_champerowne(precision)
         )
 
     # TODO: hide this function from scope
     def calculate_e(precision):
-        if isinstance(precision, Expression):
+        if isinstance(precision, WolframObject):
             precision = precision.to_number()
         precision = max(precision - 1, 0)
         number = 0
@@ -2762,14 +2378,14 @@ V[LCDM]|L[CDM]", leaves[0].leaves[0]):
             precision=precision
         )
 
-    E = Expression(
+    E = WolframObject(
         None, [], lambda precision=None: Wolfram.calculate_e(precision)
     )
 
     # From https://www.craig-wood.com/nick/pub/pymath/pi_chudnovsky_bs.py
 
     def calculate_pi(precision):
-        if isinstance(precision, Expression):
+        if isinstance(precision, WolframObject):
             precision = precision.to_number()
         precision = max(precision - 1, 0)
         # C = 640320,  C ** 3 // 24:
@@ -2815,7 +2431,7 @@ V[LCDM]|L[CDM]", leaves[0].leaves[0]):
         sqrtC = pi_sqrt(10005 * one, one)
         return Real((Q * 426880 * sqrtC) // T, -precision, precision=precision)
 
-    Pi = Expression(
+    Pi = WolframObject(
         None, [], lambda precision=None: Wolfram.calculate_pi(precision)
     )
 
@@ -2823,9 +2439,9 @@ V[LCDM]|L[CDM]", leaves[0].leaves[0]):
 
 
 def functionify(head, run=True):
-    return (lambda *leaves: Expression(head, [
-        leaf.run() if type(leaf) == Expression else leaf for leaf in leaves
-    ])) if run else (lambda *leaves: Expression(head, leaves))
+    return (lambda *leaves: WolframObject(head, [
+        leaf.run() if type(leaf) == WolframObject else leaf for leaf in leaves
+    ])) if run else (lambda *leaves: WolframObject(head, leaves))
 
 
 In = Integer
@@ -2835,7 +2451,7 @@ Sp = Span
 Pa = Pattern
 Rp = Repeated
 RN = RepeatedNull
-RE = RegularExpression
+RE = RegularWolframObject
 PT = PatternTest
 Sh = Shortest
 MR = MixedRadix

@@ -60,7 +60,7 @@ def H(item):
         item = float(item) if "." in item else int(item)
         return h(item)
     if hasattr(item, "__iter__"):
-        if isinstance(item[0], Expression):
+        if isinstance(item[0], WolframObject):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, H)
 
@@ -78,7 +78,7 @@ def B(item):
         item = float(item) if "." in item else int(item)
         return b(item)
     if hasattr(item, "__iter__"):
-        if isinstance(item[0], Expression):
+        if isinstance(item[0], WolframObject):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, B)
 
@@ -1076,7 +1076,7 @@ with a character automatically selected from -|/\\.
             )
 
         def simplify(string):
-            if isinstance(string, Expression):
+            if isinstance(string, WolframObject):
                 string = string.run()
                 string_type = type(string)
                 if (
@@ -1124,10 +1124,10 @@ with a character automatically selected from -|/\\.
         if (
             callable(string) and
             not isinstance(string, Whatever) and
-            not isinstance(string, SymbolicVariable)
+            not isinstance(string, Symbol)
         ):
             string = string()
-        if isinstance(string, Expression):
+        if isinstance(string, WolframObject):
             string = simplify(string)[0]
         if isinstance(string, float):
             string = int(string)
@@ -1594,7 +1594,7 @@ with the specified string, repeating it if needed.
         n_points = len(points)
         if isinstance(string, int) or isinstance(string, float):
             string = str(string)
-        if isinstance(string, Expression):
+        if isinstance(string, WolframObject):
             string = str(string.run(n_points))
         length = len(string)
         for i in range(len(points)):
@@ -2913,7 +2913,7 @@ or into a number if it was a string.
             return str(variable)
         if isinstance(variable, String):
             return int(str(variable) or "0")
-        if isinstance(variable, Expression):
+        if isinstance(variable, WolframObject):
             variable = variable.run()
             if isinstance(variable, String):
                 variable = str(variable)
@@ -2944,7 +2944,7 @@ or into a number if it was a string.
             return chr(int(variable))
         if isinstance(variable, String):
             return ord(str(variable) or "\000")
-        if isinstance(variable, Expression):
+        if isinstance(variable, WolframObject):
             return chr(int(variable.run()))
 
     def Random(self, variable=1):
@@ -2986,7 +2986,7 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
         if python_function:
             return python_function
         if re.match("[a-zA-Z_]+$", key):
-            return SymbolicVariable(key)
+            return Symbol(key)
         return whatever
 
     def Assign(self, value, key, value2=None):
@@ -3223,13 +3223,13 @@ whether the output wil be right-padded.
         If is_command is false, return the result.
 
         """
-        if type(code) == Expression:
+        if type(code) == WolframObject:
             code = code.run()
         code = str(code)
         if is_command:
             Run(code, charcoal=self)
             return
-        return Run(code, grammar=CT.Expression)
+        return Run(code, grammar=CT.WolframObject)
 
     def EvaluateVariable(self, name, arguments):
         """
@@ -3245,7 +3245,7 @@ arguments.
         if isinstance(name, String):
             name = str(name)
         result = None
-        if isinstance(name, Expression):
+        if isinstance(name, WolframObject):
             result = name.run()(*arguments)
         elif name in self.scope:
             result = self.scope[name](*arguments)
@@ -3258,7 +3258,7 @@ arguments.
             if python_function:
                 return python_function(*arguments)
             elif re.match("[a-zA-Z_]+$", name):
-                return SymbolicVariable(name)(arguments)
+                return Symbol(name)(arguments)
         self.charcoal = None
         return result
 
@@ -3273,7 +3273,7 @@ arguments.
         self.charcoal = self
         if isinstance(name, String):
             name = str(name)
-        if isinstance(name, Expression):
+        if isinstance(name, WolframObject):
             name.run()(*arguments)
         elif name in self.scope:
             self.scope[name](*arguments)
@@ -3534,7 +3534,7 @@ iterable, else it returns the iterable.
         If string_map is True, the iterable is turned into a string.
 
         """
-        if type(iterable) == Expression:
+        if type(iterable) == WolframObject:
             iterable = iterable.run()
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
@@ -3543,7 +3543,7 @@ iterable, else it returns the iterable.
         result = []
         if callable(iterable):
             iterable, function = function, iterable
-        if type(iterable) == Expression:
+        if type(iterable) == WolframObject:
             iterable = iterable.run()
         if isinstance(iterable, float):
             iterable = int(iterable)
@@ -3578,7 +3578,7 @@ iterable, else it returns the iterable.
 a function is truthy.
 
         """
-        if type(iterable) == Expression:
+        if type(iterable) == WolframObject:
             iterable = iterable.run()
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
@@ -3587,7 +3587,7 @@ a function is truthy.
         result = []
         if callable(iterable):
             iterable, function = function, iterable
-        if type(iterable) == Expression:
+        if type(iterable) == WolframObject:
             iterable = iterable.run()
         if isinstance(iterable, float):
             iterable = int(iterable)
@@ -3614,7 +3614,7 @@ a function is truthy.
 iterable.
 
         """
-        if type(iterable) == Expression:
+        if type(iterable) == WolframObject:
             iterable = iterable.run()
         result = 1
         self.scope = Scope(self.scope)
@@ -3638,7 +3638,7 @@ iterable.
 iterable.
 
         """
-        if type(iterable) == Expression:
+        if type(iterable) == WolframObject:
             iterable = iterable.run()
         result = 0
         self.scope = Scope(self.scope)
@@ -3659,9 +3659,9 @@ iterable.
             left = str(left)
         if isinstance(right, String):
             right = str(right)
-        if type(left) == Expression:
+        if type(left) == WolframObject:
             left = left.run()
-        if type(right) == Expression:
+        if type(right) == WolframObject:
             right = right.run()
         left_type = type(left)
         right_type = type(right)
@@ -3688,9 +3688,9 @@ iterable.
             left = str(left)
         if isinstance(right, String):
             right = str(right)
-        if type(left) == Expression:
+        if type(left) == WolframObject:
             left = left.run()
-        if type(right) == Expression:
+        if type(right) == WolframObject:
             right = right.run()
         left_type = type(left)
         right_type = type(right)
@@ -3730,13 +3730,13 @@ iterable.
             left = str(left)
         if isinstance(right, String):
             right = str(right)
-        if type(left) == Expression:
+        if type(left) == WolframObject:
             left = left.run()
-        if type(right) == Expression:
+        if type(right) == WolframObject:
             right = right.run()
-        if isinstance(left, Expression) and not isinstance(right, Expression):
+        if isinstance(left, WolframObject) and not isinstance(right, WolframObject):
             right = create_expression(right)
-        if isinstance(right, Expression) and not isinstance(left, Expression):
+        if isinstance(right, WolframObject) and not isinstance(left, WolframObject):
             left = create_expression(left)
         if (
             isinstance(left, List) and
@@ -3785,9 +3785,9 @@ iterable.
             left = str(left)
         if isinstance(right, String):
             right = str(right)
-        if type(left) == Expression:
+        if type(left) == WolframObject:
             left = left.run()
-        if type(right) == Expression:
+        if type(right) == WolframObject:
             right = right.run()
         left_type = type(left)
         right_type = type(right)
@@ -3911,7 +3911,7 @@ SuperscriptToNormal = {
 }
 
 
-def ParseExpression(
+def ParseWolframObject(
     code,
     index=0,
     grammar=CT.Program,
@@ -3920,7 +3920,7 @@ def ParseExpression(
     verbose=False
 ):
     """
-    ParseExpression(code, index=0, grammar=CT.Program, \
+    ParseWolframObject(code, index=0, grammar=CT.Program, \
 grammars=UnicodeGrammars, processor=ASTProcessor, verbose=False) -> Any
 
     Parse the given code starting from the given index, \
@@ -4050,7 +4050,7 @@ abcdefghijklmnopqrstuvwxyz"
                             success = False
                             break
                     else:
-                        result = ParseExpression(
+                        result = ParseWolframObject(
                             code, index, token, grammars, processor, verbose
                         )
                         if not result:
@@ -4175,7 +4175,7 @@ abcdefghijklmnopqrstuvwxyz"
                             success = False
                             break
                     else:
-                        result = ParseExpression(
+                        result = ParseWolframObject(
                             code, index, token, grammars, processor, verbose
                         )
                         if not result:
@@ -4303,7 +4303,7 @@ symbols they represent.
             code
         )
     if verbose:
-        parsed = ParseExpression(
+        parsed = ParseWolframObject(
             code, 0, grammar, VerboseGrammars, StringifierProcessor, True
         )
         if parsed[1] is False and not silent:
@@ -4316,7 +4316,7 @@ symbols they represent.
             sys.exit(1)
     elif grave:
         code = Degrave(code)
-    result = ParseExpression(code, 0, grammar, grammars, processor)
+    result = ParseWolframObject(code, 0, grammar, grammars, processor)
     if not result:
         return result
     if result[1] is False and not silent:
@@ -4812,7 +4812,7 @@ non-raw file input and file output."""
             "\n", "¶", rCommand.sub(r"´\1", result[0])
         )]
     if argv.verbose or argv.deverbosify:
-        code = ParseExpression(
+        code = ParseWolframObject(
             code, grammars=VerboseGrammars, processor=StringifierProcessor,
             verbose=True
         )[0]
@@ -4878,6 +4878,7 @@ non-raw file input and file output."""
         ["-v", "--sl"] if argv.verbose else []
     )
 ))
+            sys.exit()
         else:
             print(
                 "Charcoal, %i bytes: `%s`" % (length, re.sub("`", "\`", code))
@@ -4917,7 +4918,7 @@ Parse trace:
             try:
                 code = old_input(prompt)
                 if argv.verbose:
-                    code = StringifyCode(ParseExpression(
+                    code = StringifyCode(ParseWolframObject(
                         code, grammars=VerboseGrammars,
                         processor=StringifierProcessor, verbose=True
                     )[0])

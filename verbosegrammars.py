@@ -393,7 +393,7 @@ VerboseGrammars = {
         ["execvar", CT.LP, CT.Expression, CT.Expression, CT.RP, CT.S],
         [
             "MapAssignLeft", CT.LP, CT.Binary, CT.S, CT.Expression,
-            CT.Name, CT.RP
+            CT.Name, CT.RP, CT.S
         ],
         [
             "MapAssignRight", CT.LP, CT.Binary, CT.S, CT.Expression,
