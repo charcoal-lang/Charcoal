@@ -1613,7 +1613,7 @@ with the specified string, repeating it if needed.
             character = string[i % length]
             if character != "\000":
                 self.Put(character)
-        self.x, self.y = x0, x0
+        self.x, self.y = x0, y0
         if Info.step_canvas in self.info:
             self.RefreshFastText("Fill", self.canvas_step)
         elif Info.dump_canvas in self.info:
