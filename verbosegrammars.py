@@ -150,7 +150,7 @@ VerboseGrammars = {
     ],
     CT.ExpressionOrEOF: [
         [CT.Expression],
-        [CT.EOF]
+        []
     ],
     CT.Nilary: [
         ["InputString"], ["InputNumber"], ["Input"], ["Random"], ["rand"],
