@@ -99,8 +99,8 @@ StringifierProcessor = {
         lambda r: r[0],
         lambda r: [("l", "")] + r[0],
         lambda r: [("m", ""), ("<", "⟦")] + r[1] + [(">", "⟧")] + r[3],
-        lambda r: [("d", "")] + r[0] + r[1],
         lambda r: [("f", ""), ("<", "«")] + r[1] +  [(">", "»")] + r[3],
+        lambda r: [("d", "")] + r[0] + r[1],
         lambda r: r[0] + r[1],
         lambda r: r[0][:1] + r[2] + r[3] + r[4] + r[5] + r[0][1:],
         lambda r: r[0][:1] + r[2] + r[3] + r[4] + r[5] + r[0][1:],
@@ -173,6 +173,7 @@ StringifierProcessor = {
     ] + [lambda r: [("o", "▷" )] + r[2] + [("!", "e")]] * 2,
 
     CT.Program: [lambda r: r[0] + r[1], lambda r: []],
+    CT.NonEmptyProgram: [lambda r: r[0] + r[1], lambda r: r[0]],
     CT.Body: [
         lambda r: [("<", "«")] + r[1] + [(">", "»")],
         lambda r: r[0],

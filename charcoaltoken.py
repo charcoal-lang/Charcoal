@@ -34,6 +34,7 @@ CharcoalTokenNames = [
     "Dictionary",
 
     "Program",
+    "NonEmptyProgram",
     "Body",
     "Command",
 

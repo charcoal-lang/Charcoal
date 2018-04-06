@@ -164,6 +164,7 @@ UnicodeGrammars = {
     ],
 
     CT.Program: [[CT.Command, CT.S, CT.Program], []],
+    CT.NonEmptyProgram: [[CT.Command, CT.S, CT.Program], [CT.Command]],
     CT.Body: [
         ["«", CT.Program, "»"],
         ["«", CT.Program, CT.EOF],

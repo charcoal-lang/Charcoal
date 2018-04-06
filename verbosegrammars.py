@@ -91,8 +91,8 @@ VerboseGrammars = {
         [CT.Name, CT.S],
         [CT.List, CT.S],
         ["[", CT.Multidirectional, "]", CT.S],
-        [CT.Dictionary, CT.S],
         ["{", CT.Program, "}", CT.S],
+        [CT.Dictionary, CT.S],
         [CT.OtherOperator, CT.S],
         [
             CT.LazyQuarternary, CT.LP, CT.Expression, CT.Expression,
@@ -205,6 +205,7 @@ VerboseGrammars = {
         ["evalvar", CT.LP, CT.Expression, CT.RP]
     ],
     CT.Program: [[CT.Command, CT.Program], []],
+    CT.NonEmptyProgram: [[CT.Command, CT.Program], [CT.Command]],
     CT.Body: [["{", CT.Program, "}"], [CT.Command]],
     CT.Command: [
         ["InputString", CT.LP, CT.Name, CT.RP, CT.S],

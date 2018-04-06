@@ -674,6 +674,10 @@ InterpreterProcessor = {
         lambda r: lambda c: ((r[0](c) or True) and r[2](c)),
         lambda r: lambda c: None
     ],
+    CT.NonEmptyProgram: [
+        lambda r: lambda c: ((r[0](c) or True) and r[2](c)),
+        lambda r: lambda c: r[0](c)
+    ],
     CT.Body: [
         lambda r: lambda c: r[1](c),
         lambda r: lambda c: r[1](c),

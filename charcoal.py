@@ -472,9 +472,9 @@ class Cells(list):
             start = i.start or 0
             stop = len(self) if i.stop is None else i.stop
             for i in range(start, stop):
-                self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
+                self.charcoal.Put(self[i], self.xs[i], self.ys[i])
             return
-        self.charcoal.PutAt(self[i], self.xs[i], self.ys[i])
+        self.charcoal.Put(self[i], self.xs[i], self.ys[i])
 
     def __getitem__(self, i):
         if isinstance(i, slice):
@@ -805,62 +805,44 @@ an object on which all canvas drawing methods exist.
 
     def HasCharAt(self, x, y):
         """
-        Get() -> str
+        HasCharAt() -> bool
 
-        Returns value of cell under cursor.
+        Returns whether there is a cell under the cursor
 
         """
-        x0, y0, self.x, self.y = self.x, self.y, x, y
-        y_index = self.y - self.top
+        y_index = y - self.top
         result = True
         if (
             y_index < len(self.lines) and
             y_index >= 0 and
-            self.x - self.indices[y_index] < self.lengths[y_index] and
-            self.x - self.indices[y_index] >= 0
+            x - self.indices[y_index] < self.lengths[y_index] and
+            x - self.indices[y_index] >= 0
         ):
             result = (
-                self.lines[y_index][self.x - self.indices[y_index]] != "\000"
+                self.lines[y_index][x - self.indices[y_index]] != "\000"
             )
-        self.x, self.y = x0, y0
         return result
 
-    def PutAt(self, string, x, y):
+    def Put(self, string, x=None, y=None):
         """
-        PutAt(string, x, y)
+        Put(string, x=None, y=None)
 
-        Put string at position x, y.
-
-        """
-        initial_x = self.x
-        initial_y = self.y
-        self.x = x
-        self.y = y
-        self.Put(string)
-        self.x = initial_x
-        self.y = initial_y
-
-    def Put(self, string):
-        """
-        Put()
-
-        Put string at cursor position.
+        Put string at position x, y. Defaults to cursor position.
 
         """
-        y_index = self.y - self.top
-        line = self.lines[y_index]
-        delta_index = len(re.match("^\000*", line).group())
-        self.indices[y_index] += delta_index
+        x = self.x if x is None else x
+        y = self.y if y is None else y
+        y_index = y - self.top
         x_index = self.indices[y_index]
-        line = re.sub("\000+$", "", line[delta_index:])
+        line = self.lines[y_index]
         if not line:
             length = len(string)
             self.lines[y_index] = string
-            self.indices[y_index] = self.x
+            self.indices[y_index] = x
             self.lengths[y_index] = length
-            self.right_indices[y_index] = self.x + length
+            self.right_indices[y_index] = x + length
             return
-        start = self.x - x_index
+        start = x - x_index
         end = start + len(string)
         if start - len(line) > 0 or end < 0:
             self.background_inside = True
@@ -871,10 +853,12 @@ an object on which all canvas drawing methods exist.
             "\000" * -end +
             line[max(0, end):]
         )
+        if "\000" in self.lines[y_index]:
+            self.background_inside = True
         if start - len(line) > 0 or -end > 0:
             self.background_inside = True
-        if self.x < x_index:
-            self.indices[y_index] = self.x
+        if x < x_index:
+            self.indices[y_index] = x
         length = len(self.lines[y_index])
         self.lengths[y_index] = length
         self.right_indices[y_index] = self.indices[y_index] + length
@@ -1017,7 +1001,7 @@ be added to the list of coordinates.
             ):
                 if (
                     self.y < self.top or self.y > (self.top + len(self.lines))
-                ) and re.match("\000*$", string):
+                ) and not string:
                     continue
                 self.FillLines()
                 final = (string * (length // len(string) + 1))[:length]
@@ -1040,7 +1024,7 @@ be added to the list of coordinates.
                         coordinates.Add(self.x, self.y)
                     self.FillLines()
                     current = self.Get()
-                    if overwrite or not current or current == "\x00":
+                    if overwrite or not current or current == "\000":
                         self.Put(character)
                     self.Move(direction)
                 if not move_at_end:
@@ -3383,7 +3367,7 @@ and vertical rows between rows.
         horizontal, vertical = int(horizontal) + 1, int(vertical) + 1
         if horizontal:
             self.background_inside = True
-            joiner = "\x00" * (horizontal - 1)
+            joiner = "\000" * (horizontal - 1)
             self.lines = [joiner.join(line) for line in self.lines]
             self.lengths = [
                 (length - 1) * horizontal + 1 for length in self.lengths
@@ -3483,7 +3467,7 @@ in the specified direction from the cursor.
         for i in range(len(self.lines)):
             line, x = self.lines[i], self.indices[i]
             for character in line:
-                if character == "\x00":
+                if character == "\000":
                     x += 1
                     continue
                 result += [character]
