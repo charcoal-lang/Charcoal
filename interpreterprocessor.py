@@ -608,7 +608,7 @@ InterpreterProcessor = {
         )(
             (left[right] if right in left else None)
             if isinstance(left, dict) else
-            left[right % len(left)]
+            left[int(right) % len(left)]
             if isinstance(left, list) or isinstance(left, str) else
             (
                 getattr(left, right)
@@ -635,8 +635,8 @@ InterpreterProcessor = {
             if isinstance(left, str) else
             ListFind(left, right)
         ),
-        lambda r: lambda left, right, c: " " * (right - len(left)) + left,
-        lambda r: lambda left, right, c: left + " " * (right - len(left)),
+        lambda r: lambda left, right, c: " " * (int(right) - len(left)) + left,
+        lambda r: lambda left, right, c: left + " " * (int(right) - len(left)),
         lambda r: lambda left, right, c: left.count(right),
         lambda r: lambda left, right, c: Rule(left, right),
         lambda r: lambda left, right, c: DelayedRule(left, right),

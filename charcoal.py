@@ -3558,7 +3558,7 @@ iterable, else it returns the iterable.
                 print(str(self))
         if not is_command:
             if isinstance(iterable, str):
-                return "".join(result) if string_map else result
+                return "".join(map(str, result)) if string_map else result
             try:
                 return type(iterable)(result)
             except:
