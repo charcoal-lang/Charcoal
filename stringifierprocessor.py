@@ -6,14 +6,14 @@ import re
 
 def string(s):
     if s == "":
-        return "ω"
+        return [("v", "ω")]
     if s == "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-        return "α"
+        return [("v", "α")]
     if s == "abcdefghijklmnopqrstuvwxyz":
-        return "β"
+        return [("v", "β")]
     if s == " !\"#$%&'()*+,-./0123456789:;<=>?@\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~":
-        return "γ"
+        return [("v", "γ")]
     s = Compressed(s.replace("\n", "¶").replace("\r", "⸿"), True)
     if s[0] != "“" and s[0] != "”":
         return [("s", s), ("!", "s")]
