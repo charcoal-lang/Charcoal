@@ -356,9 +356,9 @@ class Coordinates(object):
 class Scope(object):
     __slots__ = ("parent", "lookup")
 
-    def __init__(self, parent={}):
-        self.parent = parent
-        self.lookup = {}
+    def __init__(self, parent=None, lookup=None):
+        self.parent = parent or {}
+        self.lookup = lookup or {}
 
     def __contains__(self, key):
         return key in self.parent or key in self.lookup
@@ -492,24 +492,14 @@ class Cells(list):
 class Charcoal(object):
     __slots__ = (
         "x", "y", "top", "lines", "indices", "lengths", "right_indices",
-        "scope", "info", "original_input", "inputs", "original_inputs",
-        "all_inputs", "hidden", "direction", "background", "bg_lines",
+        "top_scope", "scope", "info", "original_input", "inputs",
+        "original_inputs", "all_inputs", "direction", "background", "bg_lines",
         "bg_line_number", "bg_line_length", "timeout_end", "dump_timeout_end",
         "background_inside", "trim", "print_at_end", "canvas_step",
         "last_printed", "charcoal"
     )
 
-    secret = {
-        "γ": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
-        "β": "abcdefghijklmnopqrstuvwxyz",
-        "α": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        "ω": "",
-        "ψ": "\000",
-        "χ": 10,
-        "φ": 1000,
-        "υ": []
-    }
+    secret = {}
     for key in dir(builtins):
         if key[0] != "_":
             secret[key] = getattr(builtins, key)
@@ -551,19 +541,27 @@ an object on which all canvas drawing methods exist.
         self.indices = [0]
         self.lengths = [0]
         self.right_indices = [0]
-        self.scope = Scope()
         self.info = info
         self.original_input = original_input
         self.inputs = inputs
         self.original_inputs = inputs[:]
         self.all_inputs = inputs + [Whatever()] * (5 - len(inputs))
-        self.hidden = {
+        self.top_scope = self.scope = Scope(lookup={
+            "γ": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+            "β": "abcdefghijklmnopqrstuvwxyz",
+            "α": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "ω": "",
+            "ψ": "\000",
+            "χ": 10,
+            "φ": 1000,
+            "υ": [],
             "θ": self.all_inputs[0],
             "η": self.all_inputs[1],
             "ζ": self.all_inputs[2],
             "ε": self.all_inputs[3],
             "δ": self.all_inputs[4]
-        }
+        })
         self.direction = Direction.right
         self.background = " "
         self.bg_lines = []
@@ -695,11 +693,16 @@ an object on which all canvas drawing methods exist.
         self.original_inputs += inputs
         self.inputs = self.original_inputs[:]
         self.all_inputs = self.inputs + [Whatever()] * (5 - len(self.inputs))
-        self.hidden["θ"] = self.all_inputs[0]
-        self.hidden["η"] = self.all_inputs[1]
-        self.hidden["ζ"] = self.all_inputs[2]
-        self.hidden["ε"] = self.all_inputs[3]
-        self.hidden["δ"] = self.all_inputs[4]
+        if type(self.top_scope["θ"]) == Whatever:
+            self.top_scope["θ"] = self.all_inputs[0]
+        if type(self.top_scope["η"]) == Whatever:
+            self.top_scope["η"] = self.all_inputs[1]
+        if type(self.top_scope["ζ"]) == Whatever:
+            self.top_scope["ζ"] = self.all_inputs[2]
+        if type(self.top_scope["ε"]) == Whatever:
+            self.top_scope["ε"] = self.all_inputs[3]
+        if type(self.top_scope["δ"]) == Whatever:
+            self.top_scope["δ"] = self.all_inputs[4]
 
     def ClearInputs(self):
         """
@@ -711,11 +714,16 @@ an object on which all canvas drawing methods exist.
         self.inputs = []
         self.original_inputs = []
         self.all_inputs = [Whatever()] * 5
-        self.hidden["θ"] = ""
-        self.hidden["η"] = ""
-        self.hidden["ζ"] = ""
-        self.hidden["ε"] = ""
-        self.hidden["δ"] = ""
+        if self.top_scope["θ"] == self.all_inputs[0]:
+            self.top_scope["θ"] = Whatever()
+        if self.top_scope["η"] == self.all_inputs[1]:
+            self.top_scope["η"] = Whatever()
+        if self.top_scope["ζ"] == self.all_inputs[2]:
+            self.top_scope["ζ"] = Whatever()
+        if self.top_scope["ε"] == self.all_inputs[3]:
+            self.top_scope["ε"] = Whatever()
+        if self.top_scope["δ"] == self.all_inputs[4]:
+            self.top_scope["δ"] = Whatever()
 
     def Trim(self):
         """
@@ -766,9 +774,22 @@ an object on which all canvas drawing methods exist.
         self.indices = [0]
         self.lengths = [0]
         self.right_indices = [0]
-        if not all:
-            return
-        self.scope = Scope()
+        self.top_scope = self.scope = Scope(lookup={
+            "γ": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+            "β": "abcdefghijklmnopqrstuvwxyz",
+            "α": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "ω": "",
+            "ψ": "\000",
+            "χ": 10,
+            "φ": 1000,
+            "υ": [],
+            "θ": self.all_inputs[0],
+            "η": self.all_inputs[1],
+            "ζ": self.all_inputs[2],
+            "ε": self.all_inputs[3],
+            "δ": self.all_inputs[4]
+        })
         self.inputs = self.original_inputs[:]
         self.direction = Direction.right
         self.background = " "
@@ -2971,9 +2992,7 @@ Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
             index = "θηζεδ".index(key) + 1
             while len(self.original_inputs) < index:
                 self.InputString()
-            return self.hidden[key]
-        if key in self.hidden:
-            return self.hidden[key]
+            return self.scope[key]
         if key in Charcoal.secret:
             return Charcoal.secret[key]
         python_function = GetPythonFunction(key)
@@ -3070,11 +3089,16 @@ else set the variable with the given name to the given value.
                 self.all_inputs = self.original_inputs + [Whatever()] * (
                     5 - len(self.original_inputs)
                 )
-                self.hidden["θ"] = self.all_inputs[0]
-                self.hidden["η"] = self.all_inputs[1]
-                self.hidden["ζ"] = self.all_inputs[2]
-                self.hidden["ε"] = self.all_inputs[3]
-                self.hidden["δ"] = self.all_inputs[4]
+                if type(self.top_scope["θ"]) == Whatever:
+                    self.top_scope["θ"] = self.all_inputs[0]
+                if type(self.top_scope["η"]) == Whatever:
+                    self.top_scope["η"] = self.all_inputs[1]
+                if type(self.top_scope["ζ"]) == Whatever:
+                    self.top_scope["ζ"] = self.all_inputs[2]
+                if type(self.top_scope["ε"]) == Whatever:
+                    self.top_scope["ε"] = self.all_inputs[3]
+                if type(self.top_scope["δ"]) == Whatever:
+                    self.top_scope["δ"] = self.all_inputs[4]
         if key:
             self.scope[key] = result
         else:
@@ -3243,8 +3267,6 @@ arguments.
             result = name.run()(*arguments)
         elif name in self.scope:
             result = self.scope[name](*arguments)
-        elif name in self.hidden:
-            result = self.hidden[name](*arguments)
         elif name in Charcoal.secret:
             result = Charcoal.secret[name](*arguments)
         else:
@@ -3271,8 +3293,6 @@ arguments.
             name.run()(*arguments)
         elif name in self.scope:
             self.scope[name](*arguments)
-        elif name in self.hidden:
-            self.hidden[name](*arguments)
         elif name in Charcoal.secret:
             Charcoal.secret[name](*arguments)
         else:
