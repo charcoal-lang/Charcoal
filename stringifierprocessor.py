@@ -133,7 +133,7 @@ StringifierProcessor = {
 ΣΠ⊕⊕⊖⊖⊗⊗⊘⊘₂₂"[i])])(i)
         for i in range(45)
     ] + [
-        lambda r: [("o", "✂"), ("!", "e")],
+        lambda r: [("o", "✂"), ("!", "e"), ("!", "e")],
         lambda r: [("o", "…")],
         lambda r: [("o", "…·")],
         lambda r: [("o", "ＵＶ")],
@@ -154,9 +154,9 @@ StringifierProcessor = {
         (lambda i: lambda r: [("o", "⌕◧◨№➙⧴？⍘↨"[i])])(i)
         for i in range(9)
     ] + [
-        lambda r: [("o", "✂"), ("!", "e")]
+        lambda r: [("o", "✂"), ("!", "e"), ("!", "e"), ("!", "e")]
     ],
-    CT.Ternary: [lambda r: [("o", "✂"), ("!", "e")]],
+    CT.Ternary: [lambda r: [("o", "✂"), ("!", "e"), ("!", "e")]],
     CT.Quarternary: [lambda r: [("o", "✂")]],
     CT.LazyUnary: [],
     CT.LazyBinary: [
