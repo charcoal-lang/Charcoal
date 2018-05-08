@@ -4891,12 +4891,19 @@ non-raw file input and file output."""
     TIOEncode(
         verbose if argv.verbose else code,
         argv.input,
-        ["-v", "--sl"] if argv.verbose else []
+        ["-vl"] if argv.verbose else []
     )
 ))
         else:
             print(
-                "Charcoal, %i bytes: `%s`" % (length, re.sub("`", "\`", code))
+                "Charcoal, %i bytes: [`%s`](%s)" % (
+                    length, re.sub("`", "\`", code),
+                    TIOEncode(
+                        verbose if argv.verbose else code,
+                        argv.input,
+                        ["-vl"] if argv.verbose else []
+                    )
+                )
             )
     if argv.hexdump:
         print_xxd(code)
