@@ -4535,9 +4535,9 @@ def TIOEncode(code, inp=None, args=None):
             state += sep + bytes([])
         for arg in args:
             state += sep + bytes(arg, "utf-8")
-    return "https://tio.run/##" + base64.urlsafe_b64encode(
+    return "https://tio.run/##" + base64.b64encode(
         zlib.compress(state, 9)[2:-4]
-    ).decode("ascii").replace("=", "")
+    ).decode("ascii").replace("+", "@").replace("=", "")
 
 
 def AddAmbiguityWarnings():
