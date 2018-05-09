@@ -4762,7 +4762,6 @@ non-raw file input and file output."""
         info.add(Info.prompt)
         info.add(Info.is_repl)
     code = argv.code
-    verbose = code
     if argv.file:
         openfile = openl1 if argv.normalencoding or argv.decode else open
         if os.path.isfile(argv.file):
@@ -4788,6 +4787,7 @@ non-raw file input and file output."""
                 "FileNotFoundError: The specified Charcoal file was not found."
             )
             sys.exit(1)
+    verbose = code
     if argv.rawinputfile:
         with open(argv.rawinputfile) as file:
             argv.input = [file.read()] + argv.input
@@ -4888,21 +4888,13 @@ non-raw file input and file output."""
 [Charcoal]: https://github.com/somebody1234/Charcoal
 [TIO-%s]: %s""" % (
     length, "" if len(code) == 1 else "s", code, nonce, nonce,
-    TIOEncode(
-        verbose if argv.verbose else code,
-        argv.input,
-        ["-vl"] if argv.verbose else []
-    )
+    TIOEncode(verbose, argv.input, sys.argv[4:])
 ))
         else:
             print(
                 "Charcoal, %i bytes: [`%s`](%s)" % (
                     length, re.sub("`", "\`", code),
-                    TIOEncode(
-                        verbose if argv.verbose else code,
-                        argv.input,
-                        ["-vl"] if argv.verbose else []
-                    )
+                    TIOEncode(verbose, argv.input, sys.argv[4:])
                 )
             )
     if argv.hexdump:
