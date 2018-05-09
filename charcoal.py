@@ -4891,7 +4891,10 @@ non-raw file input and file output."""
     TIOEncode(verbose, argv.input, sys.argv[4:])
 ))
         else:
-            print(
+            print("Charcoal, %i bytes: `%s`" % (
+                length, re.sub("`", "\`", code)
+            ))
+            sys.stderr.write(
                 "Charcoal, %i bytes: [`%s`](%s)" % (
                     length, re.sub("`", "\`", code),
                     TIOEncode(verbose, argv.input, sys.argv[4:])
