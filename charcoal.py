@@ -1633,9 +1633,9 @@ with the specified string, repeating it if needed.
 in the specified direction.
 
         """
-        if isinstance(direction, float):
+        if isinstance(direction, float) or isinstance(direction, str):
             direction = int(direction)
-        if isinstance(length, float):
+        if isinstance(length, float) or isinstance(length, str):
             length = int(length)
         if isinstance(direction, int):
             self.x += direction
