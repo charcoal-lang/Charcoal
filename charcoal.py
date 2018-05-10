@@ -779,23 +779,24 @@ an object on which all canvas drawing methods exist.
         self.indices = [0]
         self.lengths = [0]
         self.right_indices = [0]
-        self.top_scope = self.scope = Scope(lookup={
-            "γ": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
-            "β": "abcdefghijklmnopqrstuvwxyz",
-            "α": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "ω": "",
-            "ψ": "\000",
-            "χ": 10,
-            "φ": 1000,
-            "υ": [],
-            "θ": self.all_inputs[0],
-            "η": self.all_inputs[1],
-            "ζ": self.all_inputs[2],
-            "ε": self.all_inputs[3],
-            "δ": self.all_inputs[4]
-        })
-        self.inputs = self.original_inputs[:]
+        if all:
+            self.top_scope = self.scope = Scope(lookup={
+                "γ": " !\"#$%&'()*+,-./0123456789:;<=>?@\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+                "β": "abcdefghijklmnopqrstuvwxyz",
+                "α": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                "ω": "",
+                "ψ": "\000",
+                "χ": 10,
+                "φ": 1000,
+                "υ": [],
+                "θ": self.all_inputs[0],
+                "η": self.all_inputs[1],
+                "ζ": self.all_inputs[2],
+                "ε": self.all_inputs[3],
+                "δ": self.all_inputs[4]
+            })
+            self.inputs = self.original_inputs[:]
         self.direction = Direction.right
         self.background = " "
         self.bg_lines = []
