@@ -82,6 +82,11 @@ def B(item):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, B)
 
+
+def warn(s):
+    sys.stderr.write(s + "\n")
+
+
 imports = {}
 python_function_is_command = {}
 
@@ -4346,14 +4351,14 @@ symbols they represent.
 
 def PrintParseTrace(trace):
     if not isinstance(trace, list):
-        print("Parsing failed")
+        warn("Parsing failed")
     else:
-        print("""\
+        warn("""\
 Parsing failed, parse trace:
 %s""" % ("\n".join(trace)))
 
 
-def PrintTree(tree, padding=""):
+def PrintTree(tree, padding="", print=warn):
     """
     PrintTree(tree, padding="")
 
@@ -4369,7 +4374,7 @@ name is not.
         for item in tree[1:-1]:
             if isinstance(item, list):
                 print(new_padding + item[0])
-                PrintTree(item, new_padding)
+                PrintTree(item, new_padding, print)
             else:
                 if isinstance(item, str):
                     print(new_padding + repr(item)[1:-1])
@@ -4379,7 +4384,7 @@ name is not.
         item = tree[-1]
         if isinstance(item, list):
             print(new_padding + item[0])
-            PrintTree(item, new_padding)
+            PrintTree(item, new_padding, print)
         else:
             if isinstance(item, str):
                 print(new_padding + repr(item)[1:-1])
@@ -4836,21 +4841,21 @@ non-raw file input and file output."""
             isinstance(code, list) and len(code) and
             not isinstance(code[0], tuple)
         ):
-            print(code)
+            warn(code)
             PrintParseTrace(code)
             sys.exit(1)
         code = StringifyCode(code)
         if argv.deverbosify:
-            print(code)
+            warn(code)
     if argv.grave or argv.degrave:
         code = Degrave(code)
         if argv.degrave:
-            print(code)
+            warn(code)
     elif argv.normalencoding or argv.decode:
         code = Decode(code)
         argv.normalencoding = False
         if argv.decode:
-            print(code)
+            warn(code)
     if argv.tioencode:
         print(TIOEncode("code"))
     if argv.showlength or argv.ppcg:
@@ -4878,7 +4883,7 @@ non-raw file input and file output."""
                     n //= 36
                 return r
             nonce = b36(int(now()*1000))
-            print("""\
+            warn("""\
 [Charcoal], %s byte%s
 
     %s
@@ -4891,10 +4896,7 @@ non-raw file input and file output."""
     TIOEncode(verbose, argv.input, sys.argv[4:])
 ))
         else:
-            print("Charcoal, %i bytes: `%s`" % (
-                length, re.sub("`", "\`", code)
-            ))
-            sys.stderr.write(
+            warn(
                 "Charcoal, %i bytes: [`%s`](%s)" % (
                     length, re.sub("`", "\`", code),
                     TIOEncode(verbose, argv.input, sys.argv[4:])
@@ -4904,13 +4906,13 @@ non-raw file input and file output."""
         print_xxd(code)
         sys.exit()
     if argv.astify or argv.onlyastify and not argv.repl:
-        print("Program")
+        warn("Program")
         result = Parse(
             code, whitespace=argv.whitespace,
             normal_encoding=argv.normalencoding
         )
         if isinstance(result[0], CT):
-            print("""\
+            warn("""\
 Parsing failed, parsed:
 %s
 
@@ -4946,7 +4948,7 @@ Parse trace:
                     PrintTree(Parse(
                         code, whitespace=argv.whitespace,
                         normal_encoding=argv.normalencoding
-                    ))
+                    ), print=print)
                 print(Run(
                     code, (argv.input or [""])[0], charcoal=global_charcoal,
                     whitespace=argv.whitespace,
