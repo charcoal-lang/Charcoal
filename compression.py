@@ -131,7 +131,7 @@ using run-length encoding.
     """
     number, previous, count = 1, string[0], -1
     for character in string:
-        if character != previous or count == 32:
+        if character != previous or count == 31:
             number = number * 97 + default_charset.index(previous)
             number = number * 32 + count
             count = 0
