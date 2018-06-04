@@ -858,6 +858,10 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
 
         """
         x = self.x if x is None else x
+        if y is not None:
+            original_y, self.y = self.y, y
+            self.FillLines()
+            self.y = original_y
         y = self.y if y is None else y
         y_index = y - self.top
         x_index = self.indices[y_index]
@@ -2968,7 +2972,7 @@ or into a number if it was a string.
         if isinstance(variable, Expression):
             return chr(int(variable.run()))
 
-    def Random(self, variable=1):
+    def Random(self, variable=2):
         """
         Random(variable=1)
 
@@ -2978,7 +2982,7 @@ if variable is a number, else returns a random item in variable.
         """
         if variable == 1 and Info.warn_ambiguities in self.info:
             print("""\
-Warning: Possible ambiguity, make sure you explicitly use 1 if needed""")
+Warning: Possible ambiguity, make sure you explicitly use 2 if needed""")
         if isinstance(variable, float):
             variable = int(variable)
         if isinstance(variable, int):
@@ -3727,14 +3731,15 @@ iterable.
                 result = [item for item in left if item not in right]
             else:
                 result = (
-                    [item - right for item in left]
-                    if left is iterable else
-                    [left - item for item in right]
+                    [self.Subtract(item, right) for item in left]
+                    if left_is_iterable else
+                    [self.Subtract(left, item) for item in right]
                 )
+            result_type = type(left if left_is_iterable else right)
             try:
-                return type(iterable)(result)
+                return result_type(result)
             except:
-                return type(iterable)(result, iterable)
+                return result_type(result, iterable)
         if (left_type == str) ^ (right_type == str):
             if left_type == str:
                 if right_type == int or right_type == float:
