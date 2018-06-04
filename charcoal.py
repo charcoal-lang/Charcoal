@@ -3797,9 +3797,9 @@ iterable.
             return [left * item for item in right]
         if left_is_iterable and right_is_iterable:
             if left_type == str:
-                return left.join(right)
+                return left.join(map(str, right))
             if right_type == str:
-                return right.join(left)
+                return right.join(map(str, left))
         return left * right
 
     def Divide(self, left, right, floor=True, iterable=True):
