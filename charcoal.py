@@ -26,6 +26,7 @@ from extras import *
 from enum import Enum
 from ast import literal_eval
 from time import sleep, clock, time as now
+from math import ceil, log2
 import random
 import re
 import argparse
@@ -3892,35 +3893,59 @@ iterable.
                     element if isinstance(element, float) else int(element)
                 )
             return result
-        result = []
+        result, negative = [], False
+        if item < 0:
+            item, negative = -item, True
         while item:
             result = [item % base] + result
             item //= base
-        return result
+        return [-n for n in result] if negative else result
 
     def BaseString(self, item, base):
+        alphabet = "\
+0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         if hasattr(base, "__iter__"):
-            item, base = base, item
-        if isinstance(item, str):
-            result = 0
-            for char in item:
-                result = result * base + max(
-                    0,
-                    "\
-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".find(char)
-                )
-            return result
+            if hasattr(item, "__iter__"):
+                alphabet, base = base, len(base)
+            else:
+                item, base = base, item
         if hasattr(item, "__iter__"):
-            return self.Base(item, base)
-        result = ""
-        while item:
+            result, sign, decimal = 0, 1, None
+            if item[0] == "-":
+                sign, item = -1, item[1:]
+            if "." not in alphabet and "." in item:
+                index = item.index(".")
+                decimal = item[index + 1:]
+                item = item[:index]
+            for char in item:
+                result = result * base + max(0, alphabet.index(char))
+            if decimal:
+                multiplier = 1
+                for char in decimal:
+                    multiplier /= base
+                    result += multiplier * max(0, alphabet.index(char))
+            return result * sign
+        result, negative = "", ""
+        if item < 0:
+            item, negative = -item, "-"
+        remainder = item % 1
+        while item >= 1:
             result = (
-                "\
-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"[item % base] +
+                alphabet[item % base] +
                 result
             )
             item //= base
-        return result
+        if not result:
+            result = "0"
+        if "." not in alphabet and remainder:
+            result += "."
+            precision = ceil(53 / log2(base))
+            remainder *= base
+            while remainder and precision:
+                result += alphabet[int(remainder % base)]
+                remainder = (remainder % 1) * base
+                precision -= 1
+        return negative + result
 
 
 def PassThrough(result):
@@ -4894,11 +4919,12 @@ non-raw file input and file output."""
 
     %s
 
-[Try it online!][TIO-%s]
+[Try it online!][TIO-%s]%s
 
 [Charcoal]: https://github.com/somebody1234/Charcoal
 [TIO-%s]: %s""" % (
-    length, "" if len(code) == 1 else "s", code, nonce, nonce,
+    length, "" if len(code) == 1 else "s", code, nonce,
+    " Link is to verbose version of code." if verbose else "", nonce,
     TIOEncode(verbose, argv.input, sys.argv[4:])
 ))
         else:
