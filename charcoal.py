@@ -3905,10 +3905,7 @@ iterable.
         alphabet = "\
 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         if hasattr(base, "__iter__"):
-            if hasattr(item, "__iter__"):
-                alphabet, base = base, len(base)
-            else:
-                item, base = base, item
+            alphabet, base = base, len(base)
         if hasattr(item, "__iter__"):
             result, sign, decimal = 0, 1, None
             if item[0] == "-":
