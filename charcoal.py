@@ -927,7 +927,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
             self.right_indices += indices
         elif self.y < self.top:
             number = self.top - self.y
-            x_number = self.x - self.indices[0]
+            x_number = self.x - self.indices[0] if len(self.indices) else 0
             x_sign = Sign(x_number)
             x_number *= x_sign
             x_number = min(number, x_number)
