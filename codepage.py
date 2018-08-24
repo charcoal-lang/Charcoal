@@ -44,7 +44,7 @@ for high, low in zip(
     add_character(high, chr(ord(low) + 128))
 keys = list(UnicodeLookup.keys())
 values = list(UnicodeLookup.values())
-for character in range(0, 257):
+for character in range(256):
     char = chr(character)
     value = char
     if char not in keys:
@@ -66,7 +66,7 @@ keys = list(UnicodeLookup.keys())
 values = list(UnicodeLookup.values())
 for key in UnicodeLookup:
     ReverseLookup[UnicodeLookup[key]] = key
-for ordinal in range(0, 257):
+for ordinal in range(256):
     OrdinalLookup[UnicodeLookup[chr(ordinal)]] = ordinal
 Codepage = [UnicodeLookup.get(chr(code), chr(code)) for code in range(0, 256)]
 
