@@ -506,6 +506,10 @@ if (0) {
         self.assertEqual(Run("(({{¶  [[<<‖Ｍ→"), "(({{    }}))\n  [[<<>>]]  ")
         self.assertEqual(Run("´⎛´⎞‖Ｍ↓"), "⎛⎞\n⎝⎠")
         self.assertEqual(Run("---‖Ｍ↖"), "|   \n|   \n|   \n ---")
+        for dir in "↖↗↘↙":
+            self.assertEqual(
+                Run("\\/↘²‖Ｍ%s" % dir), Run("\\/↘²‖Ｃ%s" % dir), dir
+            )
 
     def test_rotate_copy(self):
         self.assertEqual(Run("abc¶de⟲Ｃ²"), """\

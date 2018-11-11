@@ -1862,17 +1862,17 @@ characters to the axis are next to the axis.
             )
             self.x = x = -negative_x
             if transform:
-                for line, length, index in zip(
-                    self.lines[:], self.lengths[:], self.indices[:]
+                for line, length, right_index in zip(
+                    self.lines[:], self.lengths[:], self.right_indices[:]
                 ):
-                    self.x -= 1
-                    self.y = top_left - index
+                    self.x += 1
+                    self.y = right_index + top_right
                     self.PrintLine(
                         {Direction.up},
                         length,
                         "".join(
                             NWSEFlip.get(character, character)
-                            for character in line
+                            for character in line[::-1]
                         )
                     )
             else:
@@ -1896,12 +1896,12 @@ characters to the axis are next to the axis.
             self.x = x
             if transform:
                 for line, length, index in zip(
-                    self.lines[:], self.lengths[:], self.indices[:]
+                    self.lines[::-1], self.lengths[::-1], self.indices[::-1]
                 ):
                     self.x -= 1
-                    self.y = top_left - index
+                    self.y = index + bottom_left
                     self.PrintLine(
-                        {Direction.up},
+                        {Direction.down},
                         length,
                         "".join(
                             NWSEFlip.get(character, character)
@@ -1928,17 +1928,18 @@ characters to the axis are next to the axis.
             )
             self.x = x = -negative_x
             if transform:
-                for line, length, index in zip(
-                    self.lines[:], self.lengths[:], self.indices[:]
+                for line, length, right_index in zip(
+                    self.lines[::-1], self.lengths[::-1],
+                    self.right_indices[::-1]
                 ):
-                    self.x -= 1
-                    self.y = top_left - index
+                    self.x += 1
+                    self.y = bottom_right - right_index
                     self.PrintLine(
-                        {Direction.up},
+                        {Direction.down},
                         length,
                         "".join(
                             NESWFlip.get(character, character)
-                            for character in line
+                            for character in line[::-1]
                         )
                     )
             else:
