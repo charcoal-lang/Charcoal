@@ -209,6 +209,12 @@ def StringifyCode(code):
     for i in range(length):
         add = True
         item = code[i]
+        if (
+            item[0] == "s" and
+            item[1][0] == "´" and
+            not rCommand.match(item[1][1])
+        ):
+            item = ("s", item[1][1:])
         if item[0] != "!":
             if item[0] != "m":
                 j = i + 1
