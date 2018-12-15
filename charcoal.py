@@ -3838,7 +3838,7 @@ iterable.
                             :int(len(left) / right)
                         ]
                     return [
-                        self.Divide(item, right, iterable=False)
+                        self.Divide(item, right, floor=floor, iterable=False)
                         for item in left
                     ]
                 if callable(left):
@@ -3848,7 +3848,7 @@ iterable.
                         :int(len(right) / left)
                     ]
                 return [
-                    self.Divide(left, item, iterable=False) for item in right
+                    self.Divide(left, item, floor=floor, iterable=False) for item in right
                 ]
         if left_type == str and right_type == str:
             return left.split(right)
