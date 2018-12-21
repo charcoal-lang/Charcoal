@@ -641,7 +641,9 @@ an object on which all canvas drawing methods exist.
                     string += (
                         self.background * (index - left) +
                         re.sub("\000", self.background, line) +
-                        self.background * (right - right_index) +
+                        ("" if self.trim else self.background * (
+                            right - right_index
+                        )) +
                         "\n"
                     )
             else:
