@@ -169,7 +169,7 @@ def Product(item):
         return product(item)
 
 
-def vectorize(fn, cast_string=True):
+def vectorize(fn, afn=None, cast_string=True):
     def vectorized(left, right, c):
         if isinstance(left, String):
             left = str(left)
@@ -189,7 +189,9 @@ def vectorize(fn, cast_string=True):
         )
         if left_is_iterable or right_is_iterable:
             if left_is_iterable and right_is_iterable:
-                result = [item for item in left if item not in right]
+                result = afn(left, right, c) if afn else [
+                    vectorized(l, r, c) for l, r in zip(left, right)
+                ]
             else:
                 result = (
                     [vectorized(item, right, c) for item in left]
@@ -619,16 +621,31 @@ InterpreterProcessor = {
         lambda r: lambda left, right, c: c.Multiply(left, right),
         lambda r: lambda left, right, c: c.Divide(left, right),
         lambda r: lambda left, right, c: c.Divide(left, right, False),
-        lambda r: vectorize(lambda left, right, c: left % right, False),
-        lambda r: vectorize(lambda left, right, c: int(left == right), False),
-        lambda r: vectorize(lambda left, right, c: int(left < right), False),
-        lambda r: vectorize(lambda left, right, c: int(left > right), False),
+        lambda r: vectorize(
+            lambda left, right, c: left % right,
+            cast_string=False
+        ),
+        lambda r: vectorize(
+            lambda left, right, c: int(left == right),
+            lambda left, right, c: int(left == right),
+            False
+        ),
+        lambda r: vectorize(
+            lambda left, right, c: int(left < right),
+            lambda left, right, c: int(left < right),
+            False
+        ),
+        lambda r: vectorize(
+            lambda left, right, c: int(left > right),
+            lambda left, right, c: int(left > right),
+            False
+        ),
         lambda r: vectorize(lambda left, right, c: left & right),
         lambda r: vectorize(lambda left, right, c:
             String(left) | String(right)
             if isinstance(left, str) and isinstance(right, str) else
             left | right,
-            False
+            cast_string=False
         ),
         lambda r: lambda left, right, c: (
             list(range(int(left), int(right) + 1))
