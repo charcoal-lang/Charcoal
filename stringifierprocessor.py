@@ -45,8 +45,11 @@ StringifierProcessor = {
     CT.Multidirectional: [
         lambda r: r[0] + r[2]
     ] + [
-        (lambda i: lambda r: [("a", "+X**||--\\/<>^KLTVY7¬"[i])] + r[2])(i)
-        for i in range(20)
+        (lambda i: lambda r: [(
+            "a",
+            "+X**||--\\/<>^KLTVY7¬⌊⌈¬⌊⌈¬⌊⌈"[i]
+        )] + r[2])(i)
+        for i in range(28)
     ] + [
         lambda r: [("<", "⟦")] + r[1] + [(">", "⟧")],
         lambda r: [("$", "✳✳" )] + r[2],

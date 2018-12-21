@@ -399,6 +399,8 @@ InterpreterProcessor = {
         ] + r[1](c),
         lambda r: lambda c: [Direction.down_left, Direction.left] + r[1](c),
         lambda r: lambda c: [Direction.down, Direction.left] + r[1](c),
+        lambda r: lambda c: [Direction.up, Direction.right] + r[1](c),
+        lambda r: lambda c: [Direction.right, Direction.down] + r[1](c),
         lambda r: lambda c: r[1](c),
         lambda r: lambda c: r[1](c),
         lambda r: lambda c: [direction(item) for item in r[1](c)],
