@@ -166,11 +166,48 @@ def Product(item):
     if hasattr(item, "__iter__") and item:
         if isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
-        # if isinstance(item[0], str):
-        #     return "".join(item)
-        # if isinstance(item[0], String):
-        #     return "".join(map(str, item))
         return product(item)
+
+
+def vectorize(fn, cast_string=True):
+    def vectorized(left, right, c):
+        if isinstance(left, String):
+            left = str(left)
+        if isinstance(right, String):
+            right = str(right)
+        if type(left) == Expression:
+            left = left.run()
+        if type(right) == Expression:
+            right = right.run()
+        left_type = type(left)
+        right_type = type(right)
+        left_is_iterable = (
+            hasattr(left, "__iter__") and not isinstance(left, str)
+        )
+        right_is_iterable = (
+            hasattr(right, "__iter__") and not isinstance(right, str)
+        )
+        if left_is_iterable or right_is_iterable:
+            if left_is_iterable and right_is_iterable:
+                result = [item for item in left if item not in right]
+            else:
+                result = (
+                    [vectorized(item, right, c) for item in left]
+                    if left_is_iterable else
+                    [vectorized(left, item, c) for item in right]
+                )
+            result_type = type(left if left_is_iterable else right)
+            try:
+                return result_type(result)
+            except:
+                return result_type(result, iterable)
+        if cast_string and left_type == str:
+            left = (float if "." in left else int)(left)
+        if cast_string and right_type == str:
+            right = (float if "." in right else int)(right)
+        return fn(left, right, c)
+
+    return vectorized
 
 
 def Incremented(item):
@@ -582,15 +619,16 @@ InterpreterProcessor = {
         lambda r: lambda left, right, c: c.Multiply(left, right),
         lambda r: lambda left, right, c: c.Divide(left, right),
         lambda r: lambda left, right, c: c.Divide(left, right, False),
-        lambda r: lambda left, right, c: left % right,
-        lambda r: lambda left, right, c: int(left == right),
-        lambda r: lambda left, right, c: int(left < right),
-        lambda r: lambda left, right, c: int(left > right),
-        lambda r: lambda left, right, c: left & right,
-        lambda r: lambda left, right, c: (
+        lambda r: vectorize(lambda left, right, c: left % right, False),
+        lambda r: vectorize(lambda left, right, c: int(left == right), False),
+        lambda r: vectorize(lambda left, right, c: int(left < right), False),
+        lambda r: vectorize(lambda left, right, c: int(left > right), False),
+        lambda r: vectorize(lambda left, right, c: left & right),
+        lambda r: vectorize(lambda left, right, c:
             String(left) | String(right)
             if isinstance(left, str) and isinstance(right, str) else
-            left | right
+            left | right,
+            False
         ),
         lambda r: lambda left, right, c: (
             list(range(int(left), int(right) + 1))
@@ -604,7 +642,7 @@ InterpreterProcessor = {
             if isinstance(left, str) and isinstance(right, str) else
             c.CycleChop(left, right)
         ),
-        lambda r: lambda left, right, c: left ** right,
+        lambda r: vectorize(lambda left, right, c: left ** right),
         lambda r: lambda left, right, c: (
             lambda value: "" if value == "\x00" else value
         )(

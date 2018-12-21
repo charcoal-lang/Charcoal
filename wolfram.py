@@ -383,7 +383,7 @@ class Expression(object):
             return SymbolicOperation(pow, self, other)
         return Expression(
             None, [],
-            lambda precision=10: self.run(precision + 2) / (
+            lambda precision=10: self.run(precision + 2) ** (
                 create_expression(other).run(precision + 2)
             )
         )
