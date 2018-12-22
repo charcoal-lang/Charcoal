@@ -380,7 +380,11 @@ using Google's brotli compression method., passed without delimiters.
     while number > 1:
         compressed = [number % 256] + compressed
         number //= 256
-    return lzma.decompress(bytes(compressed)).decode("ascii")
+    return lzma.decompress(
+        bytes(compressed),
+        format=lzma.FORMAT_RAW,
+        filters=[{'id': lzma.FILTER_LZMA2, 'preset': 9 | lzma.PRESET_EXTREME}]
+    ).decode("ascii")
 
 
 def DecompressPermutations(string):
