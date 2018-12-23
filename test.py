@@ -1634,7 +1634,7 @@ foofoofoofoofoo""")
             grave=True
         ), "quxuxuxuxuxu")
         self.assertEqual(Run(
-            "Multiprint('a');Print(*(Peek(),2));",
+            "Multiprint('a');Print(Times(Peek(),2));",
             verbose=True
         ), "aa")
 
@@ -1644,7 +1644,7 @@ foofoofoofoofoo""")
 
     def test_map(self):
         self.assertEqual(Run("Ｅ⟦¹1²⟧Ｉι"), "1\n-\n2")
-        self.assertEqual(Run("map 6 * '🐐' i ", verbose=True), """\
+        self.assertEqual(Run("map 6 times '🐐' i ", verbose=True), """\
      
 🐐    
 🐐🐐   
@@ -1680,7 +1680,7 @@ cast basestring 'asdf' 62", verbose=True), "2491733")
 --  
 --- 
 ----""")
-        self.assertEqual(Run("filter [1,2,3,4,0] --i", verbose=True), """\
+        self.assertEqual(Run("filter [1,2,3,4,0] (--i)", verbose=True), """\
 --  
 --- 
 ----
@@ -1688,7 +1688,7 @@ cast basestring 'asdf' 62", verbose=True), "2491733")
 
     def test_reduce(self):
         self.assertEqual(Run("\
-Print(Cast(/([1,2,3,4,5,6,7],{+(i,k)})))", verbose=True), "28")
+Print(Cast(Reduce([1,2,3,4,5,6,7],{Plus(i,k)})))", verbose=True), "28")
 
     def test_any(self):
         self.assertEqual(Run("Print(Any([0,0,1,0],i))", verbose=True), "-")
@@ -1814,6 +1814,12 @@ Print('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')",
         self.assertEqual(Run("▶random.seed⟦⁰⟧Ｉ▷random.random"), "\
 0.8444218515250481")
         self.assertEqual(Run("≔⟦³¦²¦¹⟧β▷Sβ"), "-  \n-- \n---")
+
+    def test_shunt(self):
+        self.assertEqual(Run("cast 1 + 2 * 3", verbose=True), "7")
+        self.assertEqual(Run("cast -1 + 2 * 3", verbose=True), "5")
+        self.assertEqual(Run("cast 9 * (2 + 3)", verbose=True), "45")
+        self.assertEqual(Run("i = 100; cast i", verbose=True), "100")
 
     def test_wolfram(self):
         # TODO: official examples for number things

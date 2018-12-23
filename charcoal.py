@@ -3975,7 +3975,8 @@ def ParseExpression(
     grammar=CT.Program,
     grammars=UnicodeGrammars,
     processor=ASTProcessor,
-    verbose=False
+    verbose=False,
+    return_lexeme_index=False
 ):
     """
     ParseExpression(code, index=0, grammar=CT.Program, \
@@ -4107,6 +4108,174 @@ abcdefghijklmnopqrstuvwxyz"
                         else:
                             success = False
                             break
+                    elif token == CT.Fix:
+                        infix_prec = {
+                            "**": 7, "*": 6, "/": 6, "\\": 6, "%": 6,
+                            "+": 5, "-": 5, "‹": 4, ">": 4, "==": 3,
+                            "&": 2, "|": 1, "=": 0
+                        }
+                        prefix_prec = {
+                            "--": 8, "++": 8, "***": 8, "//": 8,
+                            "-": 8, "~": 8
+                        }
+                        def shunt(top=False):
+                            nonlocal index
+                            expect = [CT.Prefix, CT.Expression]
+                            expect_lookup = {
+                                CT.Prefix: [CT.Prefix, CT.Expression],
+                                CT.Expression: [CT.Prefix, CT.Infix],
+                                CT.Infix: [CT.Expression]
+                            }
+                            to_shunt, operators, types = [], [], []
+                            success = True
+                            while index < len(code) and success:
+                                success = False
+                                for expected in expect:
+                                    parens = False
+                                    if expected == CT.Expression:
+                                        result = ParseExpression(
+                                            code, index, CT.LP, grammars,
+                                            processor, verbose,
+                                            return_lexeme_index=True
+                                        )
+
+                                        if (
+                                            result and
+                                            result[1] is not False and
+                                            not result[2]
+                                        ):
+                                            index = result[1]
+                                            result = shunt()
+    
+                                            if (
+                                                not result or
+                                                result[1] is False
+                                            ):
+                                                break
+
+                                            success = True
+                                            to_shunt += [result]
+                                            types += [CT.Expression]
+                                            break
+                                    result = ParseExpression(
+                                        code, index, expected, grammars,
+                                        processor, verbose,
+                                        return_lexeme_index=True
+                                    )
+                                    
+                                    if not result or result[1] is False:
+                                        continue
+                                    
+                                    success = True
+                                    to_shunt += [result[0]]
+                                    operators += [
+                                        None
+                                        if expected == CT.Expression else
+                                        grammars[expected][result[2]][0]
+                                    ]
+                                    types += [expected]
+                                    index = result[1]
+                                    expect = expect_lookup[expected]
+                                    break
+
+                            if not top:
+                                close_paren = ParseExpression(
+                                    code, index, CT.RP, grammars, processor,
+                                    verbose, return_lexeme_index=True
+                                )
+                                if (
+                                    not close_paren or
+                                    close_paren[1] is False or
+                                    close_paren[2]
+                                ):
+                                    return None
+
+                            if not len(to_shunt):
+                                return None
+                                
+                            # begin shunting
+                            result, operator_stack, precedences = [], [], []
+                            is_prefix = []
+                            for i in range(len(to_shunt)):
+                                if types[i] == CT.Expression:
+                                    result += [to_shunt[i]]
+                                else:
+                                    if (
+                                        operators[i] == "=" and
+                                        (not top or len(operator_stack))
+                                    ):
+                                        raise Exception("Assignment \
+expression is a command, not an operator, so it must be at top level")
+                                    prefix = operators[i] in prefix_prec
+                                    precedence = (
+                                        prefix_prec[operators[i]]
+                                        if prefix else
+                                        infix_prec[operators[i]]
+                                    )
+                                    if not prefix:
+                                        while (
+                                            len(operator_stack) and (
+                                                (
+                                                    operator_stack[-1] !=
+                                                    "**" and precedences[-1] >=
+                                                    precedence
+                                                ) or
+                                                precedences[-1] > precedence
+                                            )
+                                        ):
+                                            precedences.pop()
+                                            if is_prefix.pop():
+                                                result[-1] = [
+                                                    operator_stack.pop(),
+                                                    result[-1]
+                                                ]
+                                            else:
+                                                right = result.pop()
+                                                left = result.pop()
+                                                result += [[
+                                                    left,
+                                                    operator_stack.pop(),
+                                                    right
+                                                ]]
+                                    operator_stack += [to_shunt[i]]
+                                    precedences += [precedence]
+                                    is_prefix += [prefix]
+                            
+                            while len(operator_stack):
+                                precedences.pop()
+                                if is_prefix.pop():
+                                    result[-1] = [
+                                        operator_stack.pop(),
+                                        result[-1]
+                                    ]
+                                else:
+                                    right = result.pop()
+                                    left = result.pop()
+                                    result += [[
+                                        left,
+                                        operator_stack.pop(),
+                                        right
+                                    ]]
+                            
+                            def collapse(item):
+                                if all(not callable(el) for el in item):
+                                    return item
+                                if len(item) == 2:
+                                    # prefix
+                                    return item[0](collapse(item[1]))
+                                return item[1](
+                                    collapse(item[0]),
+                                    collapse(item[2])
+                                )
+                            
+                            return collapse(result[0])
+
+                        result = shunt(top=True)
+                        if not result:
+                            success = False
+                            break
+                        
+                        tokens += [processor[CT.Fix][0](result)]
                     else:
                         result = ParseExpression(
                             code, index, token, grammars, processor, verbose
@@ -4261,7 +4430,11 @@ abcdefghijklmnopqrstuvwxyz"
         if parse_trace and not parse_index and not original_index:
             break
         if success:
-            return (processor[grammar][lexeme_index](tokens), index)
+            return (
+                (processor[grammar][lexeme_index](tokens), index, lexeme_index)
+                if return_lexeme_index else
+                (processor[grammar][lexeme_index](tokens), index)
+            )
         lexeme_index += 1
     return ((
         parse_trace

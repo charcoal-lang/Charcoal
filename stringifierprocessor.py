@@ -77,7 +77,7 @@ StringifierProcessor = {
 
     CT.Arrows: [lambda r: r[0] + r[2], lambda r: r[0]],
     CT.Sides: [lambda r: r[0] + r[2], lambda r: r[0]],
-    CT.Expressions: [lambda r: r[0] + r[1], lambda r: r[0]],
+    CT.Fixes: [lambda r: r[0] + r[1], lambda r: r[0]],
     CT.WolframExpressions: [lambda r: r[0] + r[1], lambda r: r[0]],
     CT.PairExpressions: [lambda r: r[0] + r[1] + r[2], lambda r: r[0] + r[1]],
     CT.Cases: [lambda r: r[1] + r[3] + r[5] + r[6], lambda r: []],
@@ -132,9 +132,9 @@ StringifierProcessor = {
         for i in range(13)
     ],
     CT.Unary: [
-        (lambda i: lambda r: [("o", "±±Ｌ¬Ｉ‽‽ＶＶ⊟↧↥⌊⌊⌊⌈⌈⌈⌈℅℅℅℅⮌⮌≕≕″‴～～↔↔\
-ΣΠ⊕⊕⊖⊖⊗⊗⊘⊘₂₂"[i])])(i)
-        for i in range(45)
+        (lambda i: lambda r: [("o", "±±Ｌ¬Ｉ‽‽ＶＶ⊟↧↥⌊⌊⌊⌈⌈⌈⌈℅℅℅℅⮌⮌≕≕″‴～↔↔\
+ΣΠ⊕⊖⊗⊘₂₂"[i])])(i)
+        for i in range(40)
     ] + [
         lambda r: [("o", "✂"), ("!", "e"), ("!", "e")],
         lambda r: [("o", "…")],
@@ -144,9 +144,9 @@ StringifierProcessor = {
     ],
     CT.Binary: [
         (lambda i: (
-            lambda r: [("o", "Ｘ⁺⁺⁺⁻⁻⁻×××÷∕∕∕÷÷﹪﹪⁼⁼‹‹››＆＆｜｜"[i])]
+            lambda r: [("o", "⁺⁺⁻⁻××∕∕÷÷﹪﹪⁼‹›＆｜"[i])]
         ))(i)
-        for i in range(28)
+        for i in range(17)
     ] + [
         (lambda i: lambda r: [("o", [
             "…·", "…", "…", "…", "Ｘ", "Ｘ", "Ｘ", "§", "⊞Ｏ", "⪫", "⪪",
@@ -158,6 +158,31 @@ StringifierProcessor = {
         for i in range(9)
     ] + [
         lambda r: [("o", "✂"), ("!", "e"), ("!", "e"), ("!", "e")]
+    ],
+    CT.Infix: [
+        (lambda i: (
+            lambda r: lambda left, right: (
+                [("o", "Ｘ⁺⁻×∕÷﹪⁼‹›＆｜≔"[i])] + left + right
+            )
+        ))(i)
+        for i in range(12)
+    ] + [
+        lambda r: lambda left, right: (
+            [("o", "≔")] + right + left
+        )
+    ],
+    CT.Prefix: [
+        (lambda i: (
+            lambda r: lambda item: [("o", "⊖±～⊕⊗⊘"[i])] + item
+        ))(i)
+        for i in range(6)
+    ],
+    CT.Fix: [
+        lambda r: r
+    ],
+    CT.FixOrEOF: [
+        lambda r: r[0],
+        lambda r: ""
     ],
     CT.Ternary: [lambda r: [("o", "✂"), ("!", "e"), ("!", "e")]],
     CT.Quarternary: [lambda r: [("o", "✂")]],

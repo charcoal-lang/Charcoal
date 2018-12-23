@@ -12,6 +12,7 @@ CharcoalTokenNames = [
     "Sides",
     "WolframExpressions",
     "Expressions",
+    "Fixes",
     "PairExpressions",
     "Cases",
 
@@ -27,6 +28,10 @@ CharcoalTokenNames = [
     "LazyBinary",
     "LazyTernary",
     "LazyQuarternary",
+    "Infix",
+    "Prefix",
+    "Fix",
+    "FixOrEOF",
     "OtherOperator",
 
     "WolframList",
