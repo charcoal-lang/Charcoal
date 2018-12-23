@@ -1820,6 +1820,8 @@ Print('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz')",
         self.assertEqual(Run("cast -1 + 2 * 3", verbose=True), "5")
         self.assertEqual(Run("cast 9 * (2 + 3)", verbose=True), "45")
         self.assertEqual(Run("i = 100; cast i", verbose=True), "100")
+        self.assertEqual(Run("\
+i = 10; cast ((i + 2) * (i + 3))", verbose=True), "156")
 
     def test_wolfram(self):
         # TODO: official examples for number things

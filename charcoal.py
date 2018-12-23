@@ -4156,7 +4156,9 @@ abcdefghijklmnopqrstuvwxyz"
 
                                             success = True
                                             to_shunt += [result]
+                                            operators += [None]
                                             types += [CT.Expression]
+                                            expect = expect_lookup[expected]
                                             break
                                     result = ParseExpression(
                                         code, index, expected, grammars,
@@ -4190,6 +4192,7 @@ abcdefghijklmnopqrstuvwxyz"
                                     close_paren[2]
                                 ):
                                     return None
+                                index = close_paren[1]
 
                             if not len(to_shunt):
                                 return None
