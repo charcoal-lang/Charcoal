@@ -3850,7 +3850,8 @@ iterable.
                         :int(len(right) / left)
                     ]
                 return [
-                    self.Divide(left, item, floor=floor, iterable=False) for item in right
+                    self.Divide(left, item, floor=floor, iterable=False)
+                    for item in right
                 ]
         if left_type == str and right_type == str:
             return left.split(right)
@@ -4195,7 +4196,7 @@ abcdefghijklmnopqrstuvwxyz"
                                 
                             # begin shunting
                             result, operator_stack, precedences = [], [], []
-                            is_prefix = []
+                            is_prefix, is_eq = [], False
                             for i in range(len(to_shunt)):
                                 if types[i] == CT.Expression:
                                     result += [to_shunt[i]]
@@ -4206,6 +4207,8 @@ abcdefghijklmnopqrstuvwxyz"
                                     ):
                                         raise Exception("Assignment \
 expression is a command, not an operator, so it must be at top level")
+                                    if operators[i] == "=":
+                                        is_eq = True
                                     prefix = operators[i] in prefix_prec
                                     precedence = (
                                         prefix_prec[operators[i]]
@@ -4257,7 +4260,9 @@ expression is a command, not an operator, so it must be at top level")
                                         right
                                     ]]
                             
-                            def collapse(item):
+                            def collapse(item, top=False):
+                                if top and is_eq and item[0][0][0] == "s":
+                                    item[0], item[2] = item[2], item[0]
                                 if all(not callable(el) for el in item):
                                     return item
                                 if len(item) == 2:
@@ -4268,7 +4273,7 @@ expression is a command, not an operator, so it must be at top level")
                                     collapse(item[2])
                                 )
                             
-                            return collapse(result[0])
+                            return collapse(result[0], True)
 
                         result = shunt(top=True)
                         if not result:
