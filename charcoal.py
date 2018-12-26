@@ -3279,7 +3279,6 @@ arguments.
         Returns the result.
 
         """
-        self.charcoal = self
         if isinstance(name, String):
             name = str(name)
         result = None
@@ -3295,7 +3294,6 @@ arguments.
                 return python_function(*arguments)
             elif re.match("[a-zA-Z_]+$", name):
                 return SymbolicVariable(name)(arguments)
-        self.charcoal = None
         return result
 
     def ExecuteVariable(self, name, arguments):
@@ -5130,7 +5128,7 @@ non-raw file input and file output."""
             code, whitespace=argv.whitespace,
             normal_encoding=argv.normalencoding
         )
-        if isinstance(result[0], CT):
+        if isinstance(result, tuple) and isinstance(result[0], CT):
             warn("""\
 Parsing failed, parsed:
 %s
@@ -5139,7 +5137,7 @@ Parse trace:
 %s
 """ % (result[2], "".join()))
         else:
-            PrintTree(result)
+            PrintTree(result[0]())
         if argv.onlyastify:
             sys.exit()
     if argv.deverbosify and not argv.verbose:
@@ -5167,7 +5165,7 @@ Parse trace:
                     PrintTree(Parse(
                         code, whitespace=argv.whitespace,
                         normal_encoding=argv.normalencoding
-                    ), print=print)
+                    )[0](), print=print)
                 print(Run(
                     code, (argv.input or [""])[0], charcoal=global_charcoal,
                     whitespace=argv.whitespace,

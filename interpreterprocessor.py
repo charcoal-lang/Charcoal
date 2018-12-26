@@ -405,14 +405,15 @@ InterpreterProcessor = {
             Direction.up_left
         ] + r[1](c),
         lambda r: lambda c: [
-            Direction.right, Direction.down_right, Direction.down,
-            Direction.down_left, Direction.left, Direction.up_left,
-            Direction.up, Direction.up_right
+            Direction.up, Direction.up_right,
+            Direction.right, Direction.down_right,
+            Direction.down, Direction.down_left,
+            Direction.left, Direction.up_left
         ] + r[1](c),
-        lambda r: lambda c: [Direction.up, Direction.down] + r[1](c),
-        lambda r: lambda c: [Direction.left, Direction.right] + r[1](c),
+        lambda r: lambda c: [Direction.down, Direction.up] + r[1](c),
+        lambda r: lambda c: [Direction.right, Direction.left] + r[1](c),
         lambda r: lambda c: [
-            Direction.up_left, Direction.down_right
+            Direction.down_right, Direction.up_left
         ] + r[1](c),
         lambda r: lambda c: [
             Direction.up_right, Direction.down_left
@@ -432,9 +433,9 @@ InterpreterProcessor = {
         lambda r: lambda c: [
             Direction.right, Direction.down, Direction.left
         ] + r[1](c),
-        lambda r: lambda c: [Direction.up_left, Direction.up_right] + r[1](c),
+        lambda r: lambda c: [Direction.up_right, Direction.up_left] + r[1](c),
         lambda r: lambda c: [
-            Direction.up_left, Direction.up_right, Direction.down
+            Direction.up_right, Direction.down, Direction.up_left
         ] + r[1](c),
         lambda r: lambda c: [Direction.down_left, Direction.left] + r[1](c),
         lambda r: lambda c: [Direction.down, Direction.left] + r[1](c),
