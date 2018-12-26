@@ -401,14 +401,14 @@ InterpreterProcessor = {
             Direction.right, Direction.down, Direction.left, Direction.up
         ] + r[1](c),
         lambda r: lambda c: [
-            Direction.up_right, Direction.down_right, Direction.down_left,
-            Direction.up_left
+            Direction.down_right, Direction.down_left, Direction.up_left,
+            Direction.up_right
         ] + r[1](c),
         lambda r: lambda c: [
-            Direction.up, Direction.up_right,
             Direction.right, Direction.down_right,
             Direction.down, Direction.down_left,
-            Direction.left, Direction.up_left
+            Direction.left, Direction.up_left,
+            Direction.up, Direction.up_right
         ] + r[1](c),
         lambda r: lambda c: [Direction.down, Direction.up] + r[1](c),
         lambda r: lambda c: [Direction.right, Direction.left] + r[1](c),
@@ -416,30 +416,30 @@ InterpreterProcessor = {
             Direction.down_right, Direction.up_left
         ] + r[1](c),
         lambda r: lambda c: [
-            Direction.up_right, Direction.down_left
+            Direction.down_left, Direction.up_right
         ] + r[1](c),
         lambda r: lambda c: [
-            Direction.up_right, Direction.down_right
+            Direction.down_right, Direction.up_right
         ] + r[1](c),
         lambda r: lambda c: [Direction.down_left, Direction.up_left] + r[1](c),
         lambda r: lambda c: [
             Direction.down_right, Direction.down_left
         ] + r[1](c),
         lambda r: lambda c: [
-            Direction.up, Direction.up_right, Direction.down_right,
-            Direction.down
+            Direction.down_right, Direction.down, Direction.up,
+            Direction.up_right
         ] + r[1](c),
-        lambda r: lambda c: [Direction.up, Direction.right] + r[1](c),
+        lambda r: lambda c: [Direction.right, Direction.up] + r[1](c),
         lambda r: lambda c: [
             Direction.right, Direction.down, Direction.left
         ] + r[1](c),
-        lambda r: lambda c: [Direction.up_right, Direction.up_left] + r[1](c),
+        lambda r: lambda c: [Direction.up_left, Direction.up_right] + r[1](c),
         lambda r: lambda c: [
-            Direction.up_right, Direction.down, Direction.up_left
+            Direction.down, Direction.up_left, Direction.up_right
         ] + r[1](c),
         lambda r: lambda c: [Direction.down_left, Direction.left] + r[1](c),
         lambda r: lambda c: [Direction.down, Direction.left] + r[1](c),
-        lambda r: lambda c: [Direction.up, Direction.right] + r[1](c),
+        lambda r: lambda c: [Direction.right, Direction.up] + r[1](c),
         lambda r: lambda c: [Direction.right, Direction.down] + r[1](c),
         lambda r: lambda c: r[1](c),
         lambda r: lambda c: r[1](c),

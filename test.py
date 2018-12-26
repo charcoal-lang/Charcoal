@@ -1324,7 +1324,7 @@ print 'a'""", verbose=True), """\
 **** 
 *****""")
         self.assertEqual(Run("""\
-polygon :L 5 '*'
+polygon :u :r 5 '*'
 reflectoverlapoverlap :u 5
 print 'a'""", verbose=True), """\
 *****
@@ -1342,7 +1342,7 @@ a****
 ** **
 *   *""")
         self.assertEqual(Run("""\
-polygon :L 5 '*'
+polygon :u :r 5 '*'
 reflectoverlapoverlap :r 5
 print 'a'""", verbose=True), """\
 a****
