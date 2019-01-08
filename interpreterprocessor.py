@@ -202,7 +202,7 @@ def vectorize(fn, afn=None, cast_string=True):
             try:
                 return result_type(result)
             except:
-                return result_type(result, iterable)
+                return result_type(result, left if left_is_iterable else right)
         if cast_string and left_type == str:
             left = (float if "." in left else int)(left)
         if cast_string and right_type == str:
@@ -626,21 +626,9 @@ InterpreterProcessor = {
             lambda left, right, c: left % right,
             cast_string=False
         ),
-        lambda r: vectorize(
-            lambda left, right, c: int(left == right),
-            lambda left, right, c: int(left == right),
-            False
-        ),
-        lambda r: vectorize(
-            lambda left, right, c: int(left < right),
-            lambda left, right, c: int(left < right),
-            False
-        ),
-        lambda r: vectorize(
-            lambda left, right, c: int(left > right),
-            lambda left, right, c: int(left > right),
-            False
-        ),
+        lambda r: lambda left, right, c: int(left == right),
+        lambda r: lambda left, right, c: int(left < right),
+        lambda r: lambda left, right, c: int(left > right),
         lambda r: vectorize(lambda left, right, c: left & right),
         lambda r: vectorize(lambda left, right, c:
             String(left) | String(right)
