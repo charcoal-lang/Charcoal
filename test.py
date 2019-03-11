@@ -457,6 +457,8 @@ if (0) {
         self.assertEqual(Run("✂abcd¦2.2"), "cd")
         self.assertEqual(Run("✂abc⁰¦²"), "ab")
         self.assertEqual(Run("✂abcdefg⁰¦⁹¦²"), "aceg")
+        self.assertEqual(Run("\
+Print(Slice('asdf')); Print(1);", verbose=True), "asdf-")
 
     def test_pivot(self):
         self.assertEqual(Run("↶¹asdf"), "   f\n  d \n s  \na   ")

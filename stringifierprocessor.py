@@ -47,9 +47,9 @@ StringifierProcessor = {
     ] + [
         (lambda i: lambda r: [(
             "a",
-            "+X**||--\\/<>^KLTVY7¬⌊⌈¬⌊⌈¬⌊⌈"[i]
+            "++XX**||--\\/<>^KLTVY7¬⌊⌈¬⌊⌈¬⌊⌈"[i]
         )] + r[2])(i)
-        for i in range(28)
+        for i in range(30)
     ] + [
         lambda r: [("<", "⟦")] + r[1] + [(">", "⟧")],
         lambda r: [("$", "✳✳" )] + r[2],
@@ -126,10 +126,16 @@ StringifierProcessor = {
     CT.ExpressionOrEOF: [lambda r: r[0], lambda r: []],
     CT.Nilary: [
         (lambda i: lambda r: [("o", [
-            "Ｓ", "Ｎ", "Ａ", "‽", "‽", "ＫＡ", "ＫＭ", "ＫＶ", "ＫＫ",
-            "ⅈ", "ⅉ", "ⅈ", "ⅉ"
+            "Ｓ", "Ｎ", "Ａ"
         ][i])])(i)
-        for i in range(13)
+        for i in range(3)
+    ] + [
+        lambda r: [("o", "‽"), ("!", "e")]
+    ] * 2 + [
+        (lambda i: lambda r: [("o", [
+            "ＫＡ", "ＫＭ", "ＫＶ", "ＫＫ", "ⅈ", "ⅉ", "ⅈ", "ⅉ"
+        ][i])])(i)
+        for i in range(8)
     ],
     CT.Unary: [
         (lambda i: lambda r: [("o", "±±Ｌ¬Ｉ‽‽ＶＶ⊟↧↥⌊⌊⌊⌈⌈⌈⌈℅℅℅℅⮌⮌≕≕″‴～↔↔\
@@ -182,7 +188,7 @@ StringifierProcessor = {
     ],
     CT.FixOrEOF: [
         lambda r: r[0],
-        lambda r: ""
+        lambda r: []
     ],
     CT.Ternary: [lambda r: [("o", "✂"), ("!", "e"), ("!", "e")]],
     CT.Quarternary: [lambda r: [("o", "✂")]],

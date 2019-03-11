@@ -26,7 +26,9 @@ VerboseGrammars = {
     CT.Multidirectional: [
         [CT.Arrows, CT.S, CT.Multidirectional],
         [":+", CT.S, CT.Multidirectional],
+        [":Orthogonal", CT.S, CT.Multidirectional],
         [":X", CT.S, CT.Multidirectional],
+        [":Diagonal", CT.S, CT.Multidirectional],
         [":*", CT.S, CT.Multidirectional],
         [":All", CT.S, CT.Multidirectional],
         [":|", CT.S, CT.Multidirectional],
@@ -193,7 +195,7 @@ VerboseGrammars = {
     ],
     CT.FixOrEOF: [
         [CT.Fix],
-        []
+        [CT.EOF]
     ],
     CT.Ternary: [["Slice"]],
     CT.Quarternary: [["Slice"]],

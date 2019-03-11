@@ -244,11 +244,13 @@ def StringifyCode(code):
                 result += [item]
         else:
             stack += [item]
+    while len(result) and result[-1][0] == "a":
+        result.pop()
     while len(result) and result[-1][0] == ">":
         result.pop()
     if len(result) and result[-1][0] == "c":
         result[-1] = ("c", result[-1][1][:-1])
-    return "".join(item[1] for item in result)
+    return "".join(b for _, b in result)
 
 
 class Modifier(Enum):
@@ -806,16 +808,16 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
                 "δ": self.all_inputs[4]
             })
             self.inputs = self.original_inputs[:]
-        self.direction = Direction.right
-        self.background = " "
-        self.bg_lines = []
-        self.bg_line_number = self.bg_line_length = 0
-        self.timeout_end = self.dump_timeout_end = 0
-        self.background_inside = False
-        self.trim = False
-        self.print_at_end = True
-        self.last_printed = None
-        self.charcoal = None
+            self.direction = Direction.right
+            self.background = " "
+            self.bg_lines = []
+            self.bg_line_number = self.bg_line_length = 0
+            self.timeout_end = self.dump_timeout_end = 0
+            self.background_inside = False
+            self.trim = False
+            self.print_at_end = True
+            self.last_printed = None
+            self.charcoal = None
         if Info.step_canvas in self.info:
             self.RefreshFastText("Clear", self.canvas_step)
         elif Info.dump_canvas in self.info:
@@ -2806,7 +2808,7 @@ make a copy for each of the digits in rotations.
                 7: Direction.up_left
             }[rotations], min(self.indices))
             string = str(self)
-            self.Clear()
+            self.Clear(False)
             self.Print(string, directions={{
                 1: Direction.up_right,
                 3: Direction.up_left,
@@ -3031,7 +3033,10 @@ else set the variable with the given name to the given value.
 
         """
         if value2 is not None:
-            value[key] = value2
+            try:
+                value[key] = value2
+            except:
+                value[key % len(value)] = value2
             if Info.step_canvas in self.info and isinstance(value, Cells):
                 self.RefreshFastText("Assign", self.canvas_step)
             elif Info.dump_canvas in self.info:
@@ -3415,17 +3420,23 @@ and vertical rows between rows.
                 (right_index - 1) * horizontal + 1
                 for right_index in self.right_indices
             ]
+            self.x *= horizontal
         if vertical:
             new_number = (len(self.lines) - 1) * vertical + 1
             lines = [""] * new_number
             indices = [0] * new_number
+            lengths = [0] * new_number
             right_indices = [0] * new_number
             lines[::vertical] = self.lines
+            lengths[::vertical] = self.lengths
             indices[::vertical] = self.indices
             right_indices[::vertical] = self.right_indices
             self.lines = lines
+            self.lengths = lengths
             self.indices = indices
             self.right_indices = right_indices
+            self.top *= vertical
+            self.y *= vertical
         if Info.step_canvas in self.info:
             self.RefreshFastText("Extend", self.canvas_step)
         elif Info.dump_canvas in self.info:

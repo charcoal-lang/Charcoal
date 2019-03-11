@@ -4,11 +4,8 @@ matrix:
       python: "3.4"
     - language: python
       python: "3.6"
-    - language: generic
-      os: osx
-      before_install:
-        - brew upgrade python
-        - virtualenv env -p python3
-        - source env/bin/activate
-      install: sudo -H pip3 install -r requirements.txt
+    - language: python
+      python: "3.7"
+      dist: xenial
+      sudo: true
 script: python test.py

@@ -14,17 +14,22 @@ def GetFreeVariable(s, n=1):
 def VerbosifyVariable(c):
     return "iklmnxprsvtufcywabgdezhq"["ικλμνξπρςστυφχψωαβγδεζηθ".find(c)]
 
+def EvaluateFunctionOrList(f, s):
+    if isinstance(f, list):
+        return f[0](s)
+    return f(s)
+
 ASTProcessor = {
     CT.Arrow: [
-        lambda r: [lambda s="": r[0] + ": Left"],
-        lambda r: [lambda s="": r[0] + ": Up"],
-        lambda r: [lambda s="": r[0] + ": Right"],
-        lambda r: [lambda s="": r[0] + ": Down"],
-        lambda r: [lambda s="": r[0] + ": Up Left"],
-        lambda r: [lambda s="": r[0] + ": Up Right"],
-        lambda r: [lambda s="": r[0] + ": Down Right"],
-        lambda r: [lambda s="": r[0] + ": Down Left"],
-        lambda r: [lambda s="": r[1]]
+        lambda r: [lambda s="": [r[0] + ": Left"]],
+        lambda r: [lambda s="": [r[0] + ": Up"]],
+        lambda r: [lambda s="": [r[0] + ": Right"]],
+        lambda r: [lambda s="": [r[0] + ": Down"]],
+        lambda r: [lambda s="": [r[0] + ": Up Left"]],
+        lambda r: [lambda s="": [r[0] + ": Up Right"]],
+        lambda r: [lambda s="": [r[0] + ": Down Right"]],
+        lambda r: [lambda s="": [r[0] + ": Down Left"]],
+        lambda r: [lambda s="": [r[1]]]
     ],
     CT.Multidirectional: [
         lambda r: [lambda s="": ["Multidirectional"] + r[0][0](s)[1:] + r[1][0](s)[1:]],
@@ -60,7 +65,7 @@ ASTProcessor = {
         lambda r: [lambda s="": [str(r[0]) + ": Number %s" % str(r[0])]]
     ],
     CT.Name: [lambda r: [lambda s="": [r[0] + ": Identifier %s (%s)" % (str(r[0]), VerbosifyVariable(str(r[0])))]]],
-    CT.S: [lambda r: [lambda s="": None]] * 2,
+    CT.S: [lambda r: [lambda s="": []]] * 2,
     CT.Span: [
         lambda r: [lambda s="": [
             "Span", ["Start", r[0][0](s)], ["Stop", r[2][0](s)], ["Step", r[4][0](s)]
@@ -239,9 +244,9 @@ ASTProcessor = {
         lambda r: [lambda s="": r[0]]
     ],
     CT.Command: [
-        lambda r: [lambda s="": [r[0] + ": Input String", r[1][0](s)]],
-        lambda r: [lambda s="": [r[0] + ": Input Number", r[1][0](s)]],
-        lambda r: [lambda s="": [r[0] + ": Input", r[1][0](s)]],
+        lambda r: [lambda s="": [r[0] + ": Input String", EvaluateFunctionOrList(r[1], s)]],
+        lambda r: [lambda s="": [r[0] + ": Input Number", EvaluateFunctionOrList(r[1], s)]],
+        lambda r: [lambda s="": [r[0] + ": Input", EvaluateFunctionOrList(r[1], s)]],
         lambda r: [lambda s="": [r[0] + ": Evaluate", r[1][0](s)]],
         lambda r: [lambda s="": ["Print"] + [el[0](s) for el in r]],
         lambda r: [lambda s="": ["Print"] + [el[0](s) for el in r]],
@@ -270,18 +275,18 @@ ASTProcessor = {
         lambda r: [lambda s="": [r[0] + ": Rotate transform"]]
     ] +
     [lambda r: [lambda s="": [r[0] + ": Reflect transform"] + [el[0](s) for el in r[1:]]]] * 3 +
-    [lambda r: [lambda s="": [r[0] + ": Rotate prism"] + [el[0](s) for el in r[1:]]]] * 6 +
+    [lambda r: [lambda s="": [r[0] + ": Rotate prism"] + [EvaluateFunctionOrList(el, s) for el in r[1:]]]] * 6 +
     [lambda r: [lambda s="": [r[0] + ": Reflect mirror"] + [el[0](s) for el in r[1:]]]] * 3 +
-    [lambda r: [lambda s="": [r[0] + ": Rotate copy"] + [el[0](s) for el in r[1:]]]] * 6 +
+    [lambda r: [lambda s="": [r[0] + ": Rotate copy"] + [EvaluateFunctionOrList(el, s) for el in r[1:]]]] * 6 +
     [lambda r: [lambda s="": [r[0] + ": Reflect copy"] + [el[0](s) for el in r[1:]]]] * 3 +
     [lambda r: [lambda s="": [
         r[0] + ": Rotate overlap overlap"
-    ] + [el[0](s) for el in r[1:]]]] * 6 +
-    [lambda r: [lambda s="": [r[0] + ": Rotate overlap"] + [el[0](s) for el in r[1:]]]] * 6 +
+    ] + [EvaluateFunctionOrList(el, s) for el in r[1:]]]] * 6 +
+    [lambda r: [lambda s="": [r[0] + ": Rotate overlap"] + [EvaluateFunctionOrList(el, s) for el in r[1:]]]] * 6 +
     [lambda r: [lambda s="": [
         r[0] + ": Rotate shutter overlap"
-    ] + [el[0](s) for el in r[1:]]]] * 6 +
-    [lambda r: [lambda s="": [r[0] + ": Rotate shutter"] + [el[0](s) for el in r[1:]]]] * 6 +
+    ] + [EvaluateFunctionOrList(el, s) for el in r[1:]]]] * 6 +
+    [lambda r: [lambda s="": [r[0] + ": Rotate shutter"] + [EvaluateFunctionOrList(el, s) for el in r[1:]]]] * 6 +
     [lambda r: [lambda s="": [
         r[0] + ": Reflect overlap overlap"
     ] + [el[0](s) for el in r[1:]]]] * 3 +
@@ -326,10 +331,10 @@ ASTProcessor = {
         lambda r: [lambda s="": (lambda t: [r[0] + ": Map (loop variable %s (%s), index variable %s (%s))" % (t[-2], VerbosifyVariable(t[-2]), t[-1], VerbosifyVariable(t[-1]))] + [el[0](t) for el in r[1:]])(s + GetFreeVariable(s, 2))],
         lambda r: [lambda s="": [r[0] + ": Execute variable"] + [el[0](s) for el in r[1:]]],
         lambda r: [lambda s="": [r[0] + ": Execute variable"] + [el[0](s) for el in r[1:]]],
-        lambda r: [lambda s="": [r[0] + ": Map assign left", r[1][0](s)] + [el(s) for el in r[2:]]],
-        lambda r: [lambda s="": [r[0] + ": Map assign", r[1][0](s)] + [el(s) for el in r[2:]]],
-        lambda r: [lambda s="": [r[0] + ": Map assign right", r[1][0](s)] + [el(s) for el in r[2:]]],
-        lambda r: [lambda s="": [r[0] + ": Map assign", r[1][0](s)] + [el(s) for el in r[2:]]],
+        lambda r: [lambda s="": [r[0] + ": Map assign left", r[1][0](s)] + [EvaluateFunctionOrList(el, s) for el in r[2:]]],
+        lambda r: [lambda s="": [r[0] + ": Map assign", r[1][0](s)] + [EvaluateFunctionOrList(el, s) for el in r[2:]]],
+        lambda r: [lambda s="": [r[0] + ": Map assign right", r[1][0](s)] + [EvaluateFunctionOrList(el, s) for el in r[2:]]],
+        lambda r: [lambda s="": [r[0] + ": Map assign", r[1][0](s)] + [EvaluateFunctionOrList(el, s) for el in r[2:]]],
         lambda r: [lambda s="": [r[0] + ": exec"] + [el[0](s) for el in r[1:]]]
     ]
 }
