@@ -468,9 +468,15 @@ class Cells(list):
 
     def __init__(self, charcoal, value, xs=None, ys=None):
         if isinstance(value, Cells):
-            super().__init__(charcoal)
-            self.xs = value.xs
-            self.ys = value.ys
+            result = charcoal
+            indices = xs
+            super().__init__(result)
+            if indices is None:
+                self.xs = value.xs
+                self.ys = value.ys
+            else:
+                self.xs = [value.xs[i] for i in indices]
+                self.ys = [value.ys[i] for i in indices]
             self.charcoal = value.charcoal
             return
         super().__init__(value)
@@ -3632,6 +3638,7 @@ a function is truthy.
         self.scope[loop_variable] = 1
         index_variable = self.GetFreeVariable()
         result = []
+        indices = []
         if callable(iterable):
             iterable, function = function, iterable
         if type(iterable) == Expression:
@@ -3645,13 +3652,14 @@ a function is truthy.
             self.scope[index_variable] = i
             if function(self):
                 result += [iterable[i]]
+                indices += [i]
         self.scope = self.scope.parent
         if isinstance(iterable, str):
             return "".join(result)
         try:
             return type(iterable)(result)
         except:
-            return type(iterable)(result, iterable)
+            return type(iterable)(result, iterable, indices)
 
     def All(self, iterable, function):
         """
