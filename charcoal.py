@@ -244,8 +244,6 @@ def StringifyCode(code):
                 result += [item]
         else:
             stack += [item]
-    while len(result) and result[-1][0] == "a":
-        result.pop()
     while len(result) and result[-1][0] == ">":
         result.pop()
     if len(result) and result[-1][0] == "c":
@@ -485,7 +483,8 @@ class Cells(list):
         if isinstance(i, slice):
             start = i.start or 0
             stop = len(self) if i.stop is None else i.stop
-            for i in range(start, stop):
+            step = 1 if i.step is None else i.step
+            for i in range(start, stop, step):
                 self.charcoal.Put(self[i], self.xs[i], self.ys[i])
             return
         self.charcoal.Put(self[i], self.xs[i], self.ys[i])
@@ -494,11 +493,12 @@ class Cells(list):
         if isinstance(i, slice):
             start = i.start or 0
             stop = len(self) if i.stop is None else i.stop
+            step = 1 if i.step is None else i.step
             return Cells(
                 self.charcoal,
-                super().__getitem__(slice(start, stop)),
-                self.xs[start:stop],
-                self.ys[start:stop]
+                super().__getitem__(slice(start, stop, step)),
+                self.xs[start:stop:step],
+                self.ys[start:stop:step]
             )
         return super().__getitem__(i)
 
@@ -2784,6 +2784,8 @@ make a copy for each of the digits in rotations.
                 ]
             x, y = self.x, self.y
             lines = self.Lines()
+            if lines == [""]:
+                lines = ["\x00"]
             number_of_lines = len(lines[0])
             line_length = len(lines)
             self.indices = [-self.top - len(self.lines) + 1] * number_of_lines
