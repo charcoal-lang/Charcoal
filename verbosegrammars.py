@@ -101,8 +101,8 @@ VerboseGrammars = {
         [CT.Name, CT.S],
         [CT.List, CT.S],
         ["[", CT.Multidirectional, "]", CT.S],
-        ["{", CT.Program, "}", CT.S],
         [CT.Dictionary, CT.S],
+        ["{", CT.Program, "}", CT.S],
         [CT.OtherOperator, CT.S],
         [
             CT.LazyQuarternary, CT.LP, CT.Fix, CT.Fix,

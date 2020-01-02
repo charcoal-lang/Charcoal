@@ -1754,6 +1754,10 @@ O---
         self.assertEqual(Run("«a"), "a")
         self.assertEqual(Run("↓«abc"), "a\nb\nc")
 
+    def test_dictionary_verbose(self):
+        self.assertEqual(Run("""\
+Print({".": "e"});""", verbose=True), "{'.': 'e'}")
+
     def test_compression(self):
         self.assertEqual(Run("”y≔⟦³¦²¦¹⟧β▷sβ”"), "≔⟦³¦²¦¹⟧β▷sβ")
         self.assertEqual(Run("”y≔⟦³¦²¦¹⟧β▷sβ"), "≔⟦³¦²¦¹⟧β▷sβ")

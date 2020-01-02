@@ -79,7 +79,7 @@ StringifierProcessor = {
     CT.Sides: [lambda r: r[0] + r[2], lambda r: r[0]],
     CT.Fixes: [lambda r: r[0] + r[1], lambda r: r[0]],
     CT.WolframExpressions: [lambda r: r[0] + r[1], lambda r: r[0]],
-    CT.PairExpressions: [lambda r: r[0] + r[1] + r[2], lambda r: r[0] + r[1]],
+    CT.PairExpressions: [lambda r: r[0] + r[2] + r[3], lambda r: r[0] + r[2]],
     CT.Cases: [lambda r: r[1] + r[3] + r[5] + r[6], lambda r: []],
 
     CT.List: [
@@ -102,8 +102,8 @@ StringifierProcessor = {
         lambda r: r[0],
         lambda r: [("l", "")] + r[0],
         lambda r: [("m", ""), ("<", "⟦")] + r[1] + [(">", "⟧")] + r[3],
-        lambda r: [("f", ""), ("<", "«")] + r[1] +  [(">", "»")] + r[3],
         lambda r: [("d", "")] + r[0] + r[1],
+        lambda r: [("f", ""), ("<", "«")] + r[1] +  [(">", "»")] + r[3],
         lambda r: r[0] + r[1],
         lambda r: r[0][:1] + r[2] + r[3] + r[4] + r[5] + r[0][1:],
         lambda r: r[0][:1] + r[2] + r[3] + r[4] + r[5] + r[0][1:],
