@@ -3931,6 +3931,8 @@ iterable.
         return [-n for n in result] if negative else result
 
     def BaseString(self, item, base):
+        if not base:
+            return ""
         alphabet = "\
 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
         if hasattr(base, "__iter__"):
@@ -3962,7 +3964,7 @@ iterable.
             )
             item //= base
         if not result:
-            result = "0"
+            result = alphabet[0]
         if "." not in alphabet and remainder:
             result += "."
             precision = ceil(53 / log2(base))
