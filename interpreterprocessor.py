@@ -140,6 +140,8 @@ def Sum(item):
             return "".join(item)
         if isinstance(item[0], String):
             return "".join(map(str, item))
+        if isinstance(item[0], list):
+            return sum(item, [])
         return sum(item)
 
 
@@ -166,6 +168,9 @@ def Product(item):
     if hasattr(item, "__iter__") and item:
         if isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
+        # TODO: cartesian product?
+        # if isinstance(item[0], list):
+        #     return sum(item, [])
         return product(item)
 
 
@@ -353,7 +358,8 @@ def direction(dir):
             Direction.down, Direction.down_right
         ][dir % 8]
     elif cls == str:
-        return {
+        cleaned = re.sub("[^a-z]", "", dir.lower()[:5])
+        lookup = {
             "r": Direction.right,
             "ri": Direction.right,
             "rig": Direction.right,
@@ -381,7 +387,17 @@ def direction(dir):
             "down": Direction.down,
             "dr": Direction.down_right,
             "downr": Direction.down_right
-        }[re.sub("[^a-z]", "", dir.lower()[:5])]
+        }
+        if cleaned in lookup:
+            return lookup[cleaned]
+        elif any(c in dir for c in "0123456789"):
+            return [
+                Direction.right, Direction.up_right, Direction.up,
+                Direction.up_left, Direction.left, Direction.down_left,
+                Direction.down, Direction.down_right
+            ][int(re.search("\d+", dir).group()) % 8]
+        else:
+            return 0
 
 InterpreterProcessor = {
     CT.Arrow: [

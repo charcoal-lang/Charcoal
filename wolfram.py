@@ -45,10 +45,16 @@ prime_cache = [2, 3]
 def take(generator, n):
     if n:
         for _ in range(n):
-            yield next(generator)
+            try:
+                yield next(generator)
+            except:
+                break
     else:
         while True:
-            yield next(generator)
+            try:
+                yield next(generator)
+            except:
+                break
 
 
 def prime_gen():
@@ -1437,6 +1443,8 @@ class RepeatedNull(Pattern):
 class Shortest(Pattern):
     def __init__(self, item):
         if isinstance(item, Pattern):
+            # TODO: pretty sure this is wrong.
+            # to fix, patterns will need to be converted to use internal ast
             super().__init__(str(item) + "?")
         elif isinstance(item, List):
             super().__init__("(?:" + "|".join(map(str, item)) + ")")

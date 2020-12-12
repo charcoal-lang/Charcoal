@@ -1707,7 +1707,7 @@ Print(Cast(Reduce([1,2,3,4,5,6,7],{Plus(i,k)})))", verbose=True), "28")
   \       /       \  
    \     /         \ 
     ----/           O""")
-        self.assertEqual(Run("ＦＮＰ✳✳⟦↘→↗→⟧⁻θ¹O", "5"), """\
+        self.assertEqual(Run("ＦＮＰ✳✳⟦dr¦r¦ur¦r⟧⁻θ¹O", "5"), """\
    /
   / 
  /  
@@ -1715,6 +1715,22 @@ O---
  \  
   \ 
    \\""")
+        self.assertEqual(Run("ＦＮＰ✳✳⟦d¦r¹r⟧⁻θ¹O", "5"), """\
+   /
+  / 
+ /  
+O---
+|   
+|   
+|   """)
+        self.assertEqual(Run("ＦＮＰ✳✳⟦d¦r¦1¦r⟧⁻θ¹O", "5"), """\
+   /
+  / 
+ /  
+O---
+|   
+|   
+|   """)
 
     def test_ij(self):
         self.assertEqual(Run("→→→ⅈ"), "--")
@@ -1734,6 +1750,7 @@ O---
 
     def test_sum_product(self):
         self.assertEqual(Run("ＩΣ⟦³¦²¦¹⟧"), "6")
+        self.assertEqual(Run("ＩΣ⟦⟦¹¦²¦³⟧⟦⁴¦⁵⟧⟦⁶⟧⟧"), "1\n2\n3\n4\n5\n6")
         self.assertEqual(Run("ＩΣ3 2 1 4"), "10")
         self.assertEqual(Run("ＩΣ5..4"), "5.4")
         self.assertEqual(Run("ＩΣ⁰¹²³⁴⁵⁶⁷⁸⁹⁰¹²³⁴⁵⁶⁷⁸⁹"), "90")
@@ -1861,7 +1878,7 @@ the\ncat\nin \nthe\nhat")
         self.assertEqual(Run("▷StringSplit⟦192.168.0.1¦.⟧"), "\
 192\n168\n0  \n1  ")
         self.assertEqual(Run("\
-▷StringSplit⟦123 2.3 4 6‴≕WhitespaceCharacter⟧"), "\
+▷StringSplit⟦123 2.3 4 6″≕WhitespaceCharacter⟧"), "\
 123\n2.3\n4  \n6  ")
         self.assertEqual(Run("\
 ▷StringSplit⟦11a22b3？≕_≕LetterQ⟧"), "11\n22\n3 ")

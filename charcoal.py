@@ -25,7 +25,7 @@ from wolfram import *
 from extras import *
 from enum import Enum
 from ast import literal_eval
-from time import sleep, clock, time as now
+from time import sleep, perf_counter as clock, time as now
 from math import ceil, log2
 import random
 import re
@@ -5130,7 +5130,7 @@ non-raw file input and file output."""
 [Charcoal]: https://github.com/somebody1234/Charcoal
 [TIO-%s]: %s""" % (
     length, "" if len(code) == 1 else "s", code, nonce,
-    " Link is to verbose version of code." if verbose else "", nonce,
+    " Link is to verbose version of code." if argv.verbose else "", nonce,
     TIOEncode(verbose, argv.input, sys.argv[4:])
 ))
         else:

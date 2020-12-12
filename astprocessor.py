@@ -29,7 +29,7 @@ ASTProcessor = {
         lambda r: [lambda s="": [r[0] + ": Up Right"]],
         lambda r: [lambda s="": [r[0] + ": Down Right"]],
         lambda r: [lambda s="": [r[0] + ": Down Left"]],
-        lambda r: [lambda s="": [r[1]]]
+        lambda r: [lambda s="": [r[0] + ": Direction", r[1][0](s)]]
     ],
     CT.Multidirectional: [
         lambda r: [lambda s="": ["Multidirectional"] + r[0][0](s)[1:] + r[1][0](s)[1:]],
