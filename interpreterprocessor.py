@@ -22,10 +22,15 @@ def FindAll(haystack, needle):
                 return r
             index = haystack.find(needle, index + 1)
     else:
-        return [i for i, item in enumerate(haystack) if item == needle]
+        return [i for i, item in haystack.items() if isinstance(haystack, dict) else enumerate(haystack) if item == needle]
 
 
 def ListFind(haystack, needle):
+    if isinstance(haystack, dict):
+        for i, item in haystack.items():
+            if item == needle:
+                return i
+        return None
     return haystack.index(needle) if needle in haystack else -1
 
 
@@ -699,7 +704,7 @@ InterpreterProcessor = {
         ),
         lambda r: lambda left, right, c: " " * (int(right) - len(left)) + left,
         lambda r: lambda left, right, c: left + " " * (int(right) - len(left)),
-        lambda r: lambda left, right, c: left.count(right),
+        lambda r: lambda left, right, c: list(left.values()).count(right) if isinstance(left, dict) else left.count(right),
         lambda r: lambda left, right, c: Rule(left, right),
         lambda r: lambda left, right, c: DelayedRule(left, right),
         lambda r: lambda left, right, c: PatternTest(left, right),

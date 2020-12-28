@@ -3600,12 +3600,16 @@ iterable, else it returns the iterable.
             iterable = int(iterable)
         if isinstance(iterable, int):
             iterable = list(range(iterable))
-        for i in range(len(iterable)):
-            self.scope[loop_variable] = iterable[i]
+        for i, v in iterable.items() if isinstance(iterable, dict) else enumerate(iterable):
+            self.scope[loop_variable] = v
             self.scope[index_variable] = i
             result += [function(self)]
-        if is_command and not isinstance(iterable, str):
-            iterable[:] = result
+        if is_command:
+            if isinstance(iterable, list):
+                iterable[:] = result
+            elif isinstance(iterable, dict):
+                for i in iterable:
+                    iterable[i] = result.pop(0)
         self.scope = self.scope.parent
         if isinstance(iterable, Cells):
             if Info.step_canvas in self.info:
@@ -3616,7 +3620,7 @@ iterable, else it returns the iterable.
         if not is_command:
             if string_map:
                 return "".join(map(str, result))
-            elif isinstance(iterable, str):
+            if isinstance(iterable, str) or isinstance(iterable, dict):
                 return result
             try:
                 return type(iterable)(result)
@@ -3647,8 +3651,8 @@ a function is truthy.
             iterable = int(iterable)
         if isinstance(iterable, int):
             iterable = list(range(iterable))
-        for i in range(len(iterable)):
-            self.scope[loop_variable] = iterable[i]
+        for i, v in iterable.items() if isinstance(iterable, dict) else enumerate(iterable):
+            self.scope[loop_variable] = v
             self.scope[index_variable] = i
             if function(self):
                 result += [iterable[i]]
@@ -3656,6 +3660,8 @@ a function is truthy.
         self.scope = self.scope.parent
         if isinstance(iterable, str):
             return "".join(result)
+        if isinstance(iterable, dict):
+            return dict(zip(indices, result))
         try:
             return type(iterable)(result)
         except:
@@ -3676,8 +3682,8 @@ iterable.
         loop_variable = self.GetFreeVariable()
         self.scope[loop_variable] = 1
         index_variable = self.GetFreeVariable()
-        for i in range(len(iterable)):
-            self.scope[loop_variable] = iterable[i]
+        for i, v in iterable.items() if isinstance(iterable, dict) else enumerate(iterable):
+            self.scope[loop_variable] = v
             self.scope[index_variable] = i
             if not function(self):
                 result = 0
@@ -3700,8 +3706,8 @@ iterable.
         loop_variable = self.GetFreeVariable()
         self.scope[loop_variable] = 1
         index_variable = self.GetFreeVariable()
-        for i in range(len(iterable)):
-            self.scope[loop_variable] = iterable[i]
+        for i, v in iterable.items() if isinstance(iterable, dict) else enumerate(iterable):
+            self.scope[loop_variable] = v
             self.scope[index_variable] = i
             if function(self):
                 result = 1
@@ -3726,6 +3732,10 @@ iterable.
         right_is_iterable = (
             hasattr(right, "__iter__") and not isinstance(right, str)
         )
+        if isinstance(left, dict) and isinstance(right, dict):
+            left = left.copy()
+            left.update(right)
+            return left
         if isinstance(left, Pattern) or isinstance(right, Pattern):
             return left + right
         if left_is_iterable ^ right_is_iterable:
