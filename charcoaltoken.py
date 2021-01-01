@@ -52,7 +52,7 @@ CharcoalTokenNames = [
 ]
 
 
-class CharcoalToken(object):
+class CharcoalToken:
     pass
 
 for i in range(len(CharcoalTokenNames)):
