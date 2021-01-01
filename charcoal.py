@@ -3728,9 +3728,11 @@ iterable.
         right_type = type(right)
         left_is_iterable = (
             hasattr(left, "__iter__") and not isinstance(left, str)
+            and not isinstance(left, set)
         )
         right_is_iterable = (
             hasattr(right, "__iter__") and not isinstance(right, str)
+            and not isinstance(right, set)
         )
         if isinstance(left, dict) and isinstance(right, dict):
             left = left.copy()
@@ -3761,10 +3763,14 @@ iterable.
         right_type = type(right)
         left_is_iterable = (
             hasattr(left, "__iter__") and not isinstance(left, str)
+            and not isinstance(left, set)
         )
         right_is_iterable = (
             hasattr(right, "__iter__") and not isinstance(right, str)
+            and not isinstance(right, set)
         )
+        if isinstance(left, dict) and isinstance(right, dict):
+            return {key: value for key, value in left.items() if key not in right}
         if left_is_iterable or right_is_iterable:
             if left_is_iterable and right_is_iterable:
                 result = [item for item in left if item not in right]
@@ -4142,12 +4148,12 @@ abcdefghijklmnopqrstuvwxyz"
                             break
                     elif token == CT.Fix:
                         infix_prec = {
-                            "**": 7, "*": 6, "/": 6, "\\": 6, "%": 6,
+                            "^": 7, "*": 6, "/": 6, "\\": 6, "%": 6,
                             "+": 5, "-": 5, "‹": 4, ">": 4, "==": 3,
                             "&": 2, "|": 1, "=": 0
                         }
                         prefix_prec = {
-                            "--": 8, "++": 8, "***": 8, "//": 8,
+                            "--": 8, "++": 8, "**": 8, "//": 8,
                             "-": 8, "~": 8
                         }
                         def shunt(top=False):
@@ -4155,7 +4161,7 @@ abcdefghijklmnopqrstuvwxyz"
                             expect = [CT.Prefix, CT.Expression]
                             expect_lookup = {
                                 CT.Prefix: [CT.Prefix, CT.Expression],
-                                CT.Expression: [CT.Prefix, CT.Infix],
+                                CT.Expression: [CT.Infix, CT.Prefix],
                                 CT.Infix: [CT.Expression]
                             }
                             to_shunt, operators, types = [], [], []
@@ -4165,24 +4171,13 @@ abcdefghijklmnopqrstuvwxyz"
                                 for expected in expect:
                                     parens = False
                                     if expected == CT.Expression:
-                                        result = ParseExpression(
-                                            code, index, CT.LP, grammars,
-                                            processor, verbose,
-                                            return_lexeme_index=True
-                                        )
+                                        result = ParseExpression(code, index, CT.LP, grammars, processor, verbose, return_lexeme_index=True)
 
-                                        if (
-                                            result and
-                                            result[1] is not False and
-                                            not result[2]
-                                        ):
+                                        if result and result[1] is not False and not result[2]:
                                             index = result[1]
                                             result = shunt()
     
-                                            if (
-                                                not result or
-                                                result[1] is False
-                                            ):
+                                            if not result or result[1] is False:
                                                 break
 
                                             success = True
@@ -4191,37 +4186,22 @@ abcdefghijklmnopqrstuvwxyz"
                                             types += [CT.Expression]
                                             expect = expect_lookup[expected]
                                             break
-                                    result = ParseExpression(
-                                        code, index, expected, grammars,
-                                        processor, verbose,
-                                        return_lexeme_index=True
-                                    )
+                                    result = ParseExpression(code, index, expected, grammars, processor, verbose, return_lexeme_index=True)
                                     
                                     if not result or result[1] is False:
                                         continue
                                     
                                     success = True
                                     to_shunt += [result[0]]
-                                    operators += [
-                                        None
-                                        if expected == CT.Expression else
-                                        grammars[expected][result[2]][0]
-                                    ]
+                                    operators += [None if expected == CT.Expression else grammars[expected][result[2]][0]]
                                     types += [expected]
                                     index = result[1]
                                     expect = expect_lookup[expected]
                                     break
 
                             if not top:
-                                close_paren = ParseExpression(
-                                    code, index, CT.RP, grammars, processor,
-                                    verbose, return_lexeme_index=True
-                                )
-                                if (
-                                    not close_paren or
-                                    close_paren[1] is False or
-                                    close_paren[2]
-                                ):
+                                close_paren = ParseExpression(code, index, CT.RP, grammars, processor, verbose, return_lexeme_index=True)
+                                if not close_paren or close_paren[1] is False or close_paren[2]:
                                     return None
                                 index = close_paren[1]
 
@@ -4230,53 +4210,41 @@ abcdefghijklmnopqrstuvwxyz"
                                 
                             # begin shunting
                             result, operator_stack, precedences = [], [], []
-                            is_prefix, is_eq = [], False
-                            for i in range(len(to_shunt)):
-                                if types[i] == CT.Expression:
-                                    result += [to_shunt[i]]
+                            is_prefix, is_eq, can_prefix = [], False, True
+                            for item, type, op in zip(to_shunt, types, operators):
+                                if type == CT.Expression:
+                                    result += [item]
+                                    can_prefix = False
                                 else:
                                     if (
-                                        operators[i] == "=" and
+                                        op == "=" and
                                         (not top or len(operator_stack))
                                     ):
                                         raise Exception("Assignment \
 expression is a command, not an operator, so it must be at top level")
-                                    if operators[i] == "=":
+                                    if op == "=":
                                         is_eq = True
-                                    prefix = operators[i] in prefix_prec
-                                    precedence = (
-                                        prefix_prec[operators[i]]
-                                        if prefix else
-                                        infix_prec[operators[i]]
-                                    )
+                                    prefix = can_prefix and op in prefix_prec
+                                    precedence = prefix_prec[op] if prefix else infix_prec[op]
                                     if not prefix:
                                         while (
                                             len(operator_stack) and (
-                                                (
-                                                    operator_stack[-1] !=
-                                                    "**" and precedences[-1] >=
-                                                    precedence
-                                                ) or
+                                                (operator_stack[-1] != "**" and precedences[-1] >= precedence) or
                                                 precedences[-1] > precedence
                                             )
                                         ):
                                             precedences.pop()
                                             if is_prefix.pop():
-                                                result[-1] = [
-                                                    operator_stack.pop(),
-                                                    result[-1]
-                                                ]
+                                                result += [operator_stack.pop(), result.pop()]
                                             else:
                                                 right = result.pop()
                                                 left = result.pop()
-                                                result += [[
-                                                    left,
-                                                    operator_stack.pop(),
-                                                    right
-                                                ]]
-                                    operator_stack += [to_shunt[i]]
+                                                result += [[left, operator_stack.pop(), right]]
+                                    operator_stack += [item]
                                     precedences += [precedence]
                                     is_prefix += [prefix]
+                                    if not prefix:
+                                        can_prefix = True
                             
                             while len(operator_stack):
                                 precedences.pop()

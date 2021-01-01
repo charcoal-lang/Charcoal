@@ -80,24 +80,24 @@ ASTProcessor = {
     ],
 
     CT.Arrows: [
-        lambda r: [lambda s="": [r[1][0](s)[0], r[0][0](s)] + r[1][0](s)[1:]],
+        lambda r: [lambda s="": ["Arrows", r[0][0](s)] + r[1][0](s)[1:]],
         lambda r: [lambda s="": ["Arrows", r[0][0](s)]]
     ],
     CT.Sides: [
-        lambda r: [lambda s="": [r[1][0](s)[0], r[0][0](s)] + r[1][0](s)[1:]],
+        lambda r: [lambda s="": ["Sides", r[0][0](s)] + r[1][0](s)[1:]],
         lambda r: [lambda s="": ["Sides", r[0][0](s)]]
     ],
     CT.Expressions: [
-        lambda r: [lambda s="": [r[1][0](s)[0], r[0][0](s)] + r[1][0](s)[1:]],
+        lambda r: [lambda s="": ["Expressions", r[0][0](s)] + r[1][0](s)[1:]],
         lambda r: [lambda s="": ["Expressions", r[0][0](s)]]
     ],
     CT.WolframExpressions: [
-        lambda r: [lambda s="": [r[1][0](s)[0], r[0][0](s)[0](s)] + [el[0](s) for el in r[1][0](s)[1:]]],
-        lambda r: [lambda s="": ["Wolfram expressions", r[0][0](s)]]
+        lambda r: [lambda s="": ["Wolfram Expressions", r[0][0](s)[0](s)] + [el[0](s) for el in r[1][0](s)[1:]]],
+        lambda r: [lambda s="": ["Wolfram Expressions", r[0][0](s)]]
     ],
     CT.PairExpressions: [
-        lambda r: [lambda s="": [r[2][0](s)[0], [r[0], r[1][0](s)]] + r[2][0](s)[1:]],
-        lambda r: [lambda s="": ["PairExpressions", [r[0], r[1][0](s)]]]
+        lambda r: [lambda s="": ["Pair Expressions", ["Pair", r[0][0](s), r[1][0](s)]] + r[2][0](s)[1:]],
+        lambda r: [lambda s="": ["Pair Expressions", ["Pair", r[0][0](s), r[1][0](s)]]]
     ],
     CT.Cases: [
         lambda r: [lambda s="": ["Cases", ["Case", r[0][0](s), r[1][0](s)]] + r[2][0](s)[1:]],
@@ -109,8 +109,8 @@ ASTProcessor = {
         lambda r: [lambda s="": ["List"]]
     ] * 2,
     CT.WolframList: [
-        lambda r: [lambda s="": ["Wolfram list"] + r[1][0](s)[1:]],
-        lambda r: [lambda s="": ["Wolfram list"]]
+        lambda r: [lambda s="": ["Wolfram List"] + r[1][0](s)[1:]],
+        lambda r: [lambda s="": ["Wolfram List"]]
     ] * 2,
     CT.Dictionary: [
         lambda r: [lambda s="": ["Dictionary"] + r[1][0](s)[1:]],

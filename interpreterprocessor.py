@@ -22,7 +22,7 @@ def FindAll(haystack, needle):
                 return r
             index = haystack.find(needle, index + 1)
     else:
-        return [i for i, item in haystack.items() if isinstance(haystack, dict) else enumerate(haystack) if item == needle]
+        return [i for i, item in (haystack.items() if isinstance(haystack, dict) else enumerate(haystack)) if item == needle]
 
 
 def ListFind(haystack, needle):
