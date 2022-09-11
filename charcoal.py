@@ -4235,7 +4235,7 @@ expression is a command, not an operator, so it must be at top level")
                                         ):
                                             precedences.pop()
                                             if is_prefix.pop():
-                                                result += [operator_stack.pop(), result.pop()]
+                                                result += [[operator_stack.pop(), result.pop()]]
                                             else:
                                                 right = result.pop()
                                                 left = result.pop()
@@ -4249,10 +4249,7 @@ expression is a command, not an operator, so it must be at top level")
                             while len(operator_stack):
                                 precedences.pop()
                                 if is_prefix.pop():
-                                    result[-1] = [
-                                        operator_stack.pop(),
-                                        result[-1]
-                                    ]
+                                    result += [[operator_stack.pop(), result.pop()]]
                                 else:
                                     right = result.pop()
                                     left = result.pop()
