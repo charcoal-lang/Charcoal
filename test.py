@@ -1492,6 +1492,7 @@ b   a   z
         self.assertEqual(Run("§abc²"), "c")
         self.assertEqual(Run("§⟦¹a²b³⟧²"), "--")
         self.assertEqual(Run("§⦃c¹b²a³⦄a"), "---")
+        self.assertEqual(Run("Ｌ§ψ⁰"), "-")
 
     def test_ternary(self):
         self.assertEqual(Run("⎇¹¦¹÷¹¦⁰"), "-")
@@ -1539,23 +1540,29 @@ b   a   z
         self.assertEqual(Run("Ｉ⌊⟦¹¦²¦³¦±¹⟧"), "-1")
         self.assertEqual(Run("Ｉ⌊⁹⁹·⁵"), "99")
         self.assertEqual(Run("⌊foobar"), "a")
+        self.assertEqual(Run("⌊ω"), "")
 
     def test_maximum(self):
         self.assertEqual(Run("⌈⟦¹¦²¦³¦±¹⟧"), "---")
         self.assertEqual(Run("Ｉ⌈⁹⁹·⁵"), "100")
         self.assertEqual(Run("⌈foobar"), "r")
+        self.assertEqual(Run("⌈ω"), "")
 
     def test_join(self):
         self.assertEqual(Run("⪫⟦a¦b¦c⟧foo"), "afoobfooc")
 
     def test_split(self):
         self.assertEqual(Run("⪪afoobfooc¦foo"), "a\nb\nc")
+        self.assertEqual(Run("Ｉ⪪Ｘ²¦³²¦⁹"), "42 \n4  \n672\n6  ")
+        self.assertEqual(Run("⪪β⪪aeiou¹"), "     \nbcd  \nfgh  \njklmn\npqrst\nvwxyz")
 
     def test_lowercase(self):
         self.assertEqual(Run("↧FOOBAR"), "foobar")
+        self.assertEqual(Run("↧⟦"), "")
 
     def test_uppercase(self):
         self.assertEqual(Run("↥foobar"), "FOOBAR")
+        self.assertEqual(Run("↥⟦"), "")
 
     def test_power(self):
         self.assertEqual(Run("Ｘ²¦³"), "--------")
@@ -1569,6 +1576,7 @@ b   a   z
 
     def test_negate(self):
         self.assertEqual(Run("±±¹"), "-")
+        self.assertEqual(Run("±⟦ω"), "-")
 
     def test_ranges(self):
         self.assertEqual(Run("…¹¦¹⁰"), """\
@@ -1612,6 +1620,8 @@ b   a   z
     def test_reverse(self):
         self.assertEqual(Run("⮌foobar"), "raboof")
         self.assertEqual(Run("⮌⟦¹a²b⟧"), "b \n--\na \n- ")
+        self.assertEqual(Run("Ｉ⮌¹·²"), "2.1")
+        self.assertEqual(Run("Ｉ⮌±¹²"), "-21")
 
     def test_toggle_trim(self):
         self.assertEqual(Run("↓foo×⪫ＫＡω⁵ＵＴ"), """\
@@ -1672,9 +1682,12 @@ cast basestring 'asdf' 62", verbose=True), "2491733")
     def test_sqrt(self):
         self.assertEqual(Run("sqrt 9", verbose=True), "---")
         self.assertEqual(Run("sqrt 10", verbose=True), "---")
+        self.assertEqual(Run("₂⟦10"), "---")
 
     def test_abs(self):
         self.assertEqual(Run("abs negate 9", verbose=True), "---------")
+        self.assertEqual(Run("↔-9"), "9")
+        self.assertEqual(Run("↔⟦"), "")
 
     def test_filter(self):
         self.assertEqual(Run("filter [1,2,3,4,0] i", verbose=True), """\
@@ -1737,16 +1750,20 @@ O---
         self.assertEqual(Run("↓↓↓ⅉ"), " \n \n|\n|")
         
     def test_incremented_decremented_halved_doubled(self):
-        self.assertEqual(Run("Ｉ⊕2.2"), "3.2")
-        self.assertEqual(Run("Ｉ⊕⟦2.1³·²4.3⟧"), "3.1\n4.2\n5.3")
-        self.assertEqual(Run("Ｉ⊕2.2"), "3.2")
-        self.assertEqual(Run("Ｉ⊖2.2"), "1.2")
-        self.assertEqual(Run("Ｉ⊖²·²"), "1.2")
-        self.assertEqual(Run("Ｉ⊗¹·²"), "2.4")
-        self.assertEqual(Run("Ｉ⊗1.2"), "2.4")
-        self.assertEqual(Run("Ｉ⊘¹·²"), "0.6")
-        self.assertEqual(Run("Ｉ⊘1.2"), "0.6")
-        self.assertEqual(Run("cast halved 1.2", verbose="True"), "0.6")
+        self.assertEqual(Run("Ｉ⊕2.25"), "3.25")
+        self.assertEqual(Run("Ｉ⊕⟦2.25³·²⁵4.25⟧"), "3.25\n4.25\n5.25")
+        self.assertEqual(Run("Ｉ⊕²·²⁵"), "3.25")
+        self.assertEqual(Run("Ｉ⊕⟦"), "")
+        self.assertEqual(Run("Ｉ⊖2.25"), "1.25")
+        self.assertEqual(Run("Ｉ⊖²·²⁵"), "1.25")
+        self.assertEqual(Run("Ｉ⊖⟦"), "")
+        self.assertEqual(Run("Ｉ⊗¹·²⁵"), "2.5")
+        self.assertEqual(Run("Ｉ⊗1.25"), "2.5")
+        self.assertEqual(Run("Ｉ⊗⟦"), "")
+        self.assertEqual(Run("Ｉ⊘¹·²⁵"), "0.625")
+        self.assertEqual(Run("Ｉ⊘1.25"), "0.625")
+        self.assertEqual(Run("Ｉ⊘⟦"), "")
+        self.assertEqual(Run("cast halved 1.25", verbose="True"), "0.625")
 
     def test_sum_product(self):
         self.assertEqual(Run("ＩΣ⟦³¦²¦¹⟧"), "6")
@@ -1761,6 +1778,7 @@ O---
         self.assertEqual(Run("ＩΠ5..4"), "2")
         self.assertEqual(Run("ＩΠ12345"), "120")
         self.assertEqual(Run("ＩΠ¹²³⁴⁵"), "120")
+        self.assertEqual(Run("ＩΠ⟦"), "1")
 
     def test_map_assign(self):
         self.assertEqual(Run("≔⟦³¦²¦¹⟧β≧×²ββ"), "------\n----  \n--    ")

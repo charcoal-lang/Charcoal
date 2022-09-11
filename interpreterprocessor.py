@@ -61,20 +61,6 @@ def itersplit(iterable, number):
     return result
 
 
-def negate_str(string):
-    try:
-        return float(string) if "." in string else int(string)
-    except:
-        return string[::-1]
-
-
-def abs_str(string):
-    try:
-        return abs(float(string) if "." in string else int(string))
-    except:
-        return string  # ???
-
-
 def _int(obj):
     if isinstance(obj, str) and re.match("\d+\.?\d*$", obj):
         return int(float(obj))
@@ -89,16 +75,16 @@ def product(item):
 
 
 def Negate(item):
-    if isinstance(item, int) or isinstance(item, float):
+    if isinstance(item, int) or isinstance(item, float) or isinstance(item, Number):
         return -item
-    if isinstance(item, str):
-        return negate_str(item)
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
-        return String(negate_str(str(item)))
+        item = str(item)
+    if isinstance(item, str):
+        return item[1:] if item[:1] == "-" else "-" + item
     if hasattr(item, "__iter__"):
-        if isinstance(item[0], Expression):
+        if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Negate)
 
@@ -106,14 +92,14 @@ def Negate(item):
 def Abs(item):
     if isinstance(item, int) or isinstance(item, float):
         return abs(item)
-    if isinstance(item, str):
-        return abs_str(item)
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
-        return String(abs_str(str(item)))
+        item = str(item)
+    if isinstance(item, str):
+        return item[1:] if item[:1] == "-" else item
     if hasattr(item, "__iter__"):
-        if isinstance(item[0], Expression):
+        if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Abs)
 
@@ -170,8 +156,8 @@ def Product(item):
             float(c) if "." in c else int(c)
             for c in re.findall("\d+\.?\d*|\.\d+", item)
         )
-    if hasattr(item, "__iter__") and item:
-        if isinstance(item[0], Expression):
+    if hasattr(item, "__iter__"):
+        if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         # TODO: cartesian product?
         # if isinstance(item[0], list):
@@ -223,82 +209,91 @@ def vectorize(fn, afn=None, cast_string=True):
 
 
 def Incremented(item):
-    if isinstance(item, float) or isinstance(item, int):
-        return round(item + 1, 15)
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
         item = float(item) if "." in item else int(item)
-        return Incremented(item)
-    if hasattr(item, "__iter__") and item:
-        if isinstance(item[0], Expression):
+    if isinstance(item, float) or isinstance(item, int):
+        return item + 1
+    if hasattr(item, "__iter__"):
+        if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Incremented)
 
 
 def Decremented(item):
-    if isinstance(item, float) or isinstance(item, int):
-        return round(item - 1, 15)
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
         item = float(item) if "." in item else int(item)
-        return Decremented(item)
-    if hasattr(item, "__iter__") and item:
-        if isinstance(item[0], Expression):
+    if isinstance(item, float) or isinstance(item, int):
+        return item - 1
+    if hasattr(item, "__iter__"):
+        if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Decremented)
 
 
 def Doubled(item):
-    if isinstance(item, float) or isinstance(item, int):
-        return round(item * 2, 15)
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
         item = float(item) if "." in item else int(item)
-        return Doubled(item)
-    if hasattr(item, "__iter__") and item:
-        if isinstance(item[0], Expression):
+    if isinstance(item, float) or isinstance(item, int):
+        return item * 2
+    if hasattr(item, "__iter__"):
+        if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Doubled)
 
 
 def Halved(item):
-    if isinstance(item, float) or isinstance(item, int):
-        return round(item / 2, 15)
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
         item = float(item) if "." in item else int(item)
-        return Halved(item)
-    if hasattr(item, "__iter__") and item:
-        if isinstance(item[0], Expression):
+    if isinstance(item, float) or isinstance(item, int):
+        return item / 2 if item % 2 else item // 2
+    if hasattr(item, "__iter__"):
+        if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Halved)
+
+
+def SquareRoot(item):
+    if isinstance(item, Expression):
+        item = item.run()
+    if isinstance(item, String):
+        item = str(item)
+    if isinstance(item, str):
+        item = float(item)
+    if isinstance(item, float) or isinstance(item, int):
+        return item ** 0.5
+    if hasattr(item, "__iter__"):
+        if item and isinstance(item[0], Expression):
+            item = iter_apply(item, lambda o: o.run())
+        return iter_apply(item, SquareRoot)
 
 
 def Lower(item):
     if isinstance(item, int) or isinstance(item, float):
         return str(item)
-    if isinstance(item, str):
-        return item.lower()
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
-        item = String(str(item).lower())
+        item = str(item)
     if isinstance(item, str):
         return item.lower()
-    if hasattr(item, "__iter__") and item:
-        if isinstance(item[0], Expression):
+    if hasattr(item, "__iter__"):
+        if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Lower)
 
@@ -306,12 +301,12 @@ def Lower(item):
 def Min(item):
     if isinstance(item, int) or isinstance(item, float):
         return floor(item)
-    if isinstance(item, str):
-        return chr(min(map(ord, item)))
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
-        return String(Min(str(item)))
+        item = str(item)
+    if isinstance(item, str):
+        return item and min(item)
     if hasattr(item, "__iter__") and item:
         if isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
@@ -321,14 +316,12 @@ def Min(item):
 def Max(item):
     if isinstance(item, int) or isinstance(item, float):
         return ceil(item)
-    if isinstance(item, str):
-        return chr(max(map(ord, item)))
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
-        item = String(str(item).lower())
+        item = str(item)
     if isinstance(item, str):
-        return item.lower()
+        return item and max(item)
     if hasattr(item, "__iter__") and item:
         if isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
@@ -338,14 +331,14 @@ def Max(item):
 def Upper(item):
     if isinstance(item, int) or isinstance(item, float):
         return str(item)
-    if isinstance(item, str):
-        return item.upper()
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
-        item = String(str(item).upper())
-    if hasattr(item, "__iter__") and item:
-        if isinstance(item[0], Expression):
+        item = str(item)
+    if isinstance(item, str):
+        return item.upper()
+    if hasattr(item, "__iter__"):
+        if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Upper)
 
@@ -572,16 +565,7 @@ InterpreterProcessor = {
         lambda r: lambda c: c.y
     ],
     CT.Unary: [
-        lambda r: lambda item, c: (
-            iter_apply(item, lambda x: -x)
-            if hasattr(item, "__iter__") else
-            (-item)
-            if (
-                isinstance(item, int) or isinstance(item, float) or
-                isinstance(item, Number)
-            ) else
-            negate_str(str(item))
-        ),
+        lambda r: lambda item, c: Negate(item),
         lambda r: lambda item, c: (
             len(item) if hasattr(item, "__iter__") else len(str(item))
         ),
@@ -598,11 +582,15 @@ InterpreterProcessor = {
         lambda r: lambda item, c: (
             item[::-1]
             if hasattr(item, "__iter__") else
-            int(str(item)[::-1])
+            int(
+                ("-" + str(item)[:0:-1])
+                if str(item)[:1] == "-" else
+                str(item)[::-1]
+            )
             if isinstance(item, int) else
             float(
                 ("-" + str(item)[:0:-1])
-                if item[-1] == "-" else
+                if str(item)[:1] == "-" else
                 str(item)[::-1]
             )
             if isinstance(item, float) else
@@ -623,9 +611,9 @@ InterpreterProcessor = {
             list(map(chr, range(ord(item))))
         ),
         lambda r: lambda item, c: (
-            ~item
+            ~int(item)
             if isinstance(item, int) or isinstance(item, float) else
-            (~(float(str(item)) if "." in item else int(str(item))))
+            (~int(float(str(item)) if "." in item else str(item)))
         ),
         lambda r: lambda item, c: Abs(item),
         lambda r: lambda item, c: Sum(item),
@@ -635,7 +623,7 @@ InterpreterProcessor = {
         lambda r: lambda item, c: Doubled(item),
         lambda r: lambda item, c: Halved(item),
         lambda r: lambda item, c: eval(item),
-        lambda r: lambda item, c: item ** 0.5
+        lambda r: lambda item, c: SquareRoot(item)
     ],
     CT.Binary: [
         lambda r: lambda left, right, c: c.Add(left, right),
@@ -671,8 +659,6 @@ InterpreterProcessor = {
         ),
         lambda r: vectorize(lambda left, right, c: left ** right),
         lambda r: lambda left, right, c: (
-            lambda value: "" if value == "\x00" else value
-        )(
             (left[right] if right in left else None)
             if isinstance(left, dict) else
             left[int(right) % len(left)]
@@ -684,17 +670,17 @@ InterpreterProcessor = {
             )
         ),
         lambda r: lambda left, right, c: left.append(right) or left,
-        lambda r: lambda left, right, c: right.join(map(str, left)),
+        lambda r: lambda left, right, c: str(right).join(map(str, left)),
         lambda r: lambda left, right, c: (
-            itersplit(left, int(right))
-            if isinstance(right, int) or isinstance(right, float) else
             list(map(int, str(left).split(str(right))))
             if isinstance(left, int) or isinstance(left, float) else
+            itersplit(left, int(right))
+            if isinstance(right, int) or isinstance(right, float) else
             left.split(right)
             if isinstance(left, str) and isinstance(right, str) else
             [item.split(right) for item in left]
             if hasattr(left, "__getitem__") and isinstance(right, str) else
-            re.split(left, "|".join(map(re.escape, right)))
+            re.split("|".join(map(re.escape, map(str, right))), left)
         ),
         lambda r: lambda left, right, c: FindAll(left, right),
         lambda r: lambda left, right, c: (
@@ -702,8 +688,8 @@ InterpreterProcessor = {
             if isinstance(left, str) else
             ListFind(left, right)
         ),
-        lambda r: lambda left, right, c: " " * (int(right) - len(left)) + left,
-        lambda r: lambda left, right, c: left + " " * (int(right) - len(left)),
+        lambda r: lambda left, right, c: " " * (int(right) - len(str(left))) + str(left),
+        lambda r: lambda left, right, c: str(left) + " " * (int(right) - len(str(left))),
         lambda r: lambda left, right, c: list(left.values()).count(right) if isinstance(left, dict) else left.count(right),
         lambda r: lambda left, right, c: Rule(left, right),
         lambda r: lambda left, right, c: DelayedRule(left, right),
