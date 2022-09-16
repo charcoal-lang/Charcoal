@@ -5,6 +5,7 @@ VerboseGrammars = {
     CT.LP: [["("], []],
     CT.RP: [[")"], []],
     CT.Arrow: [
+        ["Direction", CT.LP, CT.Fix, CT.RP],
         [":UpLeft"],
         [":UpRight"],
         [":DownRight"],
@@ -21,9 +22,9 @@ VerboseGrammars = {
         [":U"],
         [":R"],
         [":D"],
-        ["Direction", CT.LP, CT.Fix, CT.RP]
     ],
     CT.Multidirectional: [
+        ["Directions", CT.LP, CT.Fix, CT.RP],
         [CT.Arrows, CT.S, CT.Multidirectional],
         [":+", CT.S, CT.Multidirectional],
         [":Orthogonal", CT.S, CT.Multidirectional],
@@ -56,7 +57,6 @@ VerboseGrammars = {
         [":UpAndRight", CT.S, CT.Multidirectional],
         [":RightAndDown", CT.S, CT.Multidirectional],
         ["[", CT.Multidirectional, "]"],
-        ["Directions", CT.LP, CT.Fix, CT.RP],
         [CT.S]
     ],
     CT.Side: [

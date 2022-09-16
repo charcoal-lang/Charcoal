@@ -37,12 +37,13 @@ StringifierProcessor = {
     CT.LP: [lambda r: []] * 2,
     CT.RP: [lambda r: []] * 2,
     CT.Arrow: [
+        lambda r: [("$", "✳")] + r[2],
+    ] + [
         (lambda i: lambda r: [("a", ("↖↗↘↙←↑→↓" * 2)[i])])(i)
         for i in range(16)
-    ] + [
-        lambda r: [("$", "✳")] + r[2],
     ],
     CT.Multidirectional: [
+        lambda r: [("$", "✳✳" )] + r[2],
         lambda r: r[0] + r[2]
     ] + [
         (lambda i: lambda r: [(
@@ -52,7 +53,6 @@ StringifierProcessor = {
         for i in range(30)
     ] + [
         lambda r: [("<", "⟦")] + r[1] + [(">", "⟧")],
-        lambda r: [("$", "✳✳" )] + r[2],
         lambda r: [("m", "")]
     ],
     CT.Side: [lambda r: r[0] + r[2]],
