@@ -12,7 +12,7 @@ def GetFreeVariable(s, n=1):
     return r
 
 def VerbosifyVariable(c):
-    return "iklmnxprsvtufcywabgdezhq"["ικλμνξπρςστυφχψωαβγδεζηθ".find(c)]
+    return "iklmnxprvstufcywabgdezhq"["ικλμνξπρςστυφχψωαβγδεζηθ".find(c)]
 
 def EvaluateFunctionOrList(f, s):
     if isinstance(f, list):
