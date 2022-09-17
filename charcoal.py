@@ -601,16 +601,15 @@ an object on which all canvas drawing methods exist.
         left = min(self.indices)
         right = max(self.right_indices)
         string = ""
-        bg_start = None
         if self.bg_lines:
             for i in range(len(self.lines)):
                 top = self.top + i
                 index = self.indices[i]
                 line = self.lines[i]
-                j = -1
+                bg_start = None
+                j = 0
                 if self.background_inside:
                     for character in line:
-                        j += 1
                         if character == "\000":
                             if bg_start is None:
                                 bg_start = j
@@ -623,6 +622,7 @@ an object on which all canvas drawing methods exist.
                                 line[j:]
                             )
                             bg_start = None
+                        j += 1
                     if bg_start is not None:
                         line = (
                             line[:bg_start] +

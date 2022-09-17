@@ -289,6 +289,7 @@ cbabc
 *#-#*
 *****""")
         self.assertEqual(Run("Ｆ⁶«Ｍ→_»ＵＢ| "), "_|_|_|_|_|_")
+        self.assertEqual(Run("ＵＢ#@↗³⟲"), "/@#\n#/#\n#@/")
         # TODO: weird, why does Charcoal escape asterisks???
         self.assertEqual(
             Run("Multiprint(:+, 'abc');SetBackground('*')", verbose=True),
