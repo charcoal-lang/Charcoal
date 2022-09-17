@@ -584,8 +584,8 @@ an object on which all canvas drawing methods exist.
         })
         self.direction = Direction.right
         self.background = " "
-        self.bg_lines = []
-        self.bg_line_number = self.bg_line_length = 0
+        self.bg_lines = [" "]
+        self.bg_line_number = self.bg_line_length = 1
         self.timeout_end = self.dump_timeout_end = 0
         self.trim = trim
         self.print_at_end = True
@@ -600,7 +600,7 @@ an object on which all canvas drawing methods exist.
         left = min(self.indices)
         right = max(self.right_indices)
         string = ""
-        if self.bg_lines:
+        if not self.background:
             for i in range(len(self.lines)):
                 top = self.top + i
                 index = self.indices[i]
@@ -805,8 +805,8 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
             self.inputs = self.original_inputs[:]
             self.direction = Direction.right
             self.background = " "
-            self.bg_lines = []
-            self.bg_line_number = self.bg_line_length = 0
+            self.bg_lines = [" "]
+            self.bg_line_number = self.bg_line_length = 1
             self.timeout_end = self.dump_timeout_end = 0
             self.trim = False
             self.print_at_end = True
@@ -956,21 +956,19 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
         tiling with the top left at (0, 0).
 
         """
-        if len(string) > 1:
-            lines = string.split("\n")
-            length = max(len(line) for line in lines)
+        lines = string.split("\n")
+        length = max(len(line) for line in lines)
+        if length:
             self.bg_lines = [
                 line + " " * (length - len(line))
                 for line in lines
             ]
             self.bg_line_number = len(lines)
             self.bg_line_length = length
-            if self.background:
+            if length > 1 or len(lines) > 1:
                 self.background = ""
-        elif len(string):
-            self.background = string
-            if self.bg_lines:
-                self.bg_lines = []
+            else:
+                self.background = string
         else:
             print("RuntimeError: Cannot change background to nothing")
             if Info.is_repl not in self.info:
