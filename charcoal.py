@@ -515,7 +515,7 @@ class Charcoal(object):
         "top_scope", "scope", "info", "original_input", "inputs",
         "original_inputs", "all_inputs", "direction", "background", "bg_lines",
         "bg_line_number", "bg_line_length", "timeout_end", "dump_timeout_end",
-        "background_inside", "trim", "print_at_end", "canvas_step",
+        "trim", "print_at_end", "canvas_step",
         "last_printed", "charcoal"
     )
 
@@ -587,7 +587,6 @@ an object on which all canvas drawing methods exist.
         self.bg_lines = []
         self.bg_line_number = self.bg_line_length = 0
         self.timeout_end = self.dump_timeout_end = 0
-        self.background_inside = False
         self.trim = trim
         self.print_at_end = True
         self.canvas_step = canvas_step
@@ -608,7 +607,7 @@ an object on which all canvas drawing methods exist.
                 line = self.lines[i]
                 bg_start = None
                 j = 0
-                if self.background_inside:
+                if "\000" in line:
                     for character in line:
                         if character == "\000":
                             if bg_start is None:
@@ -642,30 +641,21 @@ an object on which all canvas drawing methods exist.
                 )
             return string[:-1]
         else:
-            if self.background_inside:
-                for line, index, right_index in zip(
-                    self.lines, self.indices, self.right_indices
-                ):
-                    string += (
-                        self.background * (index - left) +
-                        re.sub("\000", self.background, line) +
-                        ("" if self.trim else self.background * (
-                            right - right_index
-                        )) +
-                        "\n"
-                    )
-            else:
-                for line, index, right_index in zip(
-                    self.lines, self.indices, self.right_indices
-                ):
-                    string += (
-                        self.background * (index - left) +
-                        line +
-                        ("" if self.trim else (
-                            self.background * (right - right_index)
-                        )) +
-                        "\n"
-                    )
+            for line, index, right_index in zip(
+                self.lines, self.indices, self.right_indices
+            ):
+                string += (
+                    self.background * (index - left) +
+                    (
+                        re.sub("\000", self.background, line)
+                        if "\000" in line else line
+                    ) +
+                    (
+                        "" if self.trim else
+                        self.background * (right - right_index)
+                    ) +
+                    "\n"
+                )
             return string[:-1]
 
     def __getattribute__(self, attr):
@@ -697,7 +687,6 @@ an object on which all canvas drawing methods exist.
         """
         left = min(self.indices)
         right = max(self.right_indices)
-        self.background_inside = True
         return [
             "\000" * (index - left) + line + "\000" * (right - right_index)
             for line, index, right_index in zip(
@@ -819,7 +808,6 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
             self.bg_lines = []
             self.bg_line_number = self.bg_line_length = 0
             self.timeout_end = self.dump_timeout_end = 0
-            self.background_inside = False
             self.trim = False
             self.print_at_end = True
             self.last_printed = None
@@ -892,8 +880,6 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
             return
         start = x - x_index
         end = start + len(string)
-        if start - len(line) > 0 or end < 0:
-            self.background_inside = True
         self.lines[y_index] = (
             line[:max(0, start)] +
             "\000" * (start - len(line)) +
@@ -901,10 +887,6 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
             "\000" * -end +
             line[max(0, end):]
         )
-        if "\000" in self.lines[y_index]:
-            self.background_inside = True
-        if start - len(line) > 0 or -end > 0:
-            self.background_inside = True
         if x < x_index:
             self.indices[y_index] = x
         length = len(self.lines[y_index])
@@ -1743,7 +1725,6 @@ characters to the axis are next to the axis.
         if direction == Direction.left:
             left = min(self.indices)
             self.x -= (self.x - left) * 2 + 1
-            self.background_inside = True
             self.lines = [
                 "".join(
                     HorizontalFlip.get(character, character)
@@ -1783,7 +1764,6 @@ characters to the axis are next to the axis.
                 line[::-1]
                 for line, right_index in zip(self.lines, self.right_indices)
             ]
-            self.background_inside = True
             self.lengths = [
                 (length + right - right_index) * 2
                 for length, right_index in zip(
@@ -2011,7 +1991,6 @@ but not if it overwrites the original.
         if direction == Direction.left:
             self.y = self.top
             left = min(self.indices)
-            self.background_inside = True
             for line, length, index in zip(
                 self.lines[:], self.lengths[:], self.indices[:]
             ):
@@ -2028,7 +2007,6 @@ but not if it overwrites the original.
         elif direction == Direction.right:
             self.y = self.top
             right = max(self.right_indices)
-            self.background_inside = True
             for line, length, index in zip(
                 self.lines[:], self.lengths[:], self.indices[:]
             ):
@@ -2045,7 +2023,6 @@ but not if it overwrites the original.
             self.y = initial_y
         elif direction == Direction.up:
             self.y = self.top + overlap - 1
-            self.background_inside = True
             for line, length, index in zip(
                 self.lines[:], self.lengths[:], self.indices[:]
             ):
@@ -2063,7 +2040,6 @@ but not if it overwrites the original.
         elif direction == Direction.down:
             line_count = len(self.lines)
             self.y = self.top + line_count * 2 - overlap - 1
-            self.background_inside = True
             for line, length, index in zip(
                 self.lines[:], self.lengths[:], self.indices[:]
             ):
@@ -3417,7 +3393,6 @@ and vertical rows between rows.
         """
         horizontal, vertical = int(horizontal) + 1, int(vertical) + 1
         if horizontal:
-            self.background_inside = True
             joiner = "\000" * (horizontal - 1)
             self.lines = [joiner.join(line) for line in self.lines]
             self.lengths = [
