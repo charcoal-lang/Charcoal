@@ -30,7 +30,20 @@ BROTLI_ENCODING = 124
 LZMA_ENCODING = 125
 
 
-def Compressed(string, escape=False):
+def Escaped(string):
+    """
+    Escaped(string) -> str
+    Returns a Charcoal escaped literal of the given string.
+
+    """
+    if not string:
+        return "””"
+    string = rCommand.sub("´\\1", string)
+    if string[0] in "+X*|-\\/<>^KLTVY7¬":
+        string = "´" + string
+    return re.sub("\r", "⸿", re.sub("\n", "¶", string))
+
+def Compressed(string):
     """
     Compressed(string) -> str
     Returns the shortest Charcoal compressed literal of the given string.
@@ -39,42 +52,29 @@ def Compressed(string, escape=False):
     if not string:
         return "””"
     if not all(
-        character == "¶" or character == "⸿" or
+        character == "\n" or character == "\r" or
         character >= " " and character <= "~"
         for character in string
     ):
-        if not escape:
-            return string
-        if len(re.findall("[^ -~¶⸿]", string)) > 3:
-            return "”" + Codepage[RAW_ENCODING] + string + "”"
-        return (
-            "´" * (string[0] in "+X*|-\\/<>^KLTVY7¬") + 
-            rCommand.sub("´\\1", string)
-        )
-    original_string, string = string, re.sub(
-        "¶", "\n", re.sub("⸿", "\r", string)
-    )
+        if "\n" in string or "\r" in string or "”" in string:
+            return Escaped(string)
+        if len(rCommand.findall(string)) < 3:
+            return Escaped(string)
+        return "”" + Codepage[RAW_ENCODING] + string + "”"
     compressed_charset = CompressCharset(string)
     compressed_rle = CompressRLE(string)
     compressed_brotli = CompressBrotli(string)
     compressed_lzma = CompressLZMA(string)
     compressed_permuted = CompressPermutations(string)
     compressed = CompressString(string)
-    string_length = len(original_string) - 2
+    string_length = len(string) - 2
     minimum_length = min(
         len(compressed_charset), len(compressed_rle), len(compressed_brotli),
         len(compressed_lzma), len(compressed_permuted), len(compressed),
         string_length
     )
     if string_length == minimum_length:
-        if not escape:
-            return original_string
-        if len(re.findall("[^ -~¶⸿]", original_string)) > 3:
-            return "”" + Codepage[RAW_ENCODING] + original_string + "”"
-        return (
-            "´" * (original_string[0] in "+X*|-\\/<>^KLTVY7¬") +
-            rCommand.sub("´\\1", original_string)
-        )
+        return Escaped(string)
     if len(compressed) == minimum_length:
         return "“" + compressed + "”"
     if len(compressed_permuted) == minimum_length:

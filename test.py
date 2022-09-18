@@ -1797,6 +1797,7 @@ Print({".": "e"});""", verbose=True), "{'.': 'e'}")
     def test_compression(self):
         self.assertEqual(Run("”y≔⟦³¦²¦¹⟧β▷sβ”"), "≔⟦³¦²¦¹⟧β▷sβ")
         self.assertEqual(Run("”y≔⟦³¦²¦¹⟧β▷sβ"), "≔⟦³¦²¦¹⟧β▷sβ")
+        self.assertEqual(Run("Print('´⸿¶')", verbose=True), "´⸿¶")
         self.assertEqual(Run("\
 Print('zzyzyzyzyzyzyzyzzzzzzzzyzyz')", verbose=True), "\
 zzyzyzyzyzyzyzyzzzzzzzzyzyz")

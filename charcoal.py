@@ -20,7 +20,7 @@ from codepage import (
     UnicodeLookup, ReverseLookup, UnicodeCommands, InCodepage, sOperator,
     rCommand
 )
-from compression import Decompressed, Compressed
+from compression import Decompressed, Escaped
 from wolfram import *
 from extras import *
 from enum import Enum
@@ -5017,9 +5017,7 @@ non-raw file input and file output."""
         del raw_file_output
         del file_output
     if argv.disablecompression:
-        StringifierProcessor[CT.String][0] = lambda result: [re.sub(
-            "\n", "¶", rCommand.sub(r"´\1", result[0])
-        )]
+        StringifierProcessor[CT.String][0] = lambda r: [("s", Escaped(r[0])), ("!", "s")]
     if argv.verbose or argv.deverbosify:
         code = ParseExpression(
             code, grammars=VerboseGrammars, processor=StringifierProcessor,
@@ -5057,7 +5055,7 @@ non-raw file input and file output."""
             return 5
         length = 0
         for character in code:
-            if InCodepage(character) or ord(character) < 256:
+            if InCodepage(character):
                 length += 1
             else:
                 length += charcoal_length(

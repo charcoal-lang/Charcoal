@@ -1,7 +1,6 @@
 from charcoaltoken import CharcoalToken as CT
 from unicodegrammars import UnicodeGrammars
 from compression import Compressed
-from codepage import rCommand
 import re
 
 def string(s):
@@ -14,7 +13,7 @@ def string(s):
     if s == " !\"#$%&'()*+,-./0123456789:;<=>?@\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~":
         return [("v", "γ")]
-    s = Compressed(s.replace("\n", "¶").replace("\r", "⸿"), True)
+    s = Compressed(s)
     if s[0] != "“" and s[0] != "”":
         return [("s", s), ("!", "s")]
     return [("c", s)]
