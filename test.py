@@ -1668,6 +1668,7 @@ foofoofoofoofoo""")
     def test_string_map(self):
         self.assertEqual(Run("⭆Ｓ⎇﹪κＩηι×ιＩη", "['Hello, World!', '3']"), "\
 HHHellllo,   Worrrld!!!")
+        self.assertEqual(Run("⭆χι"), "0123456789")
 
     def test_base(self):
         self.assertEqual(Run("\
@@ -1691,7 +1692,7 @@ cast basestring 'asdf' 62", verbose=True), "2491733")
         self.assertEqual(Run("↔⟦"), "")
 
     def test_filter(self):
-        self.assertEqual(Run("filter [1,2,3,4,0] i", verbose=True), """\
+        self.assertEqual(Run("filter 5 i", verbose=True), """\
 -   
 --  
 --- 
@@ -1709,10 +1710,12 @@ Print(Cast(Reduce([1,2,3,4,5,6,7],{Plus(i,k)})))", verbose=True), "28")
     def test_any(self):
         self.assertEqual(Run("Print(Any([0,0,1,0],i))", verbose=True), "-")
         self.assertEqual(Run("Print(Any([0,0,0,0],i))", verbose=True), "")
+        self.assertEqual(Run("Print(Any(2,i))", verbose=True), "-")
 
     def test_all(self):
         self.assertEqual(Run("Print(All([1,2,3,1],i))", verbose=True), "-")
         self.assertEqual(Run("Print(All([1,2,0,1],i))", verbose=True), "")
+        self.assertEqual(Run("Print(All(2,i))", verbose=True), "")
 
     def test_direction(self):
         self.assertEqual(Run("ＦＮ✳§⟦↘→↗→⟧ι⁻θ¹O", "5"), """\

@@ -3650,6 +3650,10 @@ iterable.
         """
         if type(iterable) == Expression:
             iterable = iterable.run()
+        if isinstance(iterable, float):
+            iterable = int(iterable)
+        if isinstance(iterable, int):
+            iterable = range(iterable)
         result = 1
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
@@ -3674,6 +3678,10 @@ iterable.
         """
         if type(iterable) == Expression:
             iterable = iterable.run()
+        if isinstance(iterable, float):
+            iterable = int(iterable)
+        if isinstance(iterable, int):
+            iterable = range(iterable)
         result = 0
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
