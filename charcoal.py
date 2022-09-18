@@ -513,7 +513,7 @@ class Charcoal(object):
     __slots__ = (
         "x", "y", "top", "lines", "indices", "lengths", "right_indices",
         "top_scope", "scope", "info", "original_input", "inputs",
-        "original_inputs", "all_inputs", "direction", "background", "bg_lines",
+        "original_inputs", "direction", "background", "bg_lines",
         "bg_line_number", "bg_line_length", "timeout_end", "dump_timeout_end",
         "trim", "print_at_end", "canvas_step",
         "last_printed", "charcoal"
@@ -565,7 +565,6 @@ an object on which all canvas drawing methods exist.
         self.original_input = original_input
         self.inputs = inputs
         self.original_inputs = inputs[:]
-        self.all_inputs = inputs + [Whatever()] * (5 - len(inputs))
         self.top_scope = self.scope = Scope(lookup={
             "γ": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\
 [\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
@@ -575,12 +574,7 @@ an object on which all canvas drawing methods exist.
             "ψ": "\000",
             "χ": 10,
             "φ": 1000,
-            "υ": [],
-            "θ": self.all_inputs[0],
-            "η": self.all_inputs[1],
-            "ζ": self.all_inputs[2],
-            "ε": self.all_inputs[3],
-            "δ": self.all_inputs[4]
+            "υ": []
         })
         self.direction = Direction.right
         self.background = " "
@@ -702,18 +696,7 @@ an object on which all canvas drawing methods exist.
 
         """
         self.original_inputs += inputs
-        self.inputs = self.original_inputs[:]
-        self.all_inputs = self.inputs + [Whatever()] * (5 - len(self.inputs))
-        if type(self.top_scope["θ"]) == Whatever:
-            self.top_scope["θ"] = self.all_inputs[0]
-        if type(self.top_scope["η"]) == Whatever:
-            self.top_scope["η"] = self.all_inputs[1]
-        if type(self.top_scope["ζ"]) == Whatever:
-            self.top_scope["ζ"] = self.all_inputs[2]
-        if type(self.top_scope["ε"]) == Whatever:
-            self.top_scope["ε"] = self.all_inputs[3]
-        if type(self.top_scope["δ"]) == Whatever:
-            self.top_scope["δ"] = self.all_inputs[4]
+        self.inputs += inputs
 
     def ClearInputs(self):
         """
@@ -724,17 +707,6 @@ an object on which all canvas drawing methods exist.
         """
         self.inputs = []
         self.original_inputs = []
-        self.all_inputs = [Whatever()] * 5
-        if self.top_scope["θ"] == self.all_inputs[0]:
-            self.top_scope["θ"] = Whatever()
-        if self.top_scope["η"] == self.all_inputs[1]:
-            self.top_scope["η"] = Whatever()
-        if self.top_scope["ζ"] == self.all_inputs[2]:
-            self.top_scope["ζ"] = Whatever()
-        if self.top_scope["ε"] == self.all_inputs[3]:
-            self.top_scope["ε"] = Whatever()
-        if self.top_scope["δ"] == self.all_inputs[4]:
-            self.top_scope["δ"] = Whatever()
 
     def Trim(self):
         """
@@ -795,12 +767,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
                 "ψ": "\000",
                 "χ": 10,
                 "φ": 1000,
-                "υ": [],
-                "θ": self.all_inputs[0],
-                "η": self.all_inputs[1],
-                "ζ": self.all_inputs[2],
-                "ε": self.all_inputs[3],
-                "δ": self.all_inputs[4]
+                "υ": []
             })
             self.inputs = self.original_inputs[:]
             self.direction = Direction.right
@@ -2993,10 +2960,10 @@ Warning: Possible ambiguity, make sure you explicitly use 2 if needed""")
         if key in self.scope:
             return self.scope[key]
         if key in "θηζεδ":
-            index = "θηζεδ".index(key) + 1
-            while len(self.original_inputs) < index:
+            index = "θηζεδ".index(key)
+            while len(self.original_inputs) <= index:
                 self.InputString()
-            return self.scope[key]
+            return self.original_inputs[index]
         if key in Charcoal.secret:
             return Charcoal.secret[key]
         python_function = GetPythonFunction(key)
@@ -3063,49 +3030,23 @@ else set the variable with the given name to the given value.
         If string is truthy, return result as string.
 
         """
-        result = 0
-        if len(self.inputs):
-            result = self.inputs[0]
-            if (
-                number and
-                not isinstance(result, int) and
-                not isinstance(result, float)
-            ):
-                try:
-                    result = (float if "." in result else int)(result)
-                except:
-                    result = 0
-            if string:
-                result = str(result)
-            self.inputs = self.inputs[1:]
+        result = ""
+        if self.inputs:
+            result = self.inputs.pop(0)
         elif Info.prompt in self.info:
             result = input("Enter input: ")
-            if (
-                number and
-                not isinstance(result, int) and
-                not isinstance(result, float)
-            ):
-                try:
-                    result = (float if "." in result else int)(result)
-                except:
-                    result = 0
-            if string:
-                result = str(result)
             self.original_inputs += [result]
-            if len(self.original_inputs) < 5:
-                self.all_inputs = self.original_inputs + [Whatever()] * (
-                    5 - len(self.original_inputs)
-                )
-                if type(self.top_scope["θ"]) == Whatever:
-                    self.top_scope["θ"] = self.all_inputs[0]
-                if type(self.top_scope["η"]) == Whatever:
-                    self.top_scope["η"] = self.all_inputs[1]
-                if type(self.top_scope["ζ"]) == Whatever:
-                    self.top_scope["ζ"] = self.all_inputs[2]
-                if type(self.top_scope["ε"]) == Whatever:
-                    self.top_scope["ε"] = self.all_inputs[3]
-                if type(self.top_scope["δ"]) == Whatever:
-                    self.top_scope["δ"] = self.all_inputs[4]
+        if (
+            number and
+            not isinstance(result, int) and
+            not isinstance(result, float)
+        ):
+            try:
+                result = (float if "." in result else int)(result)
+            except:
+                result = 0
+        if string:
+            result = str(result)
         if key:
             self.scope[key] = result
         else:
@@ -4590,16 +4531,17 @@ def ProcessInput(inputs):
     Returns processed input.
 
     """
-    new_inputs = inputs
-    try:
-        new_inputs = literal_eval(inputs)
-        if not isinstance(new_inputs, list):
-            raise Exception()
-    except:
-        new_inputs = (
-            inputs.split("\n") if "\n" in inputs else inputs.split(" ")
-        )
-    return new_inputs if len(new_inputs) > 1 or new_inputs[0] else []
+    new_inputs = []
+    if inputs:
+        try:
+            new_inputs = literal_eval(inputs)
+            if not isinstance(new_inputs, list):
+                raise Exception()
+        except:
+            new_inputs = (
+                inputs.split("\n") if "\n" in inputs else inputs.split(" ")
+            )
+    return new_inputs
 
 
 def Run(
