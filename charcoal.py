@@ -85,7 +85,7 @@ def B(item):
 
 
 def warn(s):
-    sys.stderr.write(s + "\n")
+    sys.stderr.write(str(s) + "\n")
 
 
 imports = {}
@@ -802,15 +802,15 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
             return ""
         return self.lines[y_index][self.x - self.indices[y_index]]
 
-    def HasCharAt(self, x, y):
+    def CanFillAt(self, x, y):
         """
-        HasCharAt() -> bool
+        CanFillAt() -> bool
 
-        Returns whether there is a cell under the cursor
+        Returns whether there is a "\000" under the cursor
 
         """
         y_index = y - self.top
-        result = True
+        result = False
         if (
             y_index < len(self.lines) and
             y_index >= 0 and
@@ -818,7 +818,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
             x - self.indices[y_index] >= 0
         ):
             result = (
-                self.lines[y_index][x - self.indices[y_index]] != "\000"
+                self.lines[y_index][x - self.indices[y_index]] == "\000"
             )
         return result
 
@@ -831,9 +831,9 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
         """
         x = self.x if x is None else x
         if y is not None:
-            original_y, self.y = self.y, y
+            original_x, original_y, self.x, self.y = self.x, self.y, x, y
             self.FillLines()
-            self.y = original_y
+            self.x, self.y = original_x, original_y
         y = self.y if y is None else y
         y_index = y - self.top
         x_index = self.indices[y_index]
@@ -1524,7 +1524,7 @@ with the specified string, repeating it if needed.
             while x < end_x:
                 if (
                     (is_next_in_dir or x < ignore_start or x >= ignore_end) and
-                    not self.HasCharAt(x, y) and
+                    self.CanFillAt(x, y) and
                     not (y, x) in points
                 ):
                     points.add((y, x))
@@ -1545,7 +1545,7 @@ with the specified string, repeating it if needed.
                     True
                 )]
 
-        if self.HasCharAt(x, y):
+        if not self.CanFillAt(x, y):
             return
         points.add((y, x))
         stack += [Segment(x, x + 1, y, 0, True, True)]
@@ -1555,14 +1555,14 @@ with the specified string, repeating it if needed.
             if r.scan_left:
                 while (
                     start_x > left and
-                    not self.HasCharAt(start_x - 1, r.y) and
+                    self.CanFillAt(start_x - 1, r.y) and
                     not (r.y, start_x - 1) in points
                 ):
                     start_x -= 1
                     points.add((r.y, start_x))
             if r.scan_right:
                 while (
-                    not self.HasCharAt(end_x, r.y) and
+                    self.CanFillAt(end_x, r.y) and
                     not (r.y, end_x) in points
                 ):
                     points.add((r.y, end_x))
@@ -2795,15 +2795,10 @@ make a copy for each of the digits in rotations.
 
         """
         delta_x, delta_y = int(delta_x), int(delta_y)
-        initial_x = self.x
-        initial_y = self.y
-        self.y = self.top + delta_y
+        y = self.top + delta_y
         for line, index in zip(self.lines[:], self.indices[:]):
-            self.FillLines()
-            self.x = index + delta_x
-            self.Put(line)
-            self.y += 1
-        self.x, self.y = initial_x, initial_y
+            self.Put(line, index + delta_x, y)
+            y += 1
         if Info.step_canvas in self.info:
             self.RefreshFastText("Copy", self.canvas_step)
         elif Info.dump_canvas in self.info:
@@ -3335,7 +3330,8 @@ and vertical rows between rows.
             joiner = "\000" * (horizontal - 1)
             self.lines = [joiner.join(line) for line in self.lines]
             self.lengths = [
-                (length - 1) * horizontal + 1 for length in self.lengths
+                length and (length - 1) * horizontal + 1
+                for length in self.lengths
             ]
             self.indices = [index * horizontal for index in self.indices]
             self.right_indices = [
