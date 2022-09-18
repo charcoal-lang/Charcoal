@@ -3478,12 +3478,6 @@ in the specified direction from the cursor.
             ys += [y]
             x += delta_x
             y += delta_y
-        self.y = ys[-1]
-        if length:
-            self.FillLines()
-            self.x = xs[0]
-            self.y = ys[0]
-            self.FillLines()
         return Cells(self, result, xs, ys)
 
     def PeekAll(self):
