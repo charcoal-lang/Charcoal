@@ -3342,13 +3342,13 @@ then take the first length values.
 the list or string.
 
         """
-        if isinstance(iterable, int):
+        if isinstance(iterable, int) or isinstance(iterable, float):
             iterable, length = length, iterable
         if isinstance(length, list) or isinstance(length, str):
             length = len(length)
         elif isinstance(length, float):
             length = int(length)
-        return (iterable * (length // len(iterable) + 1))[:length]
+        return (iterable * (length and length // len(iterable) + 1))[:length]
 
     def Crop(self, width, height=None):
         """
