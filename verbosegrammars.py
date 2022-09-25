@@ -239,16 +239,16 @@ VerboseGrammars = {
             CT.Fix, CT.RP, CT.S
         ],
         ["Multiprint", CT.LP, CT.Fix, CT.RP, CT.S],
-        ["Polygon", CT.LP, CT.Sides, CT.S, CT.Fix, CT.RP, CT.S],
         [
             "Polygon", CT.LP, CT.Multidirectional, CT.S, CT.Fix,
             CT.Fix, CT.RP, CT.S
         ],
-        ["PolygonHollow", CT.LP, CT.Sides, CT.S, CT.Fix, CT.RP, CT.S],
+        ["Polygon", CT.LP, CT.Sides, CT.S, CT.Fix, CT.RP, CT.S],
         [
             "PolygonHollow", CT.LP, CT.Multidirectional, CT.S,
             CT.Fix, CT.Fix, CT.RP, CT.S
         ],
+        ["PolygonHollow", CT.LP, CT.Sides, CT.S, CT.Fix, CT.RP, CT.S],
         ["Rectangle", CT.LP, CT.Fix, CT.Fix, CT.RP, CT.S],
         ["Rectangle", CT.LP, CT.Fix, CT.RP, CT.S],
         [
