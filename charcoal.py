@@ -1968,7 +1968,8 @@ but not if it overwrites the original.
                     {Direction.left}, len(string), string, overwrite=False
                 )
                 self.y += 1
-            self.x, self.y = initial_x - (initial_x - left) * 2, initial_y
+            self.x = initial_x - (initial_x - left) * 2 + overlap - 1
+            self.y = initial_y
         elif direction == Direction.right:
             self.y = self.top
             right = max(self.right_indices)
@@ -1988,6 +1989,7 @@ but not if it overwrites the original.
             self.y = initial_y
         elif direction == Direction.up:
             self.y = self.top + overlap - 1
+            final_y = self.y - (initial_y - self.top)
             for line, length, index in zip(
                 self.lines[:], self.lengths[:], self.indices[:]
             ):
@@ -2001,10 +2003,11 @@ but not if it overwrites the original.
                 )
                 self.y -= 1
             self.x = initial_x
-            self.y = initial_y * 3 - self.top * 2 - 1 + overlap
+            self.y = final_y
         elif direction == Direction.down:
             line_count = len(self.lines)
             self.y = self.top + line_count * 2 - overlap - 1
+            final_y = self.y - (initial_y - self.top)
             for line, length, index in zip(
                 self.lines[:], self.lengths[:], self.indices[:]
             ):
@@ -2018,7 +2021,7 @@ but not if it overwrites the original.
                 )
                 self.y -= 1
             self.x = initial_x
-            self.y = (self.top + line_count) * 2 - initial_y - 1 - overlap
+            self.y = final_y
         else:
             finished = False
         if finished:

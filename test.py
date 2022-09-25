@@ -1339,7 +1339,7 @@ print 'a'""", verbose=True), """\
 polygon :u :le 5 '*'
 reflectoverlapoverlap :le 5
 print 'a'""", verbose=True), """\
-a****
+****a
 *****
 *****
 ** **
