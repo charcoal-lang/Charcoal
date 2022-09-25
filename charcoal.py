@@ -3657,8 +3657,8 @@ iterable.
             return left + right
         if left_is_iterable ^ right_is_iterable:
             if left_is_iterable:
-                return [item + right for item in left]
-            return [left + item for item in right]
+                return [self.Add(item, right) for item in left]
+            return [self.Add(left, item) for item in right]
         if (left_type == str) ^ (right_type == str):
             if left_type == str:
                 return left + str(right)
@@ -3751,15 +3751,16 @@ iterable.
             if left_is_iterable:
                 if left_type == str:
                     return (left * (1 + int(right)))[:int(len(left) * right)]
-                return [item * right for item in left]
+                return [self.Multiply(item, right) for item in left]
             if right_type == str:
                 return (right * (1 + int(left)))[:int(len(right) * left)]
-            return [left * item for item in right]
+            return [self.Multiply(left, item) for item in right]
         if left_is_iterable and right_is_iterable:
             if left_type == str:
                 return left.join(map(str, right))
             if right_type == str:
                 return right.join(map(str, left))
+            return list(map(self.Multiply, left, right))
         return left * right
 
     def Divide(self, left, right, floor=True, iterable=True):
@@ -3790,7 +3791,7 @@ iterable.
                             :int(len(left) / right)
                         ]
                     return [
-                        self.Divide(item, right, floor=floor, iterable=False)
+                        self.Divide(item, right, floor=floor)
                         for item in left
                     ]
                 if callable(left):
@@ -3800,7 +3801,7 @@ iterable.
                         :int(len(right) / left)
                     ]
                 return [
-                    self.Divide(left, item, floor=floor, iterable=False)
+                    self.Divide(left, item, floor=floor)
                     for item in right
                 ]
         if left_type == str and right_type == str:

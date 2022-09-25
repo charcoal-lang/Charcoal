@@ -1500,6 +1500,8 @@ b   a   z
 
     def test_plus(self):
         self.assertEqual(Run("⁺¹a"), "1a")
+        self.assertEqual(Run("⁺¹⟦a⟧"), "1a")
+        self.assertEqual(Run("⁺¹⟦⟦a⟧⟧"), "1a")
         self.assertEqual(Run("⁺¹¦¹"), "--")
         self.assertEqual(Run("⁺””a"), "a")
 
@@ -1508,12 +1510,19 @@ b   a   z
 
     def test_multiply(self):
         self.assertEqual(Run("×²¦³"), "------")
+        self.assertEqual(Run("×⟦²⟧³"), "------")
+        self.assertEqual(Run("×⟦⟦²⟧⟧³"), "------")
+        self.assertEqual(Run("×⟦²⟧⟦³⟧"), "------")
+        self.assertEqual(Run("×⟦⟦²⟧⟧⟦⟦³⟧⟧"), "------")
         self.assertEqual(Run("×²abc"), "abcabc")
         self.assertEqual(Run("×²⟦abc⟧"), "abcabc")
+        self.assertEqual(Run("×²⟦⟦abc⟧⟧"), "abcabc")
 
     def test_divide(self):
         self.assertEqual(Run("÷⁵¦²"), "--")
         self.assertEqual(Run("÷abcabcab³"), "ab")
+        self.assertEqual(Run("÷⟦abcabcab⟧³"), "ab")
+        self.assertEqual(Run("÷⟦⟦abcabcab⟧⟧³"), "ab")
         # self.assertEqual(Run("÷⟦a¹a²b²c³⟧³"), "a\n-")
 
     def test_and(self):
