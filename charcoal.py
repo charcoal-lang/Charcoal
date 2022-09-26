@@ -4702,7 +4702,7 @@ def RemoveThrottle():
     Removes throttle for Dump.
 
     """
-    InterpreterProcessor[-5] = (
+    InterpreterProcessor[CT.Command][100] = (
         lambda result: lambda charcoal: charcoal.DumpNoThrottle()
     )
 
@@ -4890,6 +4890,8 @@ non-raw file input and file output."""
         info.add(Info.step_canvas)
     if argv.dumpcanvas:
         info.add(Info.dump_canvas)
+    if argv.nothrottle:
+        RemoveThrottle()
     if argv.Wambiguities:
         info.add(Info.warn_ambiguities)
         AddAmbiguityWarnings()
