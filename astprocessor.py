@@ -8,7 +8,7 @@ def PassThrough(r):
 def GetFreeVariable(s, n=1):
     r = ""
     for _ in range(n):
-        r += next(filter(lambda c: c not in s + r, "ικλμνξπρςστυφχψωαβγδεζηθ"))
+        r += next(filter(lambda c: c not in s + r, "ικλμνξπρςστδεζηθ"))
     return r
 
 def VerbosifyVariable(c):
@@ -100,7 +100,7 @@ ASTProcessor = {
         lambda r: [lambda s="": ["Pair Expressions", ["Pair", r[0][0](s), r[1][0](s)]]]
     ],
     CT.Cases: [
-        lambda r: [lambda s="": ["Cases", ["Case", r[0][0](s), r[1][0](s)]] + r[2][0](s)[1:]],
+        lambda r: [lambda s="": ["Cases", ["Case", r[0][0](s), r[1][0](s)[0](s)]] + r[2][0](s)[1:]],
         lambda r: [lambda s="": ["Cases"]]
     ],
 
@@ -210,8 +210,8 @@ ASTProcessor = {
         lambda r: [lambda s="": r[0] + ": Delayed rule"],
         lambda r: [lambda s="": r[0] + ": Pattern test"],
         lambda r: [lambda s="": r[0] + ": Slice"],
-        lambda r: [lambda s="": r[0] + ": All"],
-        lambda r: [lambda s="": r[0] + ": Any"]
+        lambda r: [lambda s="": r[0] + ": Base"],
+        lambda r: [lambda s="": r[0] + ": String base"]
     ],
     CT.Ternary: [lambda r: [lambda s="": r[0] + ": Slice"]],
     CT.Quarternary: [lambda r: [lambda s="": r[0] + ": Slice"]],
@@ -224,11 +224,11 @@ ASTProcessor = {
     CT.LazyQuarternary: [],
     CT.OtherOperator: [
         lambda r: [lambda s="": [r[0] + ": Peek direction"] + [el[0](s) for el in r[1:]]],
-        lambda r: [lambda s="": (lambda t: [r[0] + ": Map (loop variable %s (%s), index variable %s (%s))" % (t[-2], VerbosifyVariable(t[-2]), t[-1], VerbosifyVariable(t[-1]))] + [el[0](t) for el in r[1:]])(s + GetFreeVariable(s, 2))],
-        lambda r: [lambda s="": (lambda t: [r[0] + ": String map (loop variable %s (%s), index variable %s (%s))" % (t[-2], VerbosifyVariable(t[-2]), t[-1], VerbosifyVariable(t[-1]))] + [el[0](t) for el in r[1:]])(s + GetFreeVariable(s, 2))],
-        lambda r: [lambda s="": (lambda t: [r[0] + ": Any (loop variable %s (%s))" % (t[-1], VerbosifyVariable(t[-1]))] + [el[0](t) for el in r[1:]])(s + GetFreeVariable(s))],
-        lambda r: [lambda s="": (lambda t: [r[0] + ": All (loop variable %s (%s))" % (t[-1], VerbosifyVariable(t[-1]))] + [el[0](t) for el in r[1:]])(s + GetFreeVariable(s))],
-        lambda r: [lambda s="": (lambda t: [r[0] + ": Filter (loop variable %s (%s))" % (t[-1], VerbosifyVariable(t[-1]))] + [el[0](t) for el in r[1:]])(s + GetFreeVariable(s))],
+        lambda r: [lambda s="": (lambda t: [r[0] + ": Map (loop variable %s (%s), index variable %s (%s))" % (t[-2], VerbosifyVariable(t[-2]), t[-1], VerbosifyVariable(t[-1])), r[1][0](s), r[2][0](t)])(s + GetFreeVariable(s, 2))],
+        lambda r: [lambda s="": (lambda t: [r[0] + ": String map (loop variable %s (%s), index variable %s (%s))" % (t[-2], VerbosifyVariable(t[-2]), t[-1], VerbosifyVariable(t[-1])), r[1][0](s), r[2][0](t)])(s + GetFreeVariable(s, 2))],
+        lambda r: [lambda s="": (lambda t: [r[0] + ": Any (loop variable %s (%s), index variable %s (%s))" % (t[-2], VerbosifyVariable(t[-2]), t[-1], VerbosifyVariable(t[-1])), r[1][0](s), r[2][0](t)])(s + GetFreeVariable(s, 2))],
+        lambda r: [lambda s="": (lambda t: [r[0] + ": All (loop variable %s (%s), index variable %s (%s))" % (t[-2], VerbosifyVariable(t[-2]), t[-1], VerbosifyVariable(t[-1])), r[1][0](s), r[2][0](t)])(s + GetFreeVariable(s, 2))],
+        lambda r: [lambda s="": (lambda t: [r[0] + ": Filter (loop variable %s (%s), index variable %s (%s))" % (t[-2], VerbosifyVariable(t[-2]), t[-1], VerbosifyVariable(t[-1])), r[1][0](s), r[2][0](t)])(s + GetFreeVariable(s, 2))],
         lambda r: [lambda s="": [r[0] + ": Evaluate variable"] + [el[0](s) for el in r[1:]]],
         lambda r: [lambda s="": [r[0] + ": Evaluate variable"] + [el[0](s) for el in r[1:]]],
         lambda r: [lambda s="": [r[0] + ": Evaluate variable"] + [el[0](s) for el in r[1:]]]
@@ -301,8 +301,8 @@ ASTProcessor = {
         lambda r: [lambda s="": [r[0] + ": Reflect"] + [el[0](s) for el in r[1:]]],
         lambda r: [lambda s="": [r[0] + ": Reflect"]],
         lambda r: [lambda s="": [r[0] + ": Copy"] + [el[0](s) for el in r[1:]]],
-        lambda r: [lambda s="": (lambda t: [r[0] + ": For (loop variable %s (%s))" % (t[-1], VerbosifyVariable(t[-1]))] + [el[0](t) for el in r[1:-1]] + [r[-1][0](t)[0](t)])(s + GetFreeVariable(s))],
-        lambda r: [lambda s="": (lambda t: [r[0] + ": While (loop variable %s (%s))" % (t[-1], VerbosifyVariable(t[-1]))] +[el[0](t) for el in r[1:-1]] + [r[-1][0](t)[0](t)])(s + GetFreeVariable(s))],
+        lambda r: [lambda s="": (lambda t: [r[0] + ": For (loop variable %s (%s))" % (t[-1], VerbosifyVariable(t[-1])), r[1][0](s), r[2][0](t)[0](t)])(s + GetFreeVariable(s))],
+        lambda r: [lambda s="": (lambda t: [r[0] + ": While (loop variable %s (%s))" % (t[-1], VerbosifyVariable(t[-1])), r[1][0](t), r[2][0](t)[0](t)])(s + GetFreeVariable(s))],
         lambda r: [lambda s="": [r[0] + ": If", r[1][0](s)] + [el[0](s)[0](s) for el in r[2:]]],
         lambda r: [lambda s="": [r[0] + ": If", r[1][0](s)] + [el[0](s)[0](s) for el in r[2:]]],
         lambda r: [lambda s="": [r[0] + ": Assign at index"] + [el[0](s) for el in r[1:]]],
@@ -311,8 +311,8 @@ ASTProcessor = {
         lambda r: [lambda s="": [r[0] + ": Fill"] + [el[0](s) for el in r[1:]]],
         lambda r: [lambda s="": [r[0] + ": SetBackground", r[1][0](s)]],
         lambda r: [lambda s="": [r[0] + ": Dump"]],
-        lambda r: [lambda s="": (lambda t: [r[0] + ": Refresh for (loop variable %s (%s))" % (t[-1], VerbosifyVariable(t[-1]))] + [el[0](t) for el in r[1:-1]] + [r[-1][0](t)[0](t)])(s + GetFreeVariable(s))],
-        lambda r: [lambda s="": (lambda t: [r[0] + ": Refresh while (loop variable %s (%s))" % (t[-1], VerbosifyVariable(t[-1]))] + [el[0](t) for el in r[1:-1]] + [r[-1][0](t)[0](t)])(s + GetFreeVariable(s))],
+        lambda r: [lambda s="": (lambda t: [r[0] + ": Refresh for (loop variable %s (%s))" % (t[-1], VerbosifyVariable(t[-1])), r[1][0](s), r[2][0](s), r[3][0](t)[0](t)])(s + GetFreeVariable(s))],
+        lambda r: [lambda s="": (lambda t: [r[0] + ": Refresh while (loop variable %s (%s))" % (t[-1], VerbosifyVariable(t[-1])), r[1][0](s), r[2][0](t), r[3][0](t)[0](t)])(s + GetFreeVariable(s))],
         lambda r: [lambda s="": [r[0] + ": Refresh", r[1][0](s)]],
         lambda r: [lambda s="": [r[0] + ": Refresh"]],
         lambda r: [lambda s="": [r[0] + ": Toggle trim"]],
@@ -322,13 +322,13 @@ ASTProcessor = {
         lambda r: [lambda s="": [r[0] + ": Extend", r[1][0](s), r[2][0](s)]],
         lambda r: [lambda s="": [r[0] + ": Extend", r[1][0](s)]],
         lambda r: [lambda s="": [r[0] + ": Push"] + [el[0](s) for el in r[1:]]],
-        lambda r: [lambda s="": [r[0] + ": Switch"] + [el[0](s) for el in r[1:]]],
-        lambda r: [lambda s="": [r[0] + ": Switch"] + [el[0](s) for el in r[1:]]],
-        lambda r: [lambda s="": [r[0] + ": Switch"] + [el[0](s) for el in r[1:]]],
-        lambda r: [lambda s="": [r[0] + ": Switch"] + [el[0](s) for el in r[1:]]],
-        lambda r: [lambda s="": [r[0] + ": Switch"] + [el[0](s) for el in r[1:]]],
-        lambda r: [lambda s="": [r[0] + ": Switch"] + [el[0](s) for el in r[1:]]],
-        lambda r: [lambda s="": (lambda t: [r[0] + ": Map (loop variable %s (%s), index variable %s (%s))" % (t[-2], VerbosifyVariable(t[-2]), t[-1], VerbosifyVariable(t[-1]))] + [el[0](t) for el in r[1:]])(s + GetFreeVariable(s, 2))],
+        lambda r: [lambda s="": [r[0] + ": Switch", r[2][0](s), r[3][0](s), r[4][0](s)[0](s)]],
+        lambda r: [lambda s="": [r[0] + ": Switch", r[2][0](s), r[3][0](s)]],
+        lambda r: [lambda s="": [r[0] + ": Switch", r[2][0](s), r[3][0](s), r[4][0](s)[0](s)]],
+        lambda r: [lambda s="": [r[0] + ": Switch", r[2][0](s), r[3][0](s)]],
+        lambda r: [lambda s="": [r[0] + ": Switch", r[1][0](s), r[2][0](s), r[3][0](s)[0](s)]],
+        lambda r: [lambda s="": [r[0] + ": Switch", r[1][0](s), r[2][0](s)]],
+        lambda r: [lambda s="": (lambda t: [r[0] + ": Map (loop variable %s (%s), index variable %s (%s))" % (t[-2], VerbosifyVariable(t[-2]), t[-1], VerbosifyVariable(t[-1])), r[1][0](s), r[2][0](t)])(s + GetFreeVariable(s, 2))],
         lambda r: [lambda s="": [r[0] + ": Execute variable"] + [el[0](s) for el in r[1:]]],
         lambda r: [lambda s="": [r[0] + ": Execute variable"] + [el[0](s) for el in r[1:]]],
         lambda r: [lambda s="": [r[0] + ": Map assign left", r[1][0](s)] + [EvaluateFunctionOrList(el, s) for el in r[2:]]],
