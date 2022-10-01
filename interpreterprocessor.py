@@ -862,13 +862,19 @@ InterpreterProcessor = {
         lambda r: lambda c: c.Clear(False),
         lambda r: lambda c: c.Extend(r[1](c), r[2](c)),
         lambda r: lambda c: c.Extend(r[1](c)),
-        lambda r: lambda c: r[1](c).append(r[2](c))
-    ] + [
+        lambda r: lambda c: r[1](c).append(r[2](c)),
+        lambda r: lambda c: dict(r[3](c)).get(r[2](c), r[4])(c),
+        lambda r: lambda c: dict(r[3](c)).get(
+            r[2](c), lambda *arguments: None
+        )(c),
+        lambda r: lambda c: dict(r[3](c)).get(r[2](c), r[4])(c),
+        lambda r: lambda c: dict(r[3](c)).get(
+            r[2](c), lambda *arguments: None
+        )(c),
         lambda r: lambda c: dict(r[2](c)).get(r[1](c), r[3])(c),
         lambda r: lambda c: dict(r[2](c)).get(
             r[1](c), lambda *arguments: None
-        )(c)
-    ] * 3 + [
+        )(c),
         lambda r: lambda c: c.Map(r[1](c), r[2], True),
         lambda r: lambda c: c.ExecuteVariable(r[1](c), r[2](c)),
         lambda r: lambda c: c.ExecuteVariable(r[1](c), [r[2](c)]),

@@ -449,6 +449,8 @@ if (0) {
 
     def test_switch(self):
         self.assertEqual(Run("≡§abc⁰⁺¹¦¹ω§abc⁰"), "a")
+        self.assertEqual(Run("≡«§abc⁰⁺¹¦¹ω§abc⁰"), "a")
+        self.assertEqual(Run("≡«§abc⁰⁺¹¦¹ω§abc⁰»"), "a")
 
     def test_slice(self):
         self.assertEqual(Run("✂abc"), "abc")
