@@ -3160,6 +3160,7 @@ Add a timeout of timeout ms before which the screen cannot be refreshed again.
         timeout /= 1000
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
+        self.scope[loop_variable] = Whatever()
         self.scope[loop_variable] = condition(self)
         while self.scope[loop_variable]:
             self.timeout_end = clock() + timeout
