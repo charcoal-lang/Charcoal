@@ -414,6 +414,7 @@ cbabc
         self.assertEqual(Run("≔⁵ιＦＳκ", "foobar"), "foobar")
         self.assertEqual(Run("≔i«ικλ»▶i⟦a¦bc¦d⟧"), "abcd")
         self.assertEqual(Run("for(5)Print('a')", verbose=True), "aaaaa")
+        self.assertEqual(Run("for(1)Assign('a',k);Print(k)", verbose=True), "a")
         self.assertEqual(
             Run(
                 "Assign(5,i);for(InputString())Print(k)",

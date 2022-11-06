@@ -372,6 +372,14 @@ class Scope(object):
         self.parent = parent or {}
         self.lookup = lookup or {}
 
+    def __next__(self):
+        key = next(filter(
+            lambda character: character not in self,
+            "ικλμνξπρςστυφχψωαβγδεζηθ"
+        ))
+        self.lookup[key] = None
+        return key
+
     def __contains__(self, key):
         return key in self.parent or key in self.lookup
 
@@ -384,10 +392,8 @@ class Scope(object):
     def __setitem__(self, key, value):
         if key in self.lookup:
             self.lookup[key] = value
-        elif key in self.parent:
-            self.parent[key] = value
         else:
-            self.lookup[key] = value
+            self.parent[key] = value
 
     def __delitem__(self, key):
         if key in self.lookup:
@@ -2815,10 +2821,7 @@ make a copy for each of the digits in rotations.
         Gets the next free variable in ικλμνξπρςστυφχψωαβγδεζηθ.
 
         """
-        return next(filter(
-            lambda character: character not in self.scope,
-            "ικλμνξπρςστυφχψωαβγδεζηθ"
-        ))
+        return next(self.scope);
 
     def For(self, expression, body):
         """
@@ -2834,13 +2837,13 @@ if expression is a number.
                 self.inputs = self.inputs[1:]
             else:
                 pass  # TODO
-        self.scope = Scope(self.scope)
-        loop_variable = self.GetFreeVariable()
         variable = expression(self)
         if isinstance(variable, float):
             variable = int(variable)
         if isinstance(variable, int):
             variable = large_range(variable)
+        self.scope = Scope(self.scope)
+        loop_variable = self.GetFreeVariable()
         for item in variable:
             self.scope[loop_variable] = item
             body(self)
@@ -2855,7 +2858,6 @@ if expression is a number.
         """
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
-        self.scope[loop_variable] = Whatever()
         self.scope[loop_variable] = condition(self)
         while self.scope[loop_variable]:
             body(self)
@@ -3160,7 +3162,6 @@ Add a timeout of timeout ms before which the screen cannot be refreshed again.
         timeout /= 1000
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
-        self.scope[loop_variable] = Whatever()
         self.scope[loop_variable] = condition(self)
         while self.scope[loop_variable]:
             self.timeout_end = clock() + timeout
@@ -3255,9 +3256,10 @@ arguments.
         """
 
         def run(function, arguments, charcoal):
-            charcoal.scope = Scope(self.scope)
+            lookup = {}
             for argument, key in zip(arguments, "ικλμνξπρςστυφχψωαβγδεζηθ"):
-                charcoal.scope[key] = argument
+                lookup[key] = argument
+            charcoal.scope = Scope(self.scope, lookup)
             function(charcoal)
             return (
                 charcoal.last_printed
@@ -3495,11 +3497,6 @@ iterable, else it returns the iterable.
         """
         if type(iterable) == Expression:
             iterable = iterable.run()
-        self.scope = Scope(self.scope)
-        loop_variable = self.GetFreeVariable()
-        self.scope[loop_variable] = 1
-        index_variable = self.GetFreeVariable()
-        result = []
         if callable(iterable):
             iterable, function = function, iterable
         if type(iterable) == Expression:
@@ -3508,6 +3505,10 @@ iterable, else it returns the iterable.
             iterable = int(iterable)
         if isinstance(iterable, int):
             iterable = list(range(iterable))
+        result = []
+        self.scope = Scope(self.scope)
+        loop_variable = self.GetFreeVariable()
+        index_variable = self.GetFreeVariable()
         for i, v in iterable.items() if isinstance(iterable, dict) else enumerate(iterable):
             self.scope[loop_variable] = v
             self.scope[index_variable] = i
@@ -3545,12 +3546,6 @@ a function is truthy.
         """
         if type(iterable) == Expression:
             iterable = iterable.run()
-        self.scope = Scope(self.scope)
-        loop_variable = self.GetFreeVariable()
-        self.scope[loop_variable] = 1
-        index_variable = self.GetFreeVariable()
-        result = []
-        indices = []
         if callable(iterable):
             iterable, function = function, iterable
         if type(iterable) == Expression:
@@ -3559,6 +3554,11 @@ a function is truthy.
             iterable = int(iterable)
         if isinstance(iterable, int):
             iterable = list(range(iterable))
+        result = []
+        indices = []
+        self.scope = Scope(self.scope)
+        loop_variable = self.GetFreeVariable()
+        index_variable = self.GetFreeVariable()
         for i, v in iterable.items() if isinstance(iterable, dict) else enumerate(iterable):
             self.scope[loop_variable] = v
             self.scope[index_variable] = i
@@ -3592,7 +3592,6 @@ iterable.
         result = 1
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
-        self.scope[loop_variable] = 1
         index_variable = self.GetFreeVariable()
         for i, v in iterable.items() if isinstance(iterable, dict) else enumerate(iterable):
             self.scope[loop_variable] = v
@@ -3620,7 +3619,6 @@ iterable.
         result = 0
         self.scope = Scope(self.scope)
         loop_variable = self.GetFreeVariable()
-        self.scope[loop_variable] = 1
         index_variable = self.GetFreeVariable()
         for i, v in iterable.items() if isinstance(iterable, dict) else enumerate(iterable):
             self.scope[loop_variable] = v
