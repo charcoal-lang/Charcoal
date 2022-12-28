@@ -75,8 +75,6 @@ def product(item):
 
 
 def Negate(item):
-    if isinstance(item, int) or isinstance(item, float) or isinstance(item, Number):
-        return -item
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
@@ -87,11 +85,10 @@ def Negate(item):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Negate)
+    return -item
 
 
 def Abs(item):
-    if isinstance(item, int) or isinstance(item, float):
-        return abs(item)
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
@@ -102,6 +99,7 @@ def Abs(item):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Abs)
+    return abs(item)
 
 
 def Sum(item):
@@ -216,12 +214,11 @@ def Incremented(item):
         item = str(item)
     if isinstance(item, str):
         item = float(item) if "." in item else int(item)
-    if isinstance(item, float) or isinstance(item, int):
-        return item + 1
     if hasattr(item, "__iter__"):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Incremented)
+    return item + 1
 
 
 def Decremented(item):
@@ -231,12 +228,11 @@ def Decremented(item):
         item = str(item)
     if isinstance(item, str):
         item = float(item) if "." in item else int(item)
-    if isinstance(item, float) or isinstance(item, int):
-        return item - 1
     if hasattr(item, "__iter__"):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Decremented)
+    return item - 1
 
 
 def Doubled(item):
@@ -246,12 +242,11 @@ def Doubled(item):
         item = str(item)
     if isinstance(item, str):
         item = float(item) if "." in item else int(item)
-    if isinstance(item, float) or isinstance(item, int):
-        return item * 2
     if hasattr(item, "__iter__"):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Doubled)
+    return item * 2
 
 
 def Halved(item):
@@ -261,12 +256,11 @@ def Halved(item):
         item = str(item)
     if isinstance(item, str):
         item = float(item) if "." in item else int(item)
-    if isinstance(item, float) or isinstance(item, int):
-        return item / 2 if item % 2 else item // 2
     if hasattr(item, "__iter__"):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, Halved)
+    return item / 2 if item % 2 else item // 2
 
 
 def SquareRoot(item):
@@ -276,12 +270,11 @@ def SquareRoot(item):
         item = str(item)
     if isinstance(item, str):
         item = float(item)
-    if isinstance(item, float) or isinstance(item, int):
-        return item ** 0.5
     if hasattr(item, "__iter__"):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         return iter_apply(item, SquareRoot)
+    return item ** 0.5
 
 
 def Lower(item):
@@ -300,33 +293,31 @@ def Lower(item):
 
 
 def Min(item):
-    if isinstance(item, int) or isinstance(item, float):
-        return floor(item)
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
         return item and min(item)
-    if hasattr(item, "__iter__") and item:
-        if isinstance(item[0], Expression):
+    if hasattr(item, "__iter__"):
+        if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
-        return min(item)
+        return min(item) if item else None
+    return floor(item)
 
 
 def Max(item):
-    if isinstance(item, int) or isinstance(item, float):
-        return ceil(item)
     if isinstance(item, Expression):
         item = item.run()
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
         return item and max(item)
-    if hasattr(item, "__iter__") and item:
-        if isinstance(item[0], Expression):
+    if hasattr(item, "__iter__"):
+        if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
-        return max(item)
+        return max(item) if item else None
+    return ceil(item)
 
 
 def Upper(item):
