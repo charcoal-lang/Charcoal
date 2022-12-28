@@ -1788,6 +1788,7 @@ O---
         self.assertEqual(Run("ＩΣ5..4"), "5.4")
         self.assertEqual(Run("ＩΣ⁰¹²³⁴⁵⁶⁷⁸⁹⁰¹²³⁴⁵⁶⁷⁸⁹"), "90")
         self.assertEqual(Run("ＩΣ01234567890123456789"), "90")
+        self.assertEqual(Run("ＩΣ¹·²⁵"), "8")
         self.assertEqual(Run("ＩΠ⟦³¦²¦¹⟧"), "6")
         self.assertEqual(Run("ＩΠ3 2 1 4"), "24")
         self.assertEqual(Run("ＩΠ3 2 1 4"), "24")
@@ -1795,6 +1796,7 @@ O---
         self.assertEqual(Run("ＩΠ12345"), "120")
         self.assertEqual(Run("ＩΠ¹²³⁴⁵"), "120")
         self.assertEqual(Run("ＩΠ⟦"), "1")
+        self.assertEqual(Run("ＩΠ¹·²⁵"), "10")
 
     def test_map_assign(self):
         self.assertEqual(Run("≔⟦³¦²¦¹⟧β≧×²ββ"), "------\n----  \n--    ")

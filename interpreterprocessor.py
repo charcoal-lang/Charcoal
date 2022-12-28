@@ -105,17 +105,18 @@ def Abs(item):
 
 
 def Sum(item):
-    if isinstance(item, float):
-        item = int(item)
+    if isinstance(item, Expression):
+        item = item.run()
     if isinstance(item, int):
+        item = abs(item)
         result = 0
         while item:
             result += item % 10
             item //= 10
         return result
-    if isinstance(item, Expression):
-        item = item.run()
-    if isinstance(item, String):
+    if isinstance(item, float):
+        item = str(abs(item)).split("e")[0]
+    if not hasattr(item, "__iter__"):
         item = str(item)
     if isinstance(item, str):
         if all(c in "0123456789." for c in item) and item.count(".") < 2:
@@ -124,7 +125,7 @@ def Sum(item):
             float(c) if "." in c else int(c)
             for c in re.findall("\d+\.?\d*|\.\d+", item)
         )
-    if hasattr(item, "__iter__") and item:
+    if item:
         if isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
         if isinstance(item[0], str):
@@ -137,32 +138,32 @@ def Sum(item):
 
 
 def Product(item):
-    if isinstance(item, float):
-        item = int(item)
+    if isinstance(item, Expression):
+        item = item.run()
     if isinstance(item, int):
+        item = abs(item)
         result = 1
         while item:
             result *= item % 10
             item //= 10
         return result
-    if isinstance(item, Expression):
-        item = item.run()
-    if isinstance(item, String):
+    if isinstance(item, float):
+        item = format(abs(item), ".15e").split("e")[0].strip("0")
+    if not hasattr(item, "__iter__"):
         item = str(item)
     if isinstance(item, str):
         if all(c in "0123456789." for c in item) and item.count(".") < 2:
-            return product([0 if c == "." else int(c) for c in item])
+            return product([1 if c == "." else int(c) for c in item])
         return product(
             float(c) if "." in c else int(c)
             for c in re.findall("\d+\.?\d*|\.\d+", item)
         )
-    if hasattr(item, "__iter__"):
-        if item and isinstance(item[0], Expression):
-            item = iter_apply(item, lambda o: o.run())
-        # TODO: cartesian product?
-        # if isinstance(item[0], list):
-        #     return sum(item, [])
-        return product(item)
+    if item and isinstance(item[0], Expression):
+        item = iter_apply(item, lambda o: o.run())
+    # TODO: cartesian product?
+    # if isinstance(item[0], list):
+    #     return sum(item, [])
+    return product(item)
 
 
 def vectorize(fn, afn=None, cast_string=True):
