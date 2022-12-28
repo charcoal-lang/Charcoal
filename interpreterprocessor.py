@@ -9,6 +9,7 @@ from wolfram import (
 )
 import re
 from math import floor, ceil
+from ast import literal_eval
 
 
 def FindAll(haystack, needle):
@@ -117,12 +118,11 @@ def Sum(item):
     if not hasattr(item, "__iter__"):
         item = str(item)
     if isinstance(item, str):
-        if all(c in "0123456789." for c in item) and item.count(".") < 2:
-            return sum([0 if c == "." else int(c) for c in item])
-        return sum(
-            float(c) if "." in c else int(c)
-            for c in re.findall("\d+\.?\d*|\.\d+", item)
-        )
+        if (all(c in "0123456789.-" for c in item) and
+            item.count(".") < 2 and
+            not "-" in item[1:]):
+            return sum([0 if c < "0" else int(c) for c in item])
+        return sum(map(literal_eval, re.findall("-?\d*\.?\d+|-?\d+", item)))
     if item:
         if isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
@@ -150,12 +150,11 @@ def Product(item):
     if not hasattr(item, "__iter__"):
         item = str(item)
     if isinstance(item, str):
-        if all(c in "0123456789." for c in item) and item.count(".") < 2:
-            return product([1 if c == "." else int(c) for c in item])
-        return product(
-            float(c) if "." in c else int(c)
-            for c in re.findall("\d+\.?\d*|\.\d+", item)
-        )
+        if (all(c in "0123456789.-" for c in item) and
+            item.count(".") < 2 and
+            not "-" in item[1:]):
+            return product([int(c) for c in item if c >= "0"])
+        return product(map(literal_eval, re.findall("-?\d*\.?\d+|-?\d+", item)))
     if item and isinstance(item[0], Expression):
         item = iter_apply(item, lambda o: o.run())
     # TODO: cartesian product?
@@ -199,9 +198,9 @@ def vectorize(fn, afn=None, cast_string=True):
             except:
                 return result_type(result, left if left_is_iterable else right)
         if cast_string and left_type == str:
-            left = (float if "." in left else int)(left)
+            left = literal_eval(left)
         if cast_string and right_type == str:
-            right = (float if "." in right else int)(right)
+            right = literal_eval(right)
         return fn(left, right, c)
 
     return vectorized
@@ -213,7 +212,7 @@ def Incremented(item):
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
-        item = float(item) if "." in item else int(item)
+        item = literal_eval(item)
     if hasattr(item, "__iter__"):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
@@ -227,7 +226,7 @@ def Decremented(item):
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
-        item = float(item) if "." in item else int(item)
+        item = literal_eval(item)
     if hasattr(item, "__iter__"):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
@@ -241,7 +240,7 @@ def Doubled(item):
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
-        item = float(item) if "." in item else int(item)
+        item = literal_eval(item)
     if hasattr(item, "__iter__"):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
@@ -255,7 +254,7 @@ def Halved(item):
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
-        item = float(item) if "." in item else int(item)
+        item = literal_eval(item)
     if hasattr(item, "__iter__"):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
@@ -269,7 +268,7 @@ def SquareRoot(item):
     if isinstance(item, String):
         item = str(item)
     if isinstance(item, str):
-        item = float(item)
+        item = literal_eval(item)
     if hasattr(item, "__iter__"):
         if item and isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())

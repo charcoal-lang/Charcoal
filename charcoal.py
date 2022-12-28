@@ -2889,28 +2889,15 @@ or into a number if it was a string.
         """
         if isinstance(variable, list):
             return [self.Cast(item) for item in variable]
-        if isinstance(variable, str):
-            return float(variable) if "." in variable else int(variable or "0")
-        if isinstance(variable, float):
-            if not round(variable, 15) % 1:
-                return str(int(variable))
-            return str(variable)
-        if isinstance(variable, int):
-            return str(variable)
-        if isinstance(variable, String):
-            return int(str(variable) or "0")
         if isinstance(variable, Expression):
             variable = variable.run()
-            if isinstance(variable, String):
-                variable = str(variable)
-                return (
-                    float(variable)
-                    if "." in variable else
-                    int(variable or "0")
-                )
-            if isinstance(variable, List):
-                return List(*(self.Cast(item) for item in variable))
-            return str(variable)
+        if isinstance(variable, String):
+            variable = str(variable)
+        if isinstance(variable, str):
+            return literal_eval(variable or "0")
+        if isinstance(variable, float):
+            return "%.16g" % variable
+        return str(variable)
 
     def ChrOrd(self, variable):
         """
@@ -3036,13 +3023,9 @@ else set the variable with the given name to the given value.
         elif Info.prompt in self.info:
             result = input("Enter input: ")
             self.original_inputs += [result]
-        if (
-            number and
-            not isinstance(result, int) and
-            not isinstance(result, float)
-        ):
+        if number and isinstance(result, str):
             try:
-                result = (float if "." in result else int)(result)
+                result = literal_eval(result)
             except:
                 result = 0
         if string:
@@ -3849,9 +3832,9 @@ iterable.
                 return self.BaseString(item, base)
             result = 0
             for element in item:
-                result = result * base + (
-                    element if isinstance(element, float) else int(element)
-                )
+                if isinstance(element, str):
+                    element = literal_eval(element or "0")
+                result = result * base + element
             return result
         result, negative = [], False
         if item < 0:
