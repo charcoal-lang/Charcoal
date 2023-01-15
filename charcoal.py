@@ -4701,10 +4701,10 @@ given data in UTF-8.
     """
     array = []
     for original in data:
-        character = ReverseLookup.get(original, original)
-        ordinal = ord(character)
-        if InCodepage(original) or ordinal < 256:
-            array.append(ordinal)
+        ordinal = ord(original)
+        if InCodepage(original):
+            character = ReverseLookup.get(original, original)
+            array.append(ord(character))
         elif ordinal < 16512:
             code = ordinal - 128
             array.append(0xFF)
