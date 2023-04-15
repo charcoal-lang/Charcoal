@@ -20,6 +20,7 @@ charset_fragment_lookup = {
 default_charset = (
     whitespace + symbols + ascii_lowercase + digits + ascii_uppercase
 )
+Codepage = Codepage[:]
 Codepage.remove("”")
 gap = OrdinalLookup["”"]
 RAW_ENCODING = 120
