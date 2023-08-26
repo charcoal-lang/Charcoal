@@ -291,18 +291,18 @@ VerboseGrammars = {
         ["ReflectCopy", CT.LP, CT.RP, CT.S],
         [
             "RotateOverlapOverlap", CT.LP, CT.Arrow, CT.S, CT.Number, CT.S,
-            CT.Fix, CT.Fix, CT.RP, CT.S
+            CT.Fix, CT.RP, CT.S
         ],
         [
-            "RotateOverlapOverlap", CT.LP, CT.Arrow, CT.S, CT.Number, CT.S,
+            "RotateOverlapOverlap", CT.LP, CT.Arrow, CT.S, CT.Fix, CT.S,
             CT.Fix, CT.RP, CT.S
         ],
         [
             "RotateOverlapOverlap", CT.LP, CT.Arrow, CT.S, CT.Fix,
-            CT.Fix, CT.RP, CT.S
+            CT.RP, CT.S
         ],
         [
-            "RotateOverlapOverlap", CT.LP, CT.Arrow, CT.S, CT.Fix,
+            "RotateOverlapOverlap", CT.LP, CT.Number, CT.S, CT.Fix,
             CT.RP, CT.S
         ],
         [
@@ -316,18 +316,18 @@ VerboseGrammars = {
         ["RotateOverlap", CT.LP, CT.RP, CT.S],
         [
             "RotateShutterOverlap", CT.LP, CT.Arrow, CT.S, CT.Number, CT.S,
-            CT.Fix, CT.Fix, CT.RP, CT.S
+            CT.Fix, CT.RP, CT.S
         ],
         [
-            "RotateShutterOverlap", CT.LP, CT.Arrow, CT.S, CT.Number, CT.S,
+            "RotateShutterOverlap", CT.LP, CT.Arrow, CT.S, CT.Fix, CT.S,
             CT.Fix, CT.RP, CT.S
         ],
         [
             "RotateShutterOverlap", CT.LP, CT.Arrow, CT.S, CT.Fix,
-            CT.Fix, CT.RP, CT.S
+            CT.RP, CT.S
         ],
         [
-            "RotateShutterOverlap", CT.LP, CT.Arrow, CT.S, CT.Fix,
+            "RotateShutterOverlap", CT.LP, CT.Number, CT.S, CT.Fix,
             CT.RP, CT.S
         ],
         [
