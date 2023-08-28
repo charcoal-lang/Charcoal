@@ -4485,8 +4485,9 @@ name is not.
     if len(tree) > 1:
         for item in tree[1:-1]:
             if isinstance(item, list):
-                print(new_padding + item[0])
-                PrintTree(item, new_padding, print)
+                if item:
+                    print(new_padding + item[0])
+                    PrintTree(item, new_padding, print)
             else:
                 if isinstance(item, str):
                     print(new_padding + repr(item)[1:-1])
