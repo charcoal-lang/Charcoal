@@ -38,7 +38,7 @@ except Exception as e:
 
 
 generator = type(i for i in [])
-r_whitespace = re_compile("\s+")
+r_whitespace = re_compile(r"\s+")
 prime_cache = [2, 3]
 
 
@@ -1463,12 +1463,12 @@ class Except(Pattern):
         self.head = headify(RepeatedNull)
 
 date_pattern_lookup = {
-    "S": "(?:[0-5]\d|60)",
-    "Second": "(?:[0-5]\d|60)",
-    "M": "(?:[0-5]\d|60)",
-    "Minute": "(?:[0-5]\d|60)",
-    "H": "(?:[01]\d|2[0-3])",
-    "Hour": "(?:[01]\d|2[0-3])",
+    "S": r"(?:[0-5]\d|60)",
+    "Second": r"(?:[0-5]\d|60)",
+    "M": r"(?:[0-5]\d|60)",
+    "Minute": r"(?:[0-5]\d|60)",
+    "H": r"(?:[01]\d|2[0-3])",
+    "Hour": r"(?:[01]\d|2[0-3])",
     "AP": "(?i:[ap]m)",
     "AMPM": "(?i:[ap]m)",
     "D": "(?:0[1-9]|[12][0-9]|3[01])",
@@ -1483,8 +1483,8 @@ Sa(?:t(?:urday)?)?|Su(?:n(?:Day)?)?)",
     "Month": "(?:[1-9]|1[0-2])",
     "Q": "[qQ][1-4]",
     "Quarter": "[qQ][1-4]",
-    "Y": "\d\d(?:\d\d)?",
-    "Year": "\d\d(?:\d\d)?",
+    "Y": r"\d\d(?:\d\d)?",
+    "Year": r"\d\d(?:\d\d)?",
 }
 # TODO: date pattern, need to test on mathematica e.g. feb 30 and hour 24
 
@@ -2337,16 +2337,16 @@ class Wolfram(object):
         return boolean(match("[ -~]*$", str(leaves[0])))
 
     def LetterQ(leaves, precision=None):
-        return boolean(match("\p{L}*$", str(leaves[0])))
+        return boolean(match(r"\p{L}*$", str(leaves[0])))
 
     def UpperCaseQ(leaves, precision=None):
-        return boolean(match("\p{Lu}*$", str(leaves[0])))
+        return boolean(match(r"\p{Lu}*$", str(leaves[0])))
 
     def LowerCaseQ(leaves, precision=None):
-        return boolean(match("\p{Ll}*$", str(leaves[0])))
+        return boolean(match(r"\p{Ll}*$", str(leaves[0])))
 
     def DigitQ(leaves, precision=None):
-        return boolean(match("\d*$", str(leaves[0])))
+        return boolean(match(r"\d*$", str(leaves[0])))
 
     def CharacterRange(leaves, precision=None):
         if isinstance(leaves[0], String):

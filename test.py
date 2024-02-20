@@ -491,7 +491,7 @@ Print(Slice('asdf')); Print(1);", verbose=True), "asdf-")
         self.assertEqual(Run("---‖Ｔ↖"), "|\n|\n|")
 
     def test_rotate_transform(self):
-        self.assertEqual(Run("|¶-¶/¶\¶v¶^¶<¶>⟲Ｔ²"), "-|\/v^<>")
+        self.assertEqual(Run("|¶-¶/¶\\¶v¶^¶<¶>⟲Ｔ²"), "-|\\/v^<>")
         # TODO: should v^<> be rotated
 
     def test_rotate_prism(self):
@@ -1358,7 +1358,7 @@ a****
 *   *""")
 
     def test_reflect_butterfly(self):
-        self.assertEqual(Run("<<|\\‖Ｂ→"), "<<|\|>>")
+        self.assertEqual(Run("<<|\\‖Ｂ→"), "<<|\\|>>")
         self.assertEqual(Run("foobar¶‖Ｂ↓a"), """\
 foobar
 a     
@@ -1731,18 +1731,18 @@ Print(Cast(Reduce([1,2,3,4,5,6,7],{Plus(i,k)})))", verbose=True), "28")
 
     def test_direction(self):
         self.assertEqual(Run("ＦＮ✳§⟦↘→↗→⟧ι⁻θ¹O", "5"), """\
-\           ----\    
- \         /     \   
-  \       /       \  
-   \     /         \ 
+\\           ----\\    
+ \\         /     \\   
+  \\       /       \\  
+   \\     /         \\ 
     ----/           O""")
         self.assertEqual(Run("ＦＮＰ✳✳⟦dr¦r¦ur¦r⟧⁻θ¹O", "5"), """\
    /
   / 
  /  
 O---
- \  
-  \ 
+ \\  
+  \\ 
    \\""")
         self.assertEqual(Run("ＦＮＰ✳✳⟦d¦r¹r⟧⁻θ¹O", "5"), """\
    /
@@ -1921,11 +1921,11 @@ the\ncat\nin \nthe\nhat")
 ▷StringSplit⟦11a22b3？≕_≕LetterQ⟧"), "11\n22\n3 ")
         self.assertEqual(Run("\
 ▷StringSplit⟦A tree, an apple, four pears. And more: two sacks\
-▷RegularExpression⟦\W+⟧⟧"), "\
+▷RegularExpression⟦\\W+⟧⟧"), "\
 A    \ntree \nan   \napple\nfour \npears\nAnd  \nmore \ntwo  \nsacks")
         self.assertEqual(Run("\
 ▷StringSplit⟦primes: 2 two 3 three 5 five ...\
-⁺⁺≕Whitespace▷RegularExpression⟦\d⟧≕Whitespace⟧"), "\
+⁺⁺≕Whitespace▷RegularExpression⟦\\d⟧≕Whitespace⟧"), "\
 primes: \ntwo     \nthree   \nfive ...")
         self.assertEqual(Run("▷StringSplit⟦a-b:c-d:e-f-g¦⟦:¦-⟧⟧"), "\
 a\nb\nc\nd\ne\nf\ng")
@@ -2402,7 +2402,7 @@ Fill('3.141592653589793238462643383279502884197169')""", verbose=True),
  /##\\ 
 /####\\
 |####|
-\____/"""
+\\____/"""
         )
         self.assertEqual(
             Run(

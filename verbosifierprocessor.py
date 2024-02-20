@@ -174,8 +174,8 @@ UnicodeGrammars = {
         lambda r: [("o", "Base")],
         lambda r: [("o", "BaseString")]
     ],
-    CT.Ternary: [lambda r: [("o", "Slice")],
-    CT.Quarternary: [lambda r: [("o", "Slice")],
+    CT.Ternary: [lambda r: [("o", "Slice")]],
+    CT.Quarternary: [lambda r: [("o", "Slice")]],
     CT.LazyUnary: [],
     CT.LazyBinary: [lambda r: [("o", "And")], lambda r: [("o", "Or")]],
     CT.LazyTernary: [lambda r: [("o", "Ternary")]],

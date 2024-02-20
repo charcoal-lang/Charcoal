@@ -4618,7 +4618,7 @@ symbols they represent.
 
 
 def Degrave(code):
-    return re.sub("``([\s\S])|`([\s\S])", lambda match: (
+    return re.sub(r"``([\s\S])|`([\s\S])", lambda match: (
         {
             "`": "`", " ": "´", "4": "←", "8": "↑", "6": "→", "2": "↓",
             "7": "↖", "9": "↗", "3": "↘", "1": "↙", "#": "№", "<": "↶",
@@ -5014,7 +5014,7 @@ non-raw file input and file output."""
         else:
             warn(
                 "Charcoal, %i bytes: [`%s`](%s)" % (
-                    length, re.sub("`", "\`", code),
+                    length, re.sub("`", "\\`", code),
                     TIOEncode(verbose, argv.input, sys.argv[4:])
                 )
             )

@@ -269,7 +269,7 @@ else:
             'u': pop_cursor,
         }
         # Match either escape sequence or text not containing escape sequence
-        ansi_tokens = re.compile('(?:\x1b\[([0-9?;]*)([a-zA-Z])|([^\x1b]+))')
+        ansi_tokens = re.compile(r'(?:\x1b\[([0-9?;]*)([a-zA-Z])|([^\x1b]+))')
 
         def write(self, text):
             try:

@@ -10,7 +10,7 @@ except:
     print("Please install the 'brotli' module: 'sudo -H pip3 install brotli'")
     __import__("sys").exit()
 
-symbols = ".!\"#$%&'()*+,-/:;<=>?@[\]^_`{|}~\r"
+symbols = ".!\"#$%&'()*+,-/:;<=>?@[\\]^_`{|}~\r"
 whitespace = "\n "
 default_order = "wslnu"
 charset_fragment_lookup = {

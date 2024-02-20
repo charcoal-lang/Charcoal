@@ -63,7 +63,7 @@ def itersplit(iterable, number):
 
 
 def _int(obj):
-    if isinstance(obj, str) and re.match("\d+\.?\d*$", obj):
+    if isinstance(obj, str) and re.match(r"\d+\.?\d*$", obj):
         return int(float(obj))
     return int(obj)
 
@@ -122,7 +122,7 @@ def Sum(item):
             item.count(".") < 2 and
             not "-" in item[1:]):
             return sum([0 if c < "0" else int(c) for c in item])
-        return sum(map(literal_eval, re.findall("-?\d*\.?\d+|-?\d+", item)))
+        return sum(map(literal_eval, re.findall(r"-?\d*\.?\d+|-?\d+", item)))
     if item:
         if isinstance(item[0], Expression):
             item = iter_apply(item, lambda o: o.run())
@@ -154,7 +154,7 @@ def Product(item):
             item.count(".") < 2 and
             not "-" in item[1:]):
             return product([int(c) for c in item if c >= "0"])
-        return product(map(literal_eval, re.findall("-?\d*\.?\d+|-?\d+", item)))
+        return product(map(literal_eval, re.findall(r"-?\d*\.?\d+|-?\d+", item)))
     if item and isinstance(item[0], Expression):
         item = iter_apply(item, lambda o: o.run())
     # TODO: cartesian product?
@@ -384,7 +384,7 @@ def direction(dir):
                 Direction.right, Direction.up_right, Direction.up,
                 Direction.up_left, Direction.left, Direction.down_left,
                 Direction.down, Direction.down_right
-            ][int(re.search("\d+", dir).group()) % 8]
+            ][int(re.search(r"\d+", dir).group()) % 8]
         else:
             return 0
 
