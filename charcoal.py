@@ -678,22 +678,6 @@ an object on which all canvas drawing methods exist.
         length = end - start
         return (bg_line * (length // self.bg_line_length + 1))[:length]
 
-    def Lines(self):
-        """
-        Lines() -> list[str]
-
-        Returns the canvas padded to the leftmost and rightmost columns.
-
-        """
-        left = min(self.indices)
-        right = max(self.right_indices)
-        return [
-            "\000" * (index - left) + line + "\000" * (right - right_index)
-            for line, index, right_index in zip(
-                self.lines, self.indices, self.right_indices
-            )
-        ]
-
     def AddInputs(self, inputs):
         """
         AddInputs(inputs)
@@ -2688,104 +2672,55 @@ make a copy for each of the digits in rotations.
         rotations = int(rotations) % 8
         if not rotations:
             return
-        left = min(self.indices)
-        right = max(self.right_indices)
-        if rotations == 2:
-            if transform:
-                self.lines = [
-                    "".join(
-                        RotateLeft.get(character, character)
-                        for character in line
-                    )
-                    for line in self.lines
-                ]
-            lines = self.Lines()
-            number_of_lines = len(lines[0])
-            self.indices = [self.top] * number_of_lines
-            self.lengths = [len(lines)] * number_of_lines
-            self.right_indices = (
-                [self.top + len(self.lines)] * number_of_lines
-            )
-            self.lines = [""] * number_of_lines
-            for i in range(number_of_lines):
-                for j in range(len(lines)):
-                    self.lines[i] += lines[j][number_of_lines - i - 1]
-            self.top = -right + 1
-            self.x, self.y = self.y, -self.x
-        elif rotations == 4:
-            if transform:
-                self.lines = [
-                    "".join(
-                        RotateDown.get(character, character)
-                        for character in line
-                    )
-                    for line in self.lines
-                ]
-            self.right_indices, self.indices = (
-                [-index + 1 for index in self.indices][::-1],
-                [-right_index + 1 for right_index in self.right_indices][::-1]
-            )
-            self.lengths.reverse()
-            self.lines = [line[::-1] for line in self.lines][::-1]
-            self.top = -self.top - len(self.lines) + 1
-            self.x, self.y = -self.x, -self.y
-        elif rotations == 6:
-            if transform:
-                self.lines = [
-                    "".join(
-                        RotateRight.get(character, character)
-                        for character in line
-                    )
-                    for line in self.lines
-                ]
-            x, y = self.x, self.y
-            lines = self.Lines()
-            if lines == [""]:
-                lines = ["\x00"]
-            number_of_lines = len(lines[0])
-            line_length = len(lines)
-            self.indices = [-self.top - len(self.lines) + 1] * number_of_lines
-            self.lengths = [len(lines)] * number_of_lines
-            self.right_indices = [-self.top + 1] * number_of_lines
-            self.lines = [""] * number_of_lines
-            for i in range(number_of_lines):
-                for j in range(line_length):
-                    self.lines[i] += lines[line_length - j - 1][i]
-            self.top, self.x, self.y = left, -self.y, self.x
-        else:
-            self.Move({
-                1: Direction.up_left,
-                5: Direction.down_right,
-                3: Direction.down_left,
-                7: Direction.up_right
-            }[rotations], self.top)
-            self.Move({
-                1: Direction.down_left,
-                3: Direction.down_right,
-                5: Direction.up_right,
-                7: Direction.up_left
-            }[rotations], min(self.indices))
-            string = str(self)
-            self.Clear(False)
-            self.Print(string, directions={{
-                1: Direction.up_right,
-                3: Direction.up_left,
-                5: Direction.down_left,
-                7: Direction.down_right
-            }[rotations]})
+        old_x = self.x
+        old_y = self.y
+        old_top = self.top
+        old_lines = self.lines
+        old_indices = self.indices
+        old_lengths = self.lengths
+        self.top = 0
+        self.lines = [""]
+        self.indices = [0]
+        self.lengths = [0]
+        self.right_indices = [0]
+        directions = {{
+            1: Direction.up_right,
+            2: Direction.up,
+            3: Direction.up_left,
+            4: Direction.left,
+            5: Direction.down_left,
+            6: Direction.down,
+            7: Direction.down_right,
+        }[rotations]}
+        rotator = {
+            1: lambda x, y: (y + x, y - x),
+            2: lambda x, y: (y, -x),
+            3: lambda x, y: (y - x, -y - x),
+            4: lambda x, y: (-x, -y),
+            5: lambda x, y: (-x - y, x - y),
+            6: lambda x, y: (-y, x),
+            7: lambda x, y: (x - y, x + y),
+        }[rotations]
+        for i in range(len(old_lines)):
+            self.x, self.y = rotator(old_indices[i], old_top + i)
+            self.PrintLine(directions, old_lengths[i], old_lines[i])
+        self.x, self.y = rotator(old_x, old_y)
+        if transform:
             transformer = ({
                 1: RotateHalfLeft,
+                2: RotateLeft,
                 3: RotateThreeHalvesLeft,
+                4: RotateDown,
                 5: RotateThreeHalvesRight,
+                6: RotateRight,
                 7: RotateHalfRight
             })[rotations]
-            if transform:
-                self.lines = [
-                    "".join(
-                        transformer.get(character, character)
-                        for character in line
-                    ) for line in self.lines
-                ]
+            self.lines = [
+                "".join(
+                    transformer.get(character, character)
+                    for character in line
+                ) for line in self.lines
+            ]
         if Info.step_canvas in self.info:
             self.RefreshFastText((
                 "Rotate transform"

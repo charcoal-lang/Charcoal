@@ -1372,15 +1372,14 @@ foopar""")
 a e i
  d h 
   g  """)
-        self.assertEqual(Run("abc¶def¶ghi⟲¹a"), """\
-  c   
- b f a
-a e i 
- d h  
-  g   """)
-        self.assertEqual(Run("abc¶def¶ghi⟲³a"), """\
- a   
-  i  
+        self.assertEqual(Run("abc¶def¶ghi↑⟲¹a"), """\
+  c a
+ b f 
+a e i
+ d h 
+  g  """)
+        self.assertEqual(Run("abc¶def¶ghi↑⟲³a"), """\
+a i  
  f h 
 c e g
  b d 
@@ -2420,11 +2419,11 @@ Fill('3.141592653589793238462643383279502884197169')""", verbose=True),
 Congratulations on your new baby! :D⟲²""",
                 "4"
             ), """\
- $ $ $ $  
- | | | |  
---------- 
-~~~~~~~~~ 
---------- """
+ $ $ $ $ 
+ | | | | 
+---------
+~~~~~~~~~
+---------"""
         )
         self.assertEqual(Run("Ｇ↗↘←Ｎ*Ｍ↓*", "4"), """\
    *   
