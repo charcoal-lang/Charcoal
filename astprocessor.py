@@ -136,7 +136,7 @@ ASTProcessor = {
         lambda r: [lambda s="": [el[0](s) for el in r[:-1]]]
     ] * 17,
     CT.ExpressionOrEOF: [
-        lambda r: [lambda s="": r[0]],
+        lambda r: [lambda s="": r[0][0](s)],
         lambda r: [lambda s="": [": Input"]]
     ],
     CT.Nilary: [
